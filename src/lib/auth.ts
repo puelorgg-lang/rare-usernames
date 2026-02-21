@@ -87,8 +87,5 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
-  pages: {
-    signIn: "/auth/signin",
-    // error: "/auth/error", // Commented out to use default NextAuth error page
-  },
+  // Use default NextAuth signin page
 }
