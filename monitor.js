@@ -43,14 +43,14 @@ const pendingSearches = new Map();
 
 // API endpoint for search from web
 app.post('/api/search', async (req, res) => {
-    const { userId, option, channelId, serverId } = req.body;
+    const { query, option, channelId, serverId } = req.body;
     
-    if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
+    if (!query) {
+        return res.status(400).json({ error: 'Query (ID or username) is required' });
     }
 
     // Create a unique ID for this search
-    const searchId = `${userId}-${Date.now()}`;
+    const searchId = `${query}-${Date.now()}`;
     
     // Store resolve/reject functions
     const searchPromise = new Promise((resolve, reject) => {
@@ -71,14 +71,15 @@ app.post('/api/search', async (req, res) => {
         console.log('🔍 Client ready:', client.isReady());
         console.log('🔍 Client user:', client.user ? client.user.tag : 'No user');
         console.log('🔍 Channel ID:', channelId || SEARCH_CHANNEL_ID);
+        console.log('🔍 Query:', query);
         
         if (client && client.isReady()) {
             const channel = await client.channels.fetch(channelId || SEARCH_CHANNEL_ID);
             console.log('🔍 Channel found:', !!channel);
             
             if (channel) {
-                await channel.send(`zui ${userId}`);
-                console.log(`🔍 Sent search command for user ${userId}`);
+                await channel.send(`zui ${query}`);
+                console.log(`🔍 Sent search command for: ${query}`);
                 
                 // Wait for response from zany bot
                 const result = await searchPromise;

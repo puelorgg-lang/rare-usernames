@@ -7,16 +7,16 @@ const SELFBOT_URL = process.env.SELFBOT_URL || "http://localhost:3001" // Selfbo
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const userId = searchParams.get("userId")
+  const query = searchParams.get("query")
   const option = searchParams.get("option") || "avatar"
 
-  if (!userId) {
-    return NextResponse.json({ error: "ID do usuário é obrigatório" }, { status: 400 })
+  if (!query) {
+    return NextResponse.json({ error: "ID ou username é obrigatório" }, { status: 400 })
   }
 
   try {
     // Send request to selfbot to search for profile
-    console.log('Sending search request to selfbot for user:', userId)
+    console.log('Sending search request to selfbot for:', query)
     
     const response = await fetch(`${SELFBOT_URL}/api/search`, {
       method: "POST",
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        userId,
+        query,
         option,
         channelId: CHANNEL_ID,
         serverId: SERVER_ID,

@@ -60,7 +60,7 @@ export default function SearchPage() {
     setResult(null)
 
     try {
-      const res = await fetch(`/api/search?userId=${encodeURIComponent(userId)}&option=${selectedOption}`)
+      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=${selectedOption}`)
       const data = await res.json()
       
       if (data.error) {
@@ -106,7 +106,7 @@ export default function SearchPage() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Digite o ID do usuário..."
+                placeholder="Digite o ID ou username..."
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
                 className="bg-white/5 border-white/10"
