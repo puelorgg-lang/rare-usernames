@@ -200,7 +200,7 @@ async function handleZanyBotResponse(message) {
             
             // Parse the embed to extract all information
             const embed = message.embeds[0];
-            const result = parseZanyEmbed(embed);
+            const result = parseZanyEmbed(embed, message.content);
             
             pending.resolve(result);
             pendingSearches.delete(searchId);
@@ -387,7 +387,7 @@ function parseZanyEmbed(embed, messageContent) {
     }
 
     // Try to extract user ID from message
-    const idMatch = messageContent.match(/\d{17,19}/);
+    const idMatch = messageContent && messageContent.match(/\d{17,19}/);
     if (idMatch) {
         result.userId = idMatch[0];
     }
