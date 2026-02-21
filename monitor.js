@@ -70,9 +70,12 @@ app.post('/api/search', async (req, res) => {
         console.log('🔍 Checking selfbot status...');
         console.log('🔍 Client ready:', client.isReady());
         console.log('🔍 Client user:', client.user ? client.user.tag : 'No user');
+        console.log('🔍 Channel ID:', channelId || SEARCH_CHANNEL_ID);
         
         if (client && client.isReady()) {
             const channel = await client.channels.fetch(channelId || SEARCH_CHANNEL_ID);
+            console.log('🔍 Channel found:', !!channel);
+            
             if (channel) {
                 await channel.send(`zui ${userId}`);
                 console.log(`🔍 Sent search command for user ${userId}`);
@@ -81,10 +84,12 @@ app.post('/api/search', async (req, res) => {
                 const result = await searchPromise;
                 res.json(result);
             } else {
+                console.log('🔍 Channel not found!');
                 res.status(404).json({ error: 'Channel not found' });
             }
         } else {
-            res.status(503).json({ error: 'Selfbot not ready' });
+            console.log('🔍 Selfbot not ready!');
+            res.status(503).json({ error: 'Selfbot not ready. Make sure the bot is logged in.' });
         }
     } catch (error) {
         console.error('Search error:', error);
