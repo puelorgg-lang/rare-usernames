@@ -41,12 +41,31 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (account && user) {
         token.id = user.id
+        // Fetch role from database
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { discordId: account.providerAccountId },
+            select: { role: true, subscriptionStatus: true, subscriptionPlan: true, subscriptionExpiresAt: true }
+          })
+          if (dbUser) {
+            token.role = dbUser.role
+            token.subscriptionStatus = dbUser.subscriptionStatus
+            token.subscriptionPlan = dbUser.subscriptionPlan
+            token.subscriptionExpiresAt = dbUser.subscriptionExpiresAt
+          }
+        } catch (error) {
+          console.error("Error fetching user role:", error)
+        }
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.role = token.role as string
+        session.user.subscriptionStatus = token.subscriptionStatus as string
+        session.user.subscriptionPlan = token.subscriptionPlan as string | null
+        session.user.subscriptionExpiresAt = token.subscriptionExpiresAt as string | null
       }
       return session
     },
