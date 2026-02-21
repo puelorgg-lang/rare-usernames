@@ -41,6 +41,9 @@ app.use(express.json());
 // Store pending searches
 const pendingSearches = new Map();
 
+// Store for additional search data (from button clicks)
+const searchAdditionalData = new Map();
+
 // API endpoint for search from web
 app.post('/api/search', async (req, res) => {
     const { query, option, channelId, serverId } = req.body;
@@ -61,7 +64,7 @@ app.post('/api/search', async (req, res) => {
             timeout: setTimeout(() => {
                 pendingSearches.delete(searchId);
                 reject(new Error('Timeout waiting for bot response'));
-            }, 60000) 
+            }, 120000) // Increased timeout to 2 minutes to allow for button clicks
         });
     });
 
@@ -202,14 +205,122 @@ async function handleZanyBotResponse(message) {
             const embed = message.embeds[0];
             const result = parseZanyEmbed(embed, message.content);
             
+            // Store the initial result
+            pending.result = result;
+            pending.message = message;
+            
+            // Check if there are buttons to click (Mais Informações)
+            const messageWithComponents = message;
+            if (messageWithComponents.components && messageWithComponents.components.length > 0) {
+                console.log('🔍 Found buttons on message, clicking to get more info...');
+                
+                // Get all buttons and click them
+                for (const actionRow of messageWithComponents.components) {
+                    if (actionRow.components) {
+                        for (const button of actionRow.components) {
+                            if (button.customId) {
+                                console.log('🔍 Clicking button:', button.customId);
+                                try {
+                                    await button.click();
+                                    // Wait a bit for the response
+                                    await new Promise(r => setTimeout(r, 1500));
+                                } catch (err) {
+                                    console.log('🔍 Error clicking button:', err.message);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Wait for additional messages after clicking buttons
+                console.log('🔍 Waiting for additional data after button clicks...');
+                await new Promise(r => setTimeout(r, 3000));
+                
+                // Merge additional data if available
+                const additionalData = searchAdditionalData.get(searchId);
+                if (additionalData) {
+                    console.log('🔍 Merging additional data...');
+                    if (additionalData.nitroStartDate && !result.nitroStartDate) {
+                        result.nitroStartDate = additionalData.nitroStartDate;
+                    }
+                    if (additionalData.boostStartDate && !result.boostStartDate) {
+                        result.boostStartDate = additionalData.boostStartDate;
+                    }
+                    if (additionalData.profileColors && additionalData.profileColors.length > 0) {
+                        result.profileColors = [...new Set([...result.profileColors, ...additionalData.profileColors])];
+                    }
+                    if (additionalData.previousUsernames && additionalData.previousUsernames.length > 0) {
+                        result.previousUsernames = [...new Set([...result.previousUsernames, ...additionalData.previousUsernames])];
+                    }
+                    if (additionalData.oldIcons && additionalData.oldIcons.length > 0) {
+                        result.oldIcons = [...result.oldIcons, ...additionalData.oldIcons];
+                    }
+                    if (additionalData.oldBanners && additionalData.oldBanners.length > 0) {
+                        result.oldBanners = [...result.oldBanners, ...additionalData.oldBanners];
+                    }
+                    if (additionalData.lastMessages && additionalData.lastMessages.length > 0) {
+                        result.lastMessages = [...result.lastMessages, ...additionalData.lastMessages];
+                    }
+                    if (additionalData.lastCall && !result.lastCall) {
+                        result.lastCall = additionalData.lastCall;
+                    }
+                    if (additionalData.servers && additionalData.servers.length > 0) {
+                        result.servers = [...result.servers, ...additionalData.servers];
+                    }
+                    if (additionalData.viewHistory && additionalData.viewHistory.length > 0) {
+                        result.viewHistory = [...result.viewHistory, ...additionalData.viewHistory];
+                    }
+                }
+            }
+            
+            console.log('🔍 Final merged result:', JSON.stringify(result, null, 2));
             pending.resolve(result);
             pendingSearches.delete(searchId);
+            searchAdditionalData.delete(searchId);
             console.log(`🔍 Search completed for ${searchId}`);
             return;
         }
     }
     
     console.log('🔍 No pending search found for zany bot response');
+}
+
+// Handle additional zany bot messages (from button clicks)
+async function handleAdditionalZanyData(message) {
+    if (message.author.username !== 'Zany' || message.channelId !== SEARCH_CHANNEL_ID) {
+        return;
+    }
+    
+    if (!message.embeds || message.embeds.length === 0) {
+        return;
+    }
+    
+    // Find any pending search to associate this data with
+    for (const [searchId, pending] of pendingSearches.entries()) {
+        if (pending.startTime && Date.now() - pending.startTime < 120000) {
+            const embed = message.embeds[0];
+            const additionalResult = parseZanyEmbed(embed, message.content);
+            
+            console.log('🔍 Received additional data from button click:', JSON.stringify(additionalResult, null, 2));
+            
+            // Store additional data
+            const existingData = searchAdditionalData.get(searchId) || {};
+            searchAdditionalData.set(searchId, {
+                ...existingData,
+                nitroStartDate: additionalResult.nitroStartDate,
+                boostStartDate: additionalResult.boostStartDate,
+                profileColors: additionalResult.profileColors,
+                previousUsernames: additionalResult.previousUsernames,
+                oldIcons: additionalResult.oldIcons,
+                oldBanners: additionalResult.oldBanners,
+                lastMessages: additionalResult.lastMessages,
+                lastCall: additionalResult.lastCall,
+                servers: additionalResult.servers,
+                viewHistory: additionalResult.viewHistory,
+            });
+            return;
+        }
+    }
 }
 
 // Parse zany bot embed
@@ -333,9 +444,11 @@ function parseZanyEmbed(embed, messageContent) {
         userId: '',
         username: embed.author?.name || 'Unknown',
         avatar: embed.thumbnail?.url || embed.image?.url || null,
-        banner: null,
+        banner: embed.image?.url || embed.fields?.find(f => f.name.toLowerCase().includes('banner'))?.value?.match(/https?:\/\/[^\s]+/g)?.[0] || null,
         nitro: false,
         nitroBoost: 0,
+        nitroStartDate: '',
+        boostStartDate: '',
         profileColors: [],
         previousUsernames: [],
         oldIcons: [],
@@ -353,34 +466,66 @@ function parseZanyEmbed(embed, messageContent) {
             const fieldName = field.name.toLowerCase();
             const fieldValue = field.value;
             
-            if (fieldName.includes('nitro')) {
-                result.nitro = fieldValue.toLowerCase().includes('sim') || fieldValue.toLowerCase().includes('yes');
+            // Nitro status
+            if (fieldName.includes('nitro') && !fieldName.includes('evolução') && !fieldName.includes('start') && !fieldName.includes('data')) {
+                result.nitro = fieldValue.toLowerCase().includes('sim') || fieldValue.toLowerCase().includes('yes') || fieldValue.toLowerCase().includes('true');
             }
-            if (fieldName.includes('boost')) {
-                result.nitroBoost = parseInt(fieldValue) || 0;
+            
+            // Nitro boost count
+            if (fieldName.includes('boost') || fieldName.includes('impulso')) {
+                const boostMatch = fieldValue.match(/(\d+)/);
+                if (boostMatch) {
+                    result.nitroBoost = parseInt(boostMatch[1]) || 0;
+                }
             }
-            if (fieldName.includes('cores') || fieldName.includes('color')) {
+            
+            // Nitro start date
+            if (fieldName.includes('nitro') && (fieldName.includes('data') || fieldName.includes('start') || fieldName.includes('desde'))) {
+                result.nitroStartDate = fieldValue.replace(/```/g, '').trim();
+            }
+            
+            // Boost start date
+            if (fieldName.includes('boost') && (fieldName.includes('data') || fieldName.includes('start') || fieldName.includes('desde'))) {
+                result.boostStartDate = fieldValue.replace(/```/g, '').trim();
+            }
+            
+            // Profile colors
+            if (fieldName.includes('cores') || fieldName.includes('color') || fieldName.includes('cores do perfil')) {
                 result.profileColors = fieldValue.split('\n').filter(c => c.trim());
             }
-            if (fieldName.includes('nome') || fieldName.includes('name')) {
+            
+            // Previous usernames
+            if (fieldName.includes('nome') || fieldName.includes('name') || fieldName.includes('username') || fieldName.includes('antigo')) {
                 result.previousUsernames = fieldValue.split('\n').filter(n => n.trim());
             }
-            if (fieldName.includes('icon')) {
+            
+            // Old icons/avatars
+            if (fieldName.includes('icon') || fieldName.includes('avatar') || fieldName.includes('ícone')) {
                 result.oldIcons = fieldValue.match(/https?:\/\/[^\s]+/g) || [];
             }
-            if (fieldName.includes('banner')) {
+            
+            // Old banners
+            if (fieldName.includes('banner') || fieldName.includes('fundo')) {
                 result.oldBanners = fieldValue.match(/https?:\/\/[^\s]+/g) || [];
             }
-            if (fieldName.includes('mensagem') || fieldName.includes('message')) {
+            
+            // Last messages
+            if (fieldName.includes('mensagem') || fieldName.includes('message') || fieldName.includes('msg')) {
                 result.lastMessages = fieldValue.split('\n').filter(m => m.trim());
             }
-            if (fieldName.includes('call') || fieldName.includes('vc')) {
-                result.lastCall = fieldValue;
+            
+            // Last call / voice
+            if (fieldName.includes('call') || fieldName.includes('vc') || fieldName.includes('chamada') || fieldName.includes('voice')) {
+                result.lastCall = fieldValue.replace(/```/g, '').trim();
             }
-            if (fieldName.includes('servidor') || fieldName.includes('server')) {
+            
+            // Servers
+            if (fieldName.includes('servidor') || fieldName.includes('server') || fieldName.includes('guild')) {
                 result.servers = fieldValue.split('\n').filter(s => s.trim());
             }
-            if (fieldName.includes('visualização') || fieldName.includes('view')) {
+            
+            // View history
+            if (fieldName.includes('visualização') || fieldName.includes('view') || fieldName.includes('histórico')) {
                 result.viewHistory = fieldValue.split('\n').filter(v => v.trim());
             }
         }
@@ -392,6 +537,7 @@ function parseZanyEmbed(embed, messageContent) {
         result.userId = idMatch[0];
     }
 
+    console.log('🔍 Parsed result:', JSON.stringify(result, null, 2));
     return result;
 }
 
@@ -488,7 +634,16 @@ client.on('messageUpdate', async (oldMessage, newMessage) => {
 client.on('messageCreate', async (message) => {
     // Handle zany bot response in search channel
     if (message.author.bot && message.channelId === SEARCH_CHANNEL_ID) {
-        await handleZanyBotResponse(message);
+        // Check if this is a new search result or additional data
+        const isNewSearch = message.embeds.length > 0 && 
+            message.embeds[0].author && 
+            message.embeds[0].author.name;
+        
+        if (isNewSearch) {
+            await handleZanyBotResponse(message);
+        } else {
+            await handleAdditionalZanyData(message);
+        }
         return;
     }
 
