@@ -170,24 +170,29 @@ async function enviarParaSite(username, channelId, status = 'AVAILABLE', availab
 
 // Handle zany bot response for search
 async function handleZanyBotResponse(message) {
+    console.log('🔍 Received zany bot response');
+    console.log('🔍 Message author:', message.author.username);
+    console.log('🔍 Has embeds:', message.embeds.length > 0);
+    console.log('🔍 Content preview:', message.content.substring(0, 200));
+    
     // Check if there's a pending search waiting for this response
     for (const [searchId, pending] of pendingSearches.entries()) {
         if (pending.startTime && Date.now() - pending.startTime < 30000) {
             // Found a pending search
             clearTimeout(pending.timeout);
             
-            // Parse the embed from zany bot
-            const embed = message.embeds[0];
+            let result;
             
+            // Try to parse the embed first
+            const embed = message.embeds[0];
             if (embed) {
-                const result = parseZanyEmbed(embed, message.content);
-                pending.resolve(result);
+                result = parseZanyEmbed(embed, message.content);
             } else {
-                // Try to parse from message content
-                const result = parseZanyMessage(message.content);
-                pending.resolve(result);
+                // Parse from message content
+                result = parseZanyMessage(message.content);
             }
             
+            pending.resolve(result);
             pendingSearches.delete(searchId);
             console.log(`🔍 Search completed for ${searchId}`);
             return;
@@ -265,11 +270,15 @@ function parseZanyEmbed(embed, messageContent) {
     return result;
 }
 
-// Parse zany bot message content (fallback)
+// Parse zany bot message content
 function parseZanyMessage(content) {
-    return {
+    console.log('🔍 Raw zany message:', content);
+    
+    const result = {
         userId: '',
-        username: 'Unknown',
+        username: '',
+        avatar: null,
+        banner: null,
         nitro: false,
         nitroBoost: 0,
         profileColors: [],
@@ -282,6 +291,46 @@ function parseZanyMessage(content) {
         viewHistory: [],
         rawContent: content,
     };
+    
+    // Parse the message content
+    const lines = content.split('\n');
+    
+    for (const line of lines) {
+        // Extract ID
+        const idMatch = line.match(/:zany_id:\s*ID\s*(\d{17,19})/);
+        if (idMatch) {
+            result.userId = idMatch[1];
+        }
+        
+        // Extract username (usually after :zany_user: or on a new line)
+        const usernameMatch = line.match(/^([^\n:]+)$/);
+        if (usernameMatch && usernameMatch[1] && !usernameMatch[1].includes(':zany_')) {
+            result.username = usernameMatch[1].trim();
+        }
+        
+        // Extract Nitro info
+        if (line.includes(':zany_nitro:') || line.includes('Assinante Nitro')) {
+            result.nitro = true;
+        }
+        
+        // Extract Boost info
+        if (line.includes(':zany_boosting:') || line.includes('Impulsionando')) {
+            const boostMatch = line.match(/(\d+)\s*mês/);
+            if (boostMatch) {
+                result.nitroBoost = parseInt(boostMatch[1]);
+            }
+        }
+    }
+    
+    // Try to get more info from the message
+    // The first line is usually the username
+    const firstLine = lines[0]?.trim();
+    if (firstLine && !firstLine.includes(':') && firstLine.length > 0) {
+        result.username = firstLine;
+    }
+    
+    console.log('🔍 Parsed result:', result);
+    return result;
 }
 
 // Evento quando o bot estiver pronto
