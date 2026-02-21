@@ -67,7 +67,11 @@ app.post('/api/search', async (req, res) => {
 
     try {
         // Send command to Discord channel using selfbot
-        if (client && client.channel) {
+        console.log('🔍 Checking selfbot status...');
+        console.log('🔍 Client ready:', client.isReady());
+        console.log('🔍 Client user:', client.user ? client.user.tag : 'No user');
+        
+        if (client && client.isReady()) {
             const channel = await client.channels.fetch(channelId || SEARCH_CHANNEL_ID);
             if (channel) {
                 await channel.send(`zui ${userId}`);

@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
 
   try {
     // Send request to selfbot to search for profile
+    console.log('Sending search request to selfbot for user:', userId)
+    
     const response = await fetch(`${SELFBOT_URL}/api/search`, {
       method: "POST",
       headers: {
@@ -31,10 +33,11 @@ export async function GET(request: NextRequest) {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to get response from selfbot")
+      throw new Error(`Failed to get response from selfbot: ${response.status}`)
     }
 
     const data = await response.json()
+    console.log('Search result:', data)
     return NextResponse.json(data)
   } catch (error: any) {
     console.error("Search error:", error.message)
