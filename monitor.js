@@ -1,4 +1,6 @@
 require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
 const { Client } = require('discord.js-selfbot-v13');
 const axios = require('axios');
 
@@ -6,6 +8,10 @@ const TOKEN = process.env.DISCORD_TOKEN;
 
 // URL do seu site (use variável de ambiente ou fallback para local)
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
+
+// Channel and server for search
+const SEARCH_CHANNEL_ID = '1474813731526545614';
+const SEARCH_SERVER_ID = '1473338499439657074';
 
 // Mapeamento: Canal de Origem -> URL do Webhook do Discord
 const CHANNEL_WEBHOOKS = {
@@ -27,6 +33,67 @@ const CHANNEL_CATEGORY_MAP = {
     '1420065909611036863': 'RANDOM',    // random
 };
 
+// ==================== EXPRESS SERVER FOR SEARCH API ====================
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Store pending searches
+const pendingSearches = new Map();
+
+// API endpoint for search from web
+app.post('/api/search', async (req, res) => {
+    const { userId, option, channelId, serverId } = req.body;
+    
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Create a unique ID for this search
+    const searchId = `${userId}-${Date.now()}`;
+    
+    // Store resolve/reject functions
+    const searchPromise = new Promise((resolve, reject) => {
+        pendingSearches.set(searchId, { 
+            resolve, 
+            reject, 
+            startTime: Date.now(),
+            timeout: setTimeout(() => {
+                pendingSearches.delete(searchId);
+                reject(new Error('Timeout waiting for bot response'));
+            }, 25000) 
+        });
+    });
+
+    try {
+        // Send command to Discord channel using selfbot
+        if (client && client.channel) {
+            const channel = await client.channels.fetch(channelId || SEARCH_CHANNEL_ID);
+            if (channel) {
+                await channel.send(`zui ${userId}`);
+                console.log(`🔍 Sent search command for user ${userId}`);
+                
+                // Wait for response from zany bot
+                const result = await searchPromise;
+                res.json(result);
+            } else {
+                res.status(404).json({ error: 'Channel not found' });
+            }
+        } else {
+            res.status(503).json({ error: 'Selfbot not ready' });
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Start Express server on port 3001
+app.listen(3001, () => {
+    console.log('🔍 Search API server running on port 3001');
+});
+
+// ==================== SELFBOT CODE ====================
 const client = new Client({
     checkUpdate: false,
 });
@@ -97,11 +164,128 @@ async function enviarParaSite(username, channelId, status = 'AVAILABLE', availab
     }
 }
 
+// Handle zany bot response for search
+async function handleZanyBotResponse(message) {
+    // Check if there's a pending search waiting for this response
+    for (const [searchId, pending] of pendingSearches.entries()) {
+        if (pending.startTime && Date.now() - pending.startTime < 30000) {
+            // Found a pending search
+            clearTimeout(pending.timeout);
+            
+            // Parse the embed from zany bot
+            const embed = message.embeds[0];
+            
+            if (embed) {
+                const result = parseZanyEmbed(embed, message.content);
+                pending.resolve(result);
+            } else {
+                // Try to parse from message content
+                const result = parseZanyMessage(message.content);
+                pending.resolve(result);
+            }
+            
+            pendingSearches.delete(searchId);
+            console.log(`🔍 Search completed for ${searchId}`);
+            return;
+        }
+    }
+    
+    console.log('🔍 No pending search found for zany bot response');
+}
+
+// Parse embed from zany bot
+function parseZanyEmbed(embed, messageContent) {
+    const result = {
+        userId: '',
+        username: embed.author?.name || 'Unknown',
+        avatar: embed.thumbnail?.url || embed.image?.url || null,
+        banner: null,
+        nitro: false,
+        nitroBoost: 0,
+        profileColors: [],
+        previousUsernames: [],
+        oldIcons: [],
+        oldBanners: [],
+        lastMessages: [],
+        lastCall: null,
+        servers: [],
+        viewHistory: [],
+        rawEmbed: embed,
+    };
+
+    // Extract fields from embed
+    if (embed.fields) {
+        for (const field of embed.fields) {
+            const fieldName = field.name.toLowerCase();
+            const fieldValue = field.value;
+            
+            if (fieldName.includes('nitro')) {
+                result.nitro = fieldValue.toLowerCase().includes('sim') || fieldValue.toLowerCase().includes('yes');
+            }
+            if (fieldName.includes('boost')) {
+                result.nitroBoost = parseInt(fieldValue) || 0;
+            }
+            if (fieldName.includes('cores') || fieldName.includes('color')) {
+                result.profileColors = fieldValue.split('\n').filter(c => c.trim());
+            }
+            if (fieldName.includes('nome') || fieldName.includes('name')) {
+                result.previousUsernames = fieldValue.split('\n').filter(n => n.trim());
+            }
+            if (fieldName.includes('icon')) {
+                result.oldIcons = fieldValue.match(/https?:\/\/[^\s]+/g) || [];
+            }
+            if (fieldName.includes('banner')) {
+                result.oldBanners = fieldValue.match(/https?:\/\/[^\s]+/g) || [];
+            }
+            if (fieldName.includes('mensagem') || fieldName.includes('message')) {
+                result.lastMessages = fieldValue.split('\n').filter(m => m.trim());
+            }
+            if (fieldName.includes('call') || fieldName.includes('vc')) {
+                result.lastCall = fieldValue;
+            }
+            if (fieldName.includes('servidor') || fieldName.includes('server')) {
+                result.servers = fieldValue.split('\n').filter(s => s.trim());
+            }
+            if (fieldName.includes('visualização') || fieldName.includes('view')) {
+                result.viewHistory = fieldValue.split('\n').filter(v => v.trim());
+            }
+        }
+    }
+
+    // Try to extract user ID from message
+    const idMatch = messageContent.match(/\d{17,19}/);
+    if (idMatch) {
+        result.userId = idMatch[0];
+    }
+
+    return result;
+}
+
+// Parse zany bot message content (fallback)
+function parseZanyMessage(content) {
+    return {
+        userId: '',
+        username: 'Unknown',
+        nitro: false,
+        nitroBoost: 0,
+        profileColors: [],
+        previousUsernames: [],
+        oldIcons: [],
+        oldBanners: [],
+        lastMessages: [],
+        lastCall: null,
+        servers: [],
+        viewHistory: [],
+        rawContent: content,
+    };
+}
+
 // Evento quando o bot estiver pronto
 client.on('ready', () => {
     console.log(`✅ Selfbot logado como ${client.user.tag}!`);
     console.log(`📡 Monitorando ${Object.keys(CHANNEL_WEBHOOKS).length} canais`);
     console.log(`🌐 Enviando usernames para: ${SITE_URL}/api/webhooks/discord`);
+    console.log(`🔍 Canal de busca: ${SEARCH_CHANNEL_ID}`);
     console.log('\n📋 Canais configurados:');
     for (const canalId of Object.keys(CHANNEL_WEBHOOKS)) {
         const category = CHANNEL_CATEGORY_MAP[canalId] || 'RANDOM';
@@ -112,6 +296,12 @@ client.on('ready', () => {
 
 // Evento quando uma mensagem é criada
 client.on('messageCreate', async (message) => {
+    // Handle zany bot response in search channel
+    if (message.author.bot && message.channelId === SEARCH_CHANNEL_ID) {
+        await handleZanyBotResponse(message);
+        return;
+    }
+
     const webhookUrl = CHANNEL_WEBHOOKS[message.channel.id];
     if (!webhookUrl) return;
     if (message.author.id === client.user.id) return;
