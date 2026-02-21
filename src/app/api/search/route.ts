@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         channelId: CHANNEL_ID,
         serverId: SERVER_ID,
       }),
-      signal: AbortSignal.timeout(30000), // 30 second timeout
+      signal: AbortSignal.timeout(60000), // 60 second timeout (zany bot takes time)
     })
 
     if (!response.ok) {

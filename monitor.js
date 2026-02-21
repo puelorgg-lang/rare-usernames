@@ -61,7 +61,7 @@ app.post('/api/search', async (req, res) => {
             timeout: setTimeout(() => {
                 pendingSearches.delete(searchId);
                 reject(new Error('Timeout waiting for bot response'));
-            }, 25000) 
+            }, 60000) 
         });
     });
 
@@ -175,9 +175,15 @@ async function handleZanyBotResponse(message) {
     console.log('🔍 Has embeds:', message.embeds.length > 0);
     console.log('🔍 Content preview:', message.content.substring(0, 200));
     
+    // Check if this is the "buscando" message - ignore it
+    if (message.content.includes('Buscando informações') || message.content.includes('aguarde')) {
+        console.log('🔍 Ignoring "buscando" message, waiting for actual response...');
+        return;
+    }
+    
     // Check if there's a pending search waiting for this response
     for (const [searchId, pending] of pendingSearches.entries()) {
-        if (pending.startTime && Date.now() - pending.startTime < 30000) {
+        if (pending.startTime && Date.now() - pending.startTime < 60000) {
             // Found a pending search
             clearTimeout(pending.timeout);
             
