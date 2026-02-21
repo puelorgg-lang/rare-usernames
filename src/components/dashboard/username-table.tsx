@@ -27,7 +27,7 @@ interface Username {
   platform: string
   status: string
   foundAt: Date
-  availableDate: Date | null
+  availableDate?: Date | null
 }
 
 interface UsernameTableProps {
