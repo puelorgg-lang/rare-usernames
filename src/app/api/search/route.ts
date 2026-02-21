@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 // Configuration
 const CHANNEL_ID = "1474813731526545614"
 const SERVER_ID = "1473338499439657074"
-const SELFBOT_URL = "http://localhost:3001" // Selfbot runs on separate port
+const SELFBOT_URL = process.env.SELFBOT_URL || "http://localhost:3001" // Selfbot URL
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
