@@ -2,7 +2,9 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { stripe } from "@/lib/stripe"
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -20,6 +22,8 @@ export async function POST(req: Request) {
        return NextResponse.json({ error: "Stripe key not configured" }, { status: 500 })
     }
 
+    // Lazy load stripe to avoid build-time initialization
+    const { stripe } = await import("@/lib/stripe")
     const sessionStripe = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
