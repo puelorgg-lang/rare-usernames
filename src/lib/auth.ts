@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth"
 import DiscordProvider from "next-auth/providers/discord"
 import prisma from "@/lib/prisma"
 
+// Lazy initialization to avoid build-time database connections
 export const authOptions: NextAuthOptions = {
   providers: [
     DiscordProvider({
@@ -19,13 +20,14 @@ export const authOptions: NextAuthOptions = {
       }
 
       try {
+        // Lazy load prisma to avoid build-time connection
+        const { default: prisma } = await import("@/lib/prisma")
         // Upsert user in database
         await prisma.user.upsert({
           where: { discordId: account.providerAccountId },
           update: {
             email: user.email,
             image: user.image,
-            // Update other fields if necessary
           },
           create: {
             email: user.email,
@@ -43,6 +45,8 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account }) {
       if (account && user) {
+        // Lazy load prisma to avoid build-time connection
+        const { default: prisma } = await import("@/lib/prisma")
         // First login, fetch user from DB to get role and subscription
         const dbUser = await prisma.user.findUnique({
           where: { discordId: account.providerAccountId },
@@ -56,6 +60,8 @@ export const authOptions: NextAuthOptions = {
           token.subscriptionExpiresAt = dbUser.subscriptionExpiresAt
         }
       } else if (token.id) {
+        // Lazy load prisma to avoid build-time connection
+        const { default: prisma } = await import("@/lib/prisma")
         // Subsequent checks: fetch latest user data from DB using the ID in the token
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },

@@ -1,5 +1,8 @@
 import { NextRequest } from "next/server"
 
+// Force dynamic rendering for SSE endpoint
+export const dynamic = 'force-dynamic'
+
 // Store active connections
 const clients = new Set<ReadableStreamDefaultController>()
 

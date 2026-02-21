@@ -4,6 +4,9 @@ import { UserTable } from "@/components/dashboard/user-table"
 
 const prisma = new PrismaClient()
 
+// Force dynamic rendering to avoid build-time database queries
+export const dynamic = 'force-dynamic'
+
 export default async function AdminUsersPage() {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" }
