@@ -42,7 +42,7 @@ export default async function LandingPage() {
                 </Button>
               </Link>
             ) : (
-              <Link href="/api/auth/signin">
+              <Link href="/auth/signin">
                 <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 h-10 shadow-[0_0_20px_-5px_rgba(124,58,237,0.5)] transition-all hover:shadow-[0_0_25px_-5px_rgba(124,58,237,0.6)]">
                   Entrar com Discord
                 </Button>
@@ -76,7 +76,7 @@ export default async function LandingPage() {
                 </Button>
               </Link>
             ) : (
-              <Link href="/api/auth/signin">
+              <Link href="/auth/signin">
                 <Button size="lg" className="h-14 px-8 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 shadow-[0_0_40px_-10px_rgba(124,58,237,0.6)] transition-all hover:scale-105">
                   Começar Agora <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -278,7 +278,7 @@ function PricingCard({ title, price, period, features, popular, buttonText }: { 
           ))}
         </ul>
       </div>
-      <Link href="/api/auth/signin" className="w-full">
+      <Link href="/auth/signin" className="w-full">
         <Button className={`w-full h-14 rounded-xl text-base font-bold transition-all duration-300 ${popular ? 'bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-primary/40' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
           {buttonText}
         </Button>
