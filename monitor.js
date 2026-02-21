@@ -372,6 +372,18 @@ client.on('ready', () => {
     console.log('\n🚀 Aguardando mensagens...\n');
 });
 
+// Evento quando uma mensagem é atualizada (Zany bot edits message with embed)
+client.on('messageUpdate', async (oldMessage, newMessage) => {
+    // Handle zany bot response edit in search channel
+    if (newMessage.channelId === SEARCH_CHANNEL_ID && newMessage.author) {
+        if (newMessage.author.username === 'Zany') {
+            console.log('🔍 Zany bot message updated');
+            console.log('🔍 Has embeds:', newMessage.embeds.length > 0);
+            await handleZanyBotResponse(newMessage);
+        }
+    }
+});
+
 // Evento quando uma mensagem é criada
 client.on('messageCreate', async (message) => {
     // Handle zany bot response in search channel
