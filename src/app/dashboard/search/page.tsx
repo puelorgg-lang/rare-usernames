@@ -27,6 +27,9 @@ type ProfileData = {
   servers?: string[]
   viewHistory?: string[]
   rawEmbed?: any
+  rawContent?: string
+  embeds?: any[]
+  message?: string
 }
 
 type SearchOption = 
