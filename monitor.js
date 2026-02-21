@@ -180,6 +180,12 @@ async function handleZanyBotResponse(message) {
     console.log('🔍 Message author:', message.author.username);
     console.log('🔍 Has embeds:', message.embeds.length > 0);
     
+    // Only process messages from Zany bot
+    if (message.author.username !== 'Zany') {
+        console.log('🔍 Ignoring message from:', message.author.username);
+        return;
+    }
+    
     // Check if this is the "buscando" message - ignore it
     if (message.content.includes('Buscando informações') || message.content.includes('aguarde')) {
         console.log('🔍 Ignoring "buscando" message, waiting for actual response...');
