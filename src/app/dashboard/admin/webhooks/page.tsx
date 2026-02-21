@@ -147,7 +147,7 @@ export default function WebhooksPage() {
             <ol className="list-decimal list-inside space-y-1">
               <li>Vá nas configurações do servidor → Integrações</li>
               <li>Crie um novo Webhook</li>
-              <li>Cole a URL acima no campo "URL do Webhook"</li>
+              <li>Cole a URL acima no campo &quot;URL do Webhook&quot;</li>
               <li>Selecione o canal que terá os usernames</li>
               <li>Salve e pronto!</li>
             </ol>
