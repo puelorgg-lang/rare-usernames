@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 }
 
 // Function to notify all clients of new data
-export function notifyNewUsername() {
+function notifyNewUsername() {
   const encoder = new TextEncoder()
   const data = JSON.stringify({ 
     type: 'new_username', 
