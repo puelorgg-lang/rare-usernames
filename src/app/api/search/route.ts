@@ -42,13 +42,9 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Search error:", error.message)
     
-    // If selfbot is not available, return a demo response
-    return NextResponse.json({
-      userId,
-      username: "Demo User",
-      avatar: "https://cdn.discordapp.com/embed/avatars/0.png",
-      error: null,
-      message: "Modo demo - Configure o selfbot para buscar dados reais",
-    })
+    // If selfbot is not available, return an error
+    return NextResponse.json({ 
+      error: "Selfbot não disponível. Verifique se o monitor está rodando." 
+    }, { status: 503 })
   }
 }
