@@ -19,9 +19,7 @@ export default function DashboardLayout({
       <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/60 backdrop-blur-xl">
         <div className="flex h-16 items-center px-6">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl mr-8">
-            <div className="relative h-8 w-8 overflow-hidden rounded-lg">
-              <img src="/logo.png" alt="Users4U Logo" className="object-cover w-full h-full" />
-            </div>
+            
             <span>Users4U</span>
           </Link>
           <div className="ml-auto flex items-center space-x-4">

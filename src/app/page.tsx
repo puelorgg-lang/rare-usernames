@@ -22,9 +22,7 @@ export default async function LandingPage() {
       <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-[#0b0b0d]/80 backdrop-blur-md">
         <div className="container flex h-20 items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <div className="relative h-10 w-10 overflow-hidden group">
-              <img src="/logo.png" alt="Users4U Logo" className="object-cover w-full h-full rounded-lg" />
-            </div>
+            
             <span className="font-bold">Users4U</span>
           </div>
           
@@ -220,9 +218,7 @@ export default async function LandingPage() {
       <footer className="border-t border-white/5 py-12 bg-black/40 backdrop-blur-lg">
         <div className="container flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 font-bold text-xl">
-            <div className="relative h-8 w-8 overflow-hidden rounded-lg border border-primary/20">
-              <img src="/logo.png" alt="Users4U Logo" className="object-cover w-full h-full" />
-            </div>
+            
             <span>Users4U</span>
           </div>
           <p className="text-sm text-muted-foreground">© 2024 Users4U. Todos os direitos reservados.</p>
