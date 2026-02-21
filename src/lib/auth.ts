@@ -9,6 +9,10 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.DISCORD_CLIENT_ID ?? "",
       clientSecret: process.env.DISCORD_CLIENT_SECRET ?? "",
       authorization: { params: { scope: "identify email" } },
+      wellKnown: "https://discord.com/api/oauth2/.well-known/openid-configuration",
+      idToken: true,
+      token: "https://discord.com/api/oauth2/token",
+      userinfo: "https://discord.com/api/users/@me",
     }),
   ],
   session: {
