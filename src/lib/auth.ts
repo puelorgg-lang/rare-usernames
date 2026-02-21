@@ -87,5 +87,7 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
-  // Use default NextAuth signin page
+  pages: {
+    signIn: "/auth/signin",
+  },
 }
