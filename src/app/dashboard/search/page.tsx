@@ -307,14 +307,21 @@ export default function SearchPage() {
               </div>
 
               {/* Raw Embed Data (for debugging) */}
-              {result.rawEmbed && (
+              {(result.rawEmbed || result.rawContent) && (
                 <details className="mt-4">
                   <summary className="cursor-pointer text-sm text-muted-foreground">
-                    Ver dados brutos da embed
+                    Ver dados completos
                   </summary>
-                  <pre className="mt-2 p-4 rounded-lg bg-black/50 text-xs overflow-auto max-h-96">
-                    {JSON.stringify(result.rawEmbed, null, 2)}
-                  </pre>
+                  {result.rawContent && (
+                    <div className="mt-2 p-4 rounded-lg bg-black/50 text-sm whitespace-pre-wrap">
+                      {result.rawContent}
+                    </div>
+                  )}
+                  {result.rawEmbed && (
+                    <pre className="mt-2 p-4 rounded-lg bg-black/50 text-xs overflow-auto max-h-96">
+                      {JSON.stringify(result.rawEmbed, null, 2)}
+                    </pre>
+                  )}
                 </details>
               )}
             </div>

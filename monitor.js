@@ -173,7 +173,6 @@ async function handleZanyBotResponse(message) {
     console.log('🔍 Received zany bot response');
     console.log('🔍 Message author:', message.author.username);
     console.log('🔍 Has embeds:', message.embeds.length > 0);
-    console.log('🔍 Content preview:', message.content.substring(0, 200));
     
     // Check if this is the "buscando" message - ignore it
     if (message.content.includes('Buscando informações') || message.content.includes('aguarde')) {
@@ -187,15 +186,23 @@ async function handleZanyBotResponse(message) {
             // Found a pending search
             clearTimeout(pending.timeout);
             
-            let result;
+            // Pass the raw embed/content directly to the site
+            const result = {
+                userId: '',
+                username: '',
+                rawContent: message.content,
+                embeds: message.embeds.map(e => e.toJSON()),
+                rawEmbed: message.embeds[0]?.toJSON() || null,
+                message: 'Search completed'
+            };
             
-            // Try to parse the embed first
-            const embed = message.embeds[0];
-            if (embed) {
-                result = parseZanyEmbed(embed, message.content);
-            } else {
-                // Parse from message content
-                result = parseZanyMessage(message.content);
+            // Try to extract basic info
+            const lines = message.content.split('\n');
+            for (const line of lines) {
+                const idMatch = line.match(/(\d{17,19})/);
+                if (idMatch && !result.userId) {
+                    result.userId = idMatch[1];
+                }
             }
             
             pending.resolve(result);
