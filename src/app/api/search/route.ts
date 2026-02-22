@@ -9,7 +9,7 @@ const SELFBOT_URL = process.env.SELFBOT_URL || "http://localhost:3001" // Selfbo
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const query = searchParams.get("query")
-  const option = searchParams.get("option") || "avatar"
+  const option = searchParams.get("option") || "all"
 
   if (!query) {
     return NextResponse.json({ error: "ID ou username é obrigatório" }, { status: 400 })

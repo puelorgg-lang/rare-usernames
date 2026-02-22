@@ -13,6 +13,7 @@ type ProfileData = {
   avatar?: string
   avatarDecoration?: string
   searchCount?: number
+  badges?: string[]
 }
 
 export default function SearchPage() {
@@ -112,6 +113,23 @@ export default function SearchPage() {
                   )}
                 </div>
               </div>
+
+              {/* Badges Display */}
+              {result.badges && result.badges.length > 0 && (
+                <div className="p-4 rounded-lg border bg-white/5 border-white/10">
+                  <h5 className="font-semibold mb-3">Insígnias do Perfil</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {result.badges.map((badge, index) => (
+                      <span 
+                        key={index}
+                        className="px-3 py-1 rounded-full bg-white/10 text-sm"
+                      >
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Avatar Display */}
               <div className="p-4 rounded-lg border bg-white/5 border-white/10">
