@@ -268,16 +268,25 @@ async function handleZanyBotResponse(message) {
                                             // It's a button
                                             await component.click();
                                         } else if (componentType === 3) {
-                                            // It's a select menu - use selectOption
+                                            // It's a select menu - iterate through all options
                                             if (component.options && component.options.length > 0) {
-                                                // Select the first option or find matching one
-                                                const optionToSelect = component.options[0];
-                                                await component.selectOption(optionToSelect.value);
-                                                console.log('🔍 Selected option:', optionToSelect.value);
+                                                console.log('🔍 Select menu has', component.options.length, 'options');
+                                                
+                                                // Select each option to get all data
+                                                for (const option of component.options) {
+                                                    console.log('🔍 Selecting option:', option.label, '(', option.value, ')');
+                                                    try {
+                                                        await component.selectOption(option.value);
+                                                        // Wait for response after each selection
+                                                        await new Promise(r => setTimeout(r, 1500));
+                                                    } catch (err) {
+                                                        console.log('🔍 Error selecting option:', err.message);
+                                                    }
+                                                }
                                             }
                                         }
-                                        // Wait a bit for the response
-                                        await new Promise(r => setTimeout(r, 1500));
+                                        // Wait a bit between components
+                                        await new Promise(r => setTimeout(r, 1000));
                                     } catch (err) {
                                         console.log('🔍 Error clicking component:', err.message);
                                     }
