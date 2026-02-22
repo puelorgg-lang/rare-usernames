@@ -181,7 +181,7 @@ export default async function LandingPage() {
             <ScrollReveal delay={0}>
               <PricingCard 
                 title="Iniciante"
-                price="R$25"
+                price="R$5"
                 period="/dia"
                 features={["Acesso 24h", "Monitoramento Básico", "Apenas Discord", "Reivindicação Manual"]}
                 buttonText="Comprar Passe Diário"
@@ -190,7 +190,7 @@ export default async function LandingPage() {
             <ScrollReveal delay={100}>
               <PricingCard 
                 title="Pro"
-                price="R$75"
+                price="R$16"
                 period="/semana"
                 popular
                 features={["Acesso 7 Dias", "Todas as Plataformas", "Velocidade Prioritária", "Auto-Claimer (Beta)", "Ferramentas Sniper"]}
@@ -200,7 +200,7 @@ export default async function LandingPage() {
             <ScrollReveal delay={200}>
               <PricingCard 
                 title="Elite"
-                price="R$200"
+                price="R$25"
                 period="/mês"
                 features={["Acesso 30 Dias", "Todas as Plataformas", "Notificações Instantâneas", "IP Dedicado", "Acesso à API Privada", "Suporte VIP 24/7"]}
                 buttonText="Comprar Passe Mensal"
