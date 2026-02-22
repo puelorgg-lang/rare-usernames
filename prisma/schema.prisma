@@ -36,3 +36,15 @@ model Username {
   @@unique([name, platform])
   @@map("usernames")
 }
+
+model SearchLog {
+  id          String   @id @default(uuid())
+  discordId   String   @map("discord_id")
+  searchCount Int      @default(1) @map("search_count")
+  lastSearched DateTime @default(now()) @map("last_searched")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([discordId])
+  @@map("search_logs")
+}

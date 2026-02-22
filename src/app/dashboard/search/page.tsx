@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, Search, Image, User } from "lucide-react"
+import { Loader2, Search, Image, User, Eye } from "lucide-react"
 
 type ProfileData = {
   userId: string
   username?: string
   avatar?: string
   avatarDecoration?: string
+  searchCount?: number
 }
 
 export default function SearchPage() {
@@ -103,6 +104,12 @@ export default function SearchPage() {
                     {result.username || "Unknown"}
                   </h4>
                   <p className="text-sm text-muted-foreground">ID: {result.userId}</p>
+                  {result.searchCount && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
+                      Buscado {result.searchCount} {result.searchCount === 1 ? 'vez' : 'vezes'} no site
+                    </p>
+                  )}
                 </div>
               </div>
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import prisma from "@/lib/prisma"
 
 // Configuration
 const CHANNEL_ID = "1474813731526545614"
@@ -38,6 +39,28 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json()
     console.log('Search result:', data)
+
+    // Track search count if we have a valid userId
+    if (data.userId) {
+      try {
+        const searchLog = await prisma.searchLog.upsert({
+          where: { discordId: data.userId },
+          update: {
+            searchCount: { increment: 1 },
+            lastSearched: new Date()
+          },
+          create: {
+            discordId: data.userId,
+            searchCount: 1,
+            lastSearched: new Date()
+          }
+        })
+        data.searchCount = searchLog.searchCount
+      } catch (dbError) {
+        console.error('Failed to track search:', dbError)
+      }
+    }
+
     return NextResponse.json(data)
   } catch (error: any) {
     console.error("Search error:", error.message)
