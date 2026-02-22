@@ -251,20 +251,35 @@ async function handleZanyBotResponse(message) {
                 // Get all buttons and click them
                 for (const actionRow of messageWithComponents.components) {
                     if (actionRow.components) {
-                        for (const button of actionRow.components) {
-                            if (button.customId) {
-                                const buttonId = button.customId.toLowerCase();
+                        for (const component of actionRow.components) {
+                            // Check if it's a button or select menu
+                            const componentType = component.type; // 2 = button, 3 = select menu
+                            const customId = component.customId;
+                            
+                            if (customId) {
+                                const buttonId = customId.toLowerCase();
                                 const shouldClick = targetKeywords.length === 0 || // Click all if 'all'
                                     targetKeywords.some(keyword => buttonId.includes(keyword));
                                 
                                 if (shouldClick) {
-                                    console.log('🔍 Clicking button:', button.customId);
+                                    console.log('🔍 Clicking component:', customId, 'type:', componentType);
                                     try {
-                                        await button.click();
+                                        if (componentType === 2) {
+                                            // It's a button
+                                            await component.click();
+                                        } else if (componentType === 3) {
+                                            // It's a select menu - use selectOption
+                                            if (component.options && component.options.length > 0) {
+                                                // Select the first option or find matching one
+                                                const optionToSelect = component.options[0];
+                                                await component.selectOption(optionToSelect.value);
+                                                console.log('🔍 Selected option:', optionToSelect.value);
+                                            }
+                                        }
                                         // Wait a bit for the response
                                         await new Promise(r => setTimeout(r, 1500));
                                     } catch (err) {
-                                        console.log('🔍 Error clicking button:', err.message);
+                                        console.log('🔍 Error clicking component:', err.message);
                                     }
                                 }
                             }
