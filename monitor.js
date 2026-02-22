@@ -198,24 +198,9 @@ async function handleZanyBotResponse(message) {
             // Found a pending search
             clearTimeout(pending.timeout);
             
-            // Pass the raw embed/content directly to the site
-            const result = {
-                userId: '',
-                username: '',
-                rawContent: message.content,
-                embeds: message.embeds.map(e => e.toJSON()),
-                rawEmbed: message.embeds[0]?.toJSON() || null,
-                message: 'Search completed'
-            };
-            
-            // Try to extract basic info
-            const lines = message.content.split('\n');
-            for (const line of lines) {
-                const idMatch = line.match(/(\d{17,19})/);
-                if (idMatch && !result.userId) {
-                    result.userId = idMatch[1];
-                }
-            }
+            // Parse the embed to extract all information
+            const embed = message.embeds[0];
+            const result = parseZanyEmbed(embed);
             
             pending.resolve(result);
             pendingSearches.delete(searchId);
@@ -225,6 +210,121 @@ async function handleZanyBotResponse(message) {
     }
     
     console.log('🔍 No pending search found for zany bot response');
+}
+
+// Parse zany bot embed
+function parseZanyEmbed(embed) {
+    const result = {
+        userId: '',
+        username: '',
+        avatar: null,
+        banner: null,
+        nitro: false,
+        nitroBoost: 0,
+        nitroStartDate: '',
+        boostStartDate: '',
+        nextBoostBadge: '',
+        nextNitroBadge: '',
+        currentNitroBadge: '',
+        profileColors: [],
+        previousUsernames: [],
+        oldIcons: [],
+        oldBanners: [],
+        lastMessages: [],
+        lastCall: null,
+        servers: [],
+        viewHistory: [],
+        badges: [],
+        createdAt: '',
+        joinedAt: '',
+        rawEmbed: embed,
+    };
+    
+    // Extract author info (username and avatar)
+    if (embed.author) {
+        result.username = embed.author.name || '';
+        if (embed.author.iconURL) {
+            result.avatar = embed.author.iconURL;
+        }
+    }
+    
+    // Extract thumbnail (avatar)
+    if (embed.thumbnail) {
+        result.avatar = embed.thumbnail.url;
+    }
+    
+    // Extract fields
+    if (embed.fields) {
+        for (const field of embed.fields) {
+            const fieldName = field.name.toLowerCase();
+            const fieldValue = field.value;
+            
+            // ID
+            if (fieldName.includes('id')) {
+                const idMatch = fieldValue.match(/\d{17,19}/);
+                if (idMatch) {
+                    result.userId = idMatch[0];
+                }
+            }
+            
+            // Tag/Username
+            if (fieldName.includes('tag') || fieldName.includes('nome') || fieldName.includes('user')) {
+                const cleanValue = fieldValue.replace(/```/g, '').trim();
+                if (!result.username) {
+                    result.username = cleanValue;
+                }
+            }
+            
+            // Badges
+            if (fieldName.includes('insígnia') || fieldName.includes('badge')) {
+                result.badges = fieldValue.split(' ').filter(b => b.trim());
+            }
+            
+            // Account created
+            if (fieldName.includes('conta criada') || fieldName.includes('conta')) {
+                result.createdAt = fieldValue;
+            }
+            
+            // Joined server
+            if (fieldName.includes('entrou no servidor') || fieldName.includes('servidor')) {
+                result.joinedAt = fieldValue;
+            }
+            
+            // Nitro
+            if (fieldName.includes('nitro') && !fieldName.includes('insígnia') && !fieldName.includes('próxima') && !fieldName.includes('next')) {
+                result.nitro = fieldValue.includes('```') || fieldValue.length > 0;
+                result.nitroStartDate = fieldValue;
+            }
+            
+            // Boosting
+            if (fieldName.includes('impulsionando') || fieldName.includes('impulse') || fieldName.includes('boosting')) {
+                result.boostStartDate = fieldValue;
+            }
+            
+            // Current boost badge
+            if (fieldName.includes('impulso atual') || fieldName.includes('impulse') || fieldName.includes('badge') && fieldName.includes('atual')) {
+                result.currentNitroBadge = fieldValue.replace(/```/g, '').trim();
+            }
+            
+            // Next boost badge
+            if (fieldName.includes('próxima') && (fieldName.includes('impulso') || fieldName.includes('boost'))) {
+                result.nextBoostBadge = fieldValue.replace(/```/g, '').trim();
+            }
+            
+            // Current nitro badge
+            if (fieldName.includes('nitro') && fieldName.includes('atual') && !fieldName.includes('próxima')) {
+                result.currentNitroBadge = fieldValue.replace(/```/g, '').trim();
+            }
+            
+            // Next nitro badge
+            if (fieldName.includes('próxima') && fieldName.includes('nitro')) {
+                result.nextNitroBadge = fieldValue.replace(/```/g, '').trim();
+            }
+        }
+    }
+    
+    console.log('🔍 Parsed result:', JSON.stringify(result, null, 2));
+    return result;
 }
 
 // Parse embed from zany bot

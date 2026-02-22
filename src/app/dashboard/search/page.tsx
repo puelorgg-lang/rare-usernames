@@ -17,7 +17,13 @@ type ProfileData = {
   avatarDecoration?: string
   nitro?: boolean
   nitroBoost?: number
+  nitroStartDate?: string
+  boostStartDate?: string
+  nextBoostBadge?: string
+  nextNitroBadge?: string
+  currentNitroBadge?: string
   badges?: string[]
+  joinedAt?: string
   profileColors?: string[]
   previousUsernames?: string[]
   oldIcons?: string[]
@@ -302,9 +308,47 @@ export default function SearchPage() {
                 )}
 
                 {selectedOption === "nitro_evolution" && (
-                  <div className="space-y-2">
-                    <p>Nitro: {result.nitro ? "✓ Ativo" : "✗ Inativo"}</p>
-                    {result.nitroBoost !== undefined && <p>Boost: {result.nitroBoost}</p>}
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-lg bg-white/5">
+                      <p className="text-sm text-muted-foreground">Nitro</p>
+                      <p className="font-medium">{result.nitro ? "✓ Ativo" : "✗ Inativo"}</p>
+                      {result.nitroStartDate && <p className="text-sm">{result.nitroStartDate}</p>}
+                    </div>
+                    
+                    {result.currentNitroBadge && (
+                      <div className="p-3 rounded-lg bg-white/5">
+                        <p className="text-sm text-muted-foreground">Insígnia de Nitro Atual</p>
+                        <p className="font-medium">{result.currentNitroBadge}</p>
+                      </div>
+                    )}
+                    
+                    {result.nextNitroBadge && (
+                      <div className="p-3 rounded-lg bg-white/5">
+                        <p className="text-sm text-muted-foreground">Próxima Insígnia de Nitro</p>
+                        <p className="font-medium">{result.nextNitroBadge}</p>
+                      </div>
+                    )}
+                    
+                    {result.boostStartDate && (
+                      <div className="p-3 rounded-lg bg-white/5">
+                        <p className="text-sm text-muted-foreground">Impulsionando desde</p>
+                        <p className="font-medium">{result.boostStartDate}</p>
+                      </div>
+                    )}
+                    
+                    {result.currentNitroBadge && (
+                      <div className="p-3 rounded-lg bg-white/5">
+                        <p className="text-sm text-muted-foreground">Insígnia de Impulso Atual</p>
+                        <p className="font-medium">{result.currentNitroBadge}</p>
+                      </div>
+                    )}
+                    
+                    {result.nextBoostBadge && (
+                      <div className="p-3 rounded-lg bg-white/5">
+                        <p className="text-sm text-muted-foreground">Próxima Insígnia de Impulso</p>
+                        <p className="font-medium">{result.nextBoostBadge}</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
