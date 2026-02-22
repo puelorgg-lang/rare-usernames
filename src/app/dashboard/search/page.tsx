@@ -5,51 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, Search, User, MessageSquare, Image, History, Server, Eye, Clock, Palette, Award, Hash } from "lucide-react"
+import { Loader2, Search, Image } from "lucide-react"
 
 type ProfileData = {
   userId: string
   username?: string
   avatar?: string
-  banner?: string
-  bio?: string
-  createdAt?: string
   avatarDecoration?: string
-  nitro?: boolean
-  nitroBoost?: number
-  nitroStartDate?: string
-  boostStartDate?: string
-  nextBoostBadge?: string
-  nextNitroBadge?: string
-  currentNitroBadge?: string
-  badges?: string[]
-  joinedAt?: string
-  profileColors?: string[]
-  previousUsernames?: string[]
-  oldIcons?: string[]
-  oldBanners?: string[]
-  lastMessages?: string[]
-  lastCall?: string
-  servers?: string[]
-  viewHistory?: string[]
-  rawEmbed?: any
-  rawContent?: string
-  embeds?: any[]
-  message?: string
 }
-
-type SearchOption = 
-  | "avatar" 
-  | "impulse_evolution" 
-  | "nitro_evolution" 
-  | "profile_colors" 
-  | "previous_names" 
-  | "old_icons" 
-  | "old_banners" 
-  | "last_messages" 
-  | "last_call" 
-  | "servers" 
-  | "view_history"
 
 export default function SearchPage() {
   const [userId, setUserId] = useState("")
@@ -57,7 +20,6 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ProfileData | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [selectedOption, setSelectedOption] = useState<SearchOption>("avatar")
 
   const handleSearch = async () => {
     if (!userId) return
@@ -66,7 +28,7 @@ export default function SearchPage() {
     setResult(null)
 
     try {
-      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=${selectedOption}`)
+      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=avatar`)
       const data = await res.json()
       
       if (data.error) {
@@ -80,20 +42,6 @@ export default function SearchPage() {
       setLoading(false)
     }
   }
-
-  const searchOptions: { value: SearchOption; label: string; icon: React.ReactNode }[] = [
-    { value: "avatar", label: "Avatar", icon: <Image className="h-4 w-4" /> },
-    { value: "impulse_evolution", label: "Evolução do impulso", icon: <Award className="h-4 w-4" /> },
-    { value: "nitro_evolution", label: "Evolução do nitro", icon: <Award className="h-4 w-4" /> },
-    { value: "profile_colors", label: "Cores do perfil", icon: <Palette className="h-4 w-4" /> },
-    { value: "previous_names", label: "Nomes anteriores", icon: <History className="h-4 w-4" /> },
-    { value: "old_icons", label: "Icons antigos", icon: <Image className="h-4 w-4" /> },
-    { value: "old_banners", label: "Banners antigos", icon: <Image className="h-4 w-4" /> },
-    { value: "last_messages", label: "Últimas mensagens", icon: <MessageSquare className="h-4 w-4" /> },
-    { value: "last_call", label: "Última call", icon: <Clock className="h-4 w-4" /> },
-    { value: "servers", label: "Servidores", icon: <Server className="h-4 w-4" /> },
-    { value: "view_history", label: "Histórico de visualização", icon: <Eye className="h-4 w-4" /> },
-  ]
 
   return (
     <div className="space-y-8">
@@ -139,214 +87,21 @@ export default function SearchPage() {
           )}
 
           {result && !error && (
-            <div className="mt-6 space-y-6">
-              {/* User Info Header */}
-              <div className="flex items-center gap-4 p-4 rounded-lg border bg-white/5 border-white/10">
-                {result.avatar && (
-                  <img 
-                    src={result.avatar} 
-                    alt="Avatar" 
-                    className="h-16 w-16 rounded-full"
-                  />
-                )}
-                <div>
-                  <h4 className="font-bold text-lg flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    {result.username || result.userId}
-                  </h4>
-                  <p className="text-sm text-muted-foreground">ID: {result.userId}</p>
-                  {result.nitro && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-500/20 text-purple-400">
-                      Nitro
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Option Selector */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Selecione a informação:</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {searchOptions.map((option) => (
-                    <Button
-                      key={option.value}
-                      variant={selectedOption === option.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedOption(option.value)}
-                      className="justify-start"
-                    >
-                      {option.icon}
-                      <span className="ml-2 truncate">{option.label}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Selected Option Content */}
+            <div className="mt-6">
+              {/* Avatar Display */}
               <div className="p-4 rounded-lg border bg-white/5 border-white/10">
                 <h5 className="font-semibold mb-3 flex items-center gap-2">
-                  {searchOptions.find(o => o.value === selectedOption)?.icon}
-                  {searchOptions.find(o => o.value === selectedOption)?.label}
+                  <Image className="h-4 w-4" />
+                  Avatar
                 </h5>
                 
-                {selectedOption === "avatar" && result.avatar && (
+                {result.avatar && (
                   <div className="space-y-3">
                     <img src={result.avatar} alt="Avatar" className="max-w-[200px] rounded-lg" />
                     {result.avatarDecoration && (
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">Avatar Decoration:</p>
                         <img src={result.avatarDecoration} alt="Avatar Decoration" className="max-w-[200px] rounded-lg" />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {selectedOption === "profile_colors" && result.profileColors && (
-                  <div className="flex gap-2 flex-wrap">
-                    {result.profileColors.map((color, i) => (
-                      <div 
-                        key={i} 
-                        className="w-12 h-12 rounded-lg border border-white/10" 
-                        style={{ backgroundColor: color }}
-                        title={color}
-                      />
-                    ))}
-                    {result.profileColors.length === 0 && <p className="text-muted-foreground">Nenhuma cor encontrada</p>}
-                  </div>
-                )}
-
-                {selectedOption === "previous_names" && result.previousUsernames && (
-                  <div className="space-y-1">
-                    {result.previousUsernames.length > 0 ? (
-                      result.previousUsernames.map((name, i) => (
-                        <div key={i} className="flex items-center gap-2 p-2 rounded bg-white/5">
-                          <Hash className="h-4 w-4 text-muted-foreground" />
-                          {name}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground">Nenhum nome anterior encontrado</p>
-                    )}
-                  </div>
-                )}
-
-                {selectedOption === "old_icons" && result.oldIcons && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {result.oldIcons.length > 0 ? (
-                      result.oldIcons.map((icon, i) => (
-                        <img key={i} src={icon} alt={`Icon ${i}`} className="rounded-lg" />
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground">Nenhum icon antigo encontrado</p>
-                    )}
-                  </div>
-                )}
-
-                {selectedOption === "old_banners" && result.oldBanners && (
-                  <div className="space-y-2">
-                    {result.oldBanners.length > 0 ? (
-                      result.oldBanners.map((banner, i) => (
-                        <img key={i} src={banner} alt={`Banner ${i}`} className="w-full rounded-lg" />
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground">Nenhum banner antigo encontrado</p>
-                    )}
-                  </div>
-                )}
-
-                {selectedOption === "last_messages" && result.lastMessages && (
-                  <div className="space-y-2">
-                    {result.lastMessages.length > 0 ? (
-                      result.lastMessages.map((msg, i) => (
-                        <div key={i} className="p-2 rounded bg-white/5 text-sm">
-                          <MessageSquare className="h-4 w-4 inline mr-2" />
-                          {msg}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground">Nenhuma mensagem encontrada</p>
-                    )}
-                  </div>
-                )}
-
-                {selectedOption === "last_call" && (
-                  <p className="text-muted-foreground">{result.lastCall || "Nenhuma call encontrada"}</p>
-                )}
-
-                {selectedOption === "servers" && result.servers && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {result.servers.length > 0 ? (
-                      result.servers.map((server, i) => (
-                        <div key={i} className="p-2 rounded bg-white/5 flex items-center gap-2">
-                          <Server className="h-4 w-4 text-muted-foreground" />
-                          <span className="truncate">{server}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground">Nenhum servidor encontrado</p>
-                    )}
-                  </div>
-                )}
-
-                {selectedOption === "view_history" && result.viewHistory && (
-                  <div className="space-y-2">
-                    {result.viewHistory.length > 0 ? (
-                      result.viewHistory.map((item, i) => (
-                        <div key={i} className="p-2 rounded bg-white/5 flex items-center gap-2">
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                          <span className="truncate">{item}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground">Nenhum histórico encontrado</p>
-                    )}
-                  </div>
-                )}
-
-                {selectedOption === "impulse_evolution" && (
-                  <p className="text-muted-foreground">Evolução do impulso: Em breve</p>
-                )}
-
-                {selectedOption === "nitro_evolution" && (
-                  <div className="space-y-3">
-                    <div className="p-3 rounded-lg bg-white/5">
-                      <p className="text-sm text-muted-foreground">Nitro</p>
-                      <p className="font-medium">{result.nitro ? "✓ Ativo" : "✗ Inativo"}</p>
-                      {result.nitroStartDate && <p className="text-sm">{result.nitroStartDate}</p>}
-                    </div>
-                    
-                    {result.currentNitroBadge && (
-                      <div className="p-3 rounded-lg bg-white/5">
-                        <p className="text-sm text-muted-foreground">Insígnia de Nitro Atual</p>
-                        <p className="font-medium">{result.currentNitroBadge}</p>
-                      </div>
-                    )}
-                    
-                    {result.nextNitroBadge && (
-                      <div className="p-3 rounded-lg bg-white/5">
-                        <p className="text-sm text-muted-foreground">Próxima Insígnia de Nitro</p>
-                        <p className="font-medium">{result.nextNitroBadge}</p>
-                      </div>
-                    )}
-                    
-                    {result.boostStartDate && (
-                      <div className="p-3 rounded-lg bg-white/5">
-                        <p className="text-sm text-muted-foreground">Impulsionando desde</p>
-                        <p className="font-medium">{result.boostStartDate}</p>
-                      </div>
-                    )}
-                    
-                    {result.currentNitroBadge && (
-                      <div className="p-3 rounded-lg bg-white/5">
-                        <p className="text-sm text-muted-foreground">Insígnia de Impulso Atual</p>
-                        <p className="font-medium">{result.currentNitroBadge}</p>
-                      </div>
-                    )}
-                    
-                    {result.nextBoostBadge && (
-                      <div className="p-3 rounded-lg bg-white/5">
-                        <p className="text-sm text-muted-foreground">Próxima Insígnia de Impulso</p>
-                        <p className="font-medium">{result.nextBoostBadge}</p>
                       </div>
                     )}
                   </div>
