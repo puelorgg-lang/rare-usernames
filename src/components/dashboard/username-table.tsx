@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRouter, useSearchParams } from "next/navigation"
+import { ChevronLeft, ChevronRight, Layers } from "lucide-react"
 
 interface Username {
   id: string
@@ -33,9 +34,12 @@ interface Username {
 interface UsernameTableProps {
   usernames: Username[]
   category: string
+  totalCount?: number
+  currentPage?: number
+  currentLimit?: number
 }
 
-export function UsernameTable({ usernames, category }: UsernameTableProps) {
+export function UsernameTable({ usernames, category, totalCount, currentPage = 1, currentLimit = 100 }: UsernameTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentPlatform = searchParams.get("platform")
@@ -74,8 +78,24 @@ export function UsernameTable({ usernames, category }: UsernameTableProps) {
     } else {
       params.delete("platform")
     }
+    params.set("page", "1") // Reset to first page when filter changes
     router.push(`?${params.toString()}`)
   }
+
+  const handleLimitChange = (limit: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("limit", limit)
+    params.set("page", "1") // Reset to first page when limit changes
+    router.push(`?${params.toString()}`)
+  }
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("page", String(newPage))
+    router.push(`?${params.toString()}`)
+  }
+
+  const totalPages = totalCount ? Math.ceil(totalCount / currentLimit) : 1
 
   const platformColors: Record<string, string> = {
     DISCORD: "bg-[#5865F2] hover:bg-[#5865F2]/80",
@@ -92,26 +112,52 @@ export function UsernameTable({ usernames, category }: UsernameTableProps) {
     <div className="space-y-4 w-full">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold uppercase tracking-wider text-muted-foreground">{category.replace("_", " ")} Usernames</h2>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 border-white/10 bg-white/5 hover:bg-white/10">
-              <Filter className="mr-2 h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                {currentPlatform || "Todas as Plataformas"}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-background/95 backdrop-blur border-white/10">
-            <DropdownMenuItem onClick={() => handlePlatformFilter(null)}>
-              Todas as Plataformas
-            </DropdownMenuItem>
-            {Object.keys(PLATFORMS).map((p) => (
-              <DropdownMenuItem key={p} onClick={() => handlePlatformFilter(p)}>
-                {p}
+        <div className="flex items-center gap-2">
+          {/* Limit Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 border-white/10 bg-white/5 hover:bg-white/10">
+                <Layers className="mr-2 h-3.5 w-3.5" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  {currentLimit} por página
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-background/95 backdrop-blur border-white/10">
+              <DropdownMenuItem onClick={() => handleLimitChange("25")}>
+                25 por página
               </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuItem onClick={() => handleLimitChange("50")}>
+                50 por página
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleLimitChange("100")}>
+                100 por página
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {/* Platform Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 border-white/10 bg-white/5 hover:bg-white/10">
+                <Filter className="mr-2 h-3.5 w-3.5" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  {currentPlatform || "Todas as Plataformas"}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-background/95 backdrop-blur border-white/10">
+              <DropdownMenuItem onClick={() => handlePlatformFilter(null)}>
+                Todas as Plataformas
+              </DropdownMenuItem>
+              {Object.keys(PLATFORMS).map((p) => (
+                <DropdownMenuItem key={p} onClick={() => handlePlatformFilter(p)}>
+                  {p}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       
       <div className="rounded-xl border border-white/5 bg-white/[0.02] overflow-hidden backdrop-blur-sm">
@@ -193,6 +239,68 @@ export function UsernameTable({ usernames, category }: UsernameTableProps) {
           </TableBody>
         </Table>
       </div>
+      
+      {/* Pagination Info */}
+      {totalCount !== undefined && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            Mostrando {((currentPage - 1) * currentLimit) + 1} - {Math.min(currentPage * currentLimit, totalCount)} de {totalCount} resultados
+          </span>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 border-white/10 bg-white/5 hover:bg-white/10"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              {/* Page indicators */}
+              <div className="flex items-center gap-1 mx-2">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      className={`h-8 w-8 p-0 ${currentPage === pageNum ? "bg-primary" : "border-white/10 bg-white/5 hover:bg-white/10"}`}
+                      onClick={() => handlePageChange(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  )
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 border-white/10 bg-white/5 hover:bg-white/10"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

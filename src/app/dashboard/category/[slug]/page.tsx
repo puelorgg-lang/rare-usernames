@@ -13,6 +13,8 @@ interface CategoryPageProps {
   }
   searchParams: {
     platform?: string
+    page?: string
+    limit?: string
   }
 }
 
@@ -27,6 +29,20 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const categoryEnum = slugUpper as Category
 
   const platform = searchParams.platform || undefined
+  
+  // Pagination settings - default to 100, allow user to change
+  const DEFAULT_LIMIT = 100
+  const limit = Math.min(parseInt(searchParams.limit || String(DEFAULT_LIMIT), 10), 100)
+  const page = Math.max(parseInt(searchParams.page || "1", 10), 1)
+  const skip = (page - 1) * limit
+
+  // Get total count for pagination info
+  const totalCount = await prisma.username.count({
+    where: {
+      category: categoryEnum,
+      ...(platform && { platform: platform }),
+    },
+  })
 
   const usernames = await prisma.username.findMany({
     where: {
@@ -36,11 +52,19 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     orderBy: {
       foundAt: "desc",
     },
+    take: limit,
+    skip: skip,
   })
 
   return (
     <div className="space-y-6">
-      <UsernameTable usernames={usernames} category={params.slug} />
+      <UsernameTable 
+        usernames={usernames} 
+        category={params.slug} 
+        totalCount={totalCount}
+        currentPage={page}
+        currentLimit={limit}
+      />
       <div className="flex items-center justify-end">
         <AutoRefresh />
       </div>

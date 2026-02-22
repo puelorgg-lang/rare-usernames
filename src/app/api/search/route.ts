@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 
-// Configuration
 const CHANNEL_ID = "1474813731526545614"
 const SERVER_ID = "1473338499439657074"
-const SELFBOT_URL = process.env.SELFBOT_URL || "http://localhost:3001" // Selfbot URL
+const SELFBOT_URL = process.env.SELFBOT_URL || "http://localhost:3001"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -16,7 +15,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Send request to selfbot to search for profile
     console.log('Sending search request to selfbot for:', query)
     
     const response = await fetch(`${SELFBOT_URL}/api/search`, {
@@ -30,7 +28,7 @@ export async function GET(request: NextRequest) {
         channelId: CHANNEL_ID,
         serverId: SERVER_ID,
       }),
-      signal: AbortSignal.timeout(60000), // 60 second timeout (zany bot takes time)
+      signal: AbortSignal.timeout(60000),
     })
 
     if (!response.ok) {
@@ -40,7 +38,6 @@ export async function GET(request: NextRequest) {
     const data = await response.json()
     console.log('Search result:', data)
 
-    // Track search count if we have a valid userId
     if (data.userId) {
       try {
         const searchLog = await prisma.searchLog.upsert({
@@ -65,7 +62,6 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Search error:", error.message)
     
-    // If selfbot is not available, return an error
     return NextResponse.json({ 
       error: "Selfbot não disponível. Verifique se o monitor está rodando." 
     }, { status: 503 })

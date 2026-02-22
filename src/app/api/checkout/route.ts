@@ -1,9 +1,7 @@
-
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
@@ -16,13 +14,10 @@ export async function POST(req: Request) {
   try {
     const { plan } = await req.json()
     
-    // In a real scenario, you'd have these IDs in your .env or DB
-    // For now, we will create a one-time product on the fly or use a mock logic if no key
     if (!process.env.STRIPE_SECRET_KEY) {
        return NextResponse.json({ error: "Stripe key not configured" }, { status: 500 })
     }
 
-    // Lazy load stripe to avoid build-time initialization
     const { stripe } = await import("@/lib/stripe")
     const sessionStripe = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -34,7 +29,7 @@ export async function POST(req: Request) {
               name: "Plano Pro Hunter",
               description: "Acesso total ao Users4U",
             },
-            unit_amount: 2900, // R$ 29,00
+            unit_amount: 2900,
           },
           quantity: 1,
         },
