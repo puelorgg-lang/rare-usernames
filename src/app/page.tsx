@@ -6,6 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Check, Zap, Globe, Lock, ArrowRight, Shield, Star, Rocket, User, Sparkles } from "lucide-react"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { ScrollReveal } from "@/components/scroll-reveal"
 
 export default async function LandingPage() {
   const session = await getServerSession(authOptions)
@@ -110,107 +111,133 @@ export default async function LandingPage() {
 
         {/* Features Section */}
         <section id="features" className="container py-24 space-y-16">
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Funcionalidades Poderosas</h2>
-            <p className="text-muted-foreground text-lg md:text-xl">
-              Tudo o que você precisa para garantir o nome OG que sempre quis.
-            </p>
-          </div>
+          <ScrollReveal>
+            <div className="text-center space-y-4 max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Funcionalidades Poderosas</h2>
+              <p className="text-muted-foreground text-lg md:text-xl">
+                Tudo o que você precisa para garantir o nome OG que sempre quis.
+              </p>
+            </div>
+          </ScrollReveal>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard 
-              icon={<Zap className="h-6 w-6 text-yellow-400" />}
-              title="Velocidade Relâmpago"
-              description="Nosso motor de sniper personalizado verifica a disponibilidade mais rápido do que qualquer humano poderia."
-            />
-            <FeatureCard 
-              icon={<Globe className="h-6 w-6 text-blue-400" />}
-              title="Multi-Plataforma"
-              description="Uma assinatura cobre Discord, Minecraft, Roblox e as principais redes sociais."
-            />
-            <FeatureCard 
-              icon={<Lock className="h-6 w-6 text-green-400" />}
-              title="Seguro e Privado"
-              description="Seus dados são criptografados. Nunca compartilhamos sua lista de alvos com outros usuários."
-            />
-            <FeatureCard 
-              icon={<Rocket className="h-6 w-6 text-purple-400" />}
-              title="Auto-Claimer"
-              description="Não apenas assista. Configure nosso bot para tentar reivindicar o nome automaticamente para você."
-            />
-            <FeatureCard 
-              icon={<Star className="h-6 w-6 text-orange-400" />}
-              title="Pontuação de Raridade"
-              description="Nossa IA analisa nomes para fornecer uma pontuação de raridade baseada em comprimento, significado e demanda."
-            />
-            <FeatureCard 
-              icon={<Shield className="h-6 w-6 text-red-400" />}
-              title="Proteção Contra Ban"
-              description="Limitação inteligente de taxa garante que suas contas permaneçam seguras enquanto fazemos o trabalho pesado."
-            />
+            <ScrollReveal delay={0}>
+              <FeatureCard 
+                icon={<Zap className="h-6 w-6 text-yellow-400" />}
+                title="Velocidade Relâmpago"
+                description="Nosso motor de sniper personalizado verifica a disponibilidade mais rápido do que qualquer humano poderia."
+              />
+            </ScrollReveal>
+            <ScrollReveal delay={100}>
+              <FeatureCard 
+                icon={<Globe className="h-6 w-6 text-blue-400" />}
+                title="Multi-Plataforma"
+                description="Uma assinatura cobre Discord, Minecraft, Roblox e as principais redes sociais."
+              />
+            </ScrollReveal>
+            <ScrollReveal delay={200}>
+              <FeatureCard 
+                icon={<Lock className="h-6 w-6 text-green-400" />}
+                title="Seguro e Privado"
+                description="Seus dados são criptografados. Nunca compartilhamos sua lista de alvos com outros usuários."
+              />
+            </ScrollReveal>
+            <ScrollReveal delay={300}>
+              <FeatureCard 
+                icon={<Rocket className="h-6 w-6 text-purple-400" />}
+                title="Auto-Claimer"
+                description="Não apenas assista. Configure nosso bot para tentar reivindicar o nome automaticamente para você."
+              />
+            </ScrollReveal>
+            <ScrollReveal delay={400}>
+              <FeatureCard 
+                icon={<Star className="h-6 w-6 text-orange-400" />}
+                title="Pontuação de Raridade"
+                description="Nossa IA analisa nomes para fornecer uma pontuação de raridade baseada em comprimento, significado e demanda."
+              />
+            </ScrollReveal>
+            <ScrollReveal delay={500}>
+              <FeatureCard 
+                icon={<Shield className="h-6 w-6 text-red-400" />}
+                title="Proteção Contra Ban"
+                description="Limitação inteligente de taxa garante que suas contas permaneçam seguras enquanto fazemos o trabalho pesado."
+              />
+            </ScrollReveal>
           </div>
         </section>
 
         {/* Pricing Section */}
         <section id="pricing" className="container py-24 space-y-16 relative">
-          <div className="absolute inset-0 bg-primary/5 blur-[100px] -z-10 rounded-full"></div>
-          
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Preços Simples e Transparentes</h2>
-            <p className="text-muted-foreground text-lg md:text-xl">Comece de graça, atualize para mais poder.</p>
-          </div>
+          <ScrollReveal>
+            <div className="absolute inset-0 bg-primary/5 blur-[100px] -z-10 rounded-full"></div>
+            
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Preços Simples e Transparentes</h2>
+              <p className="text-muted-foreground text-lg md:text-xl">Comece de graça, atualize para mais poder.</p>
+            </div>
+          </ScrollReveal>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
-            <PricingCard 
-              title="Iniciante"
-              price="R$25"
-              period="/dia"
-              features={["Acesso 24h", "Monitoramento Básico", "Apenas Discord", "Reivindicação Manual"]}
-              buttonText="Comprar Passe Diário"
-            />
-            <PricingCard 
-              title="Pro"
-              price="R$75"
-              period="/semana"
-              popular
-              features={["Acesso 7 Dias", "Todas as Plataformas", "Velocidade Prioritária", "Auto-Claimer (Beta)", "Ferramentas Sniper"]}
-              buttonText="Comprar Passe Semanal"
-            />
-            <PricingCard 
-              title="Elite"
-              price="R$200"
-              period="/mês"
-              features={["Acesso 30 Dias", "Todas as Plataformas", "Notificações Instantâneas", "IP Dedicado", "Acesso à API Privada", "Suporte VIP 24/7"]}
-              buttonText="Comprar Passe Mensal"
-            />
+            <ScrollReveal delay={0}>
+              <PricingCard 
+                title="Iniciante"
+                price="R$25"
+                period="/dia"
+                features={["Acesso 24h", "Monitoramento Básico", "Apenas Discord", "Reivindicação Manual"]}
+                buttonText="Comprar Passe Diário"
+              />
+            </ScrollReveal>
+            <ScrollReveal delay={100}>
+              <PricingCard 
+                title="Pro"
+                price="R$75"
+                period="/semana"
+                popular
+                features={["Acesso 7 Dias", "Todas as Plataformas", "Velocidade Prioritária", "Auto-Claimer (Beta)", "Ferramentas Sniper"]}
+                buttonText="Comprar Passe Semanal"
+              />
+            </ScrollReveal>
+            <ScrollReveal delay={200}>
+              <PricingCard 
+                title="Elite"
+                price="R$200"
+                period="/mês"
+                features={["Acesso 30 Dias", "Todas as Plataformas", "Notificações Instantâneas", "IP Dedicado", "Acesso à API Privada", "Suporte VIP 24/7"]}
+                buttonText="Comprar Passe Mensal"
+              />
+            </ScrollReveal>
           </div>
         </section>
 
         {/* FAQ Section */}
         <section id="faq" className="container py-24 max-w-3xl space-y-12">
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">FAQ</h2>
-          </div>
-          <Accordion type="single" collapsible className="w-full space-y-4">
-            <AccordionItem value="item-1" className="border border-white/10 rounded-lg px-4 bg-white/[0.02]">
-              <AccordionTrigger className="hover:no-underline text-lg font-medium py-6">Como funciona o verificador?</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground text-base pb-6 leading-relaxed">
-                Usamos uma rede distribuída de nós para consultar as APIs das plataformas diretamente. Isso nos permite contornar os limites de taxa padrão e verificar milhares de nomes por segundo sem sermos bloqueados.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-2" className="border border-white/10 rounded-lg px-4 bg-white/[0.02]">
-              <AccordionTrigger className="hover:no-underline text-lg font-medium py-6">É seguro usar?</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground text-base pb-6 leading-relaxed">
-                Absolutamente. Não exigimos as senhas da sua conta. O monitoramento acontece em nossos servidores. Você só precisa fazer login em nosso painel para ver os resultados.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-3" className="border border-white/10 rounded-lg px-4 bg-white/[0.02]">
-              <AccordionTrigger className="hover:no-underline text-lg font-medium py-6">Posso pedir reembolso?</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground text-base pb-6 leading-relaxed">
-                Devido à natureza digital do produto, geralmente não oferecemos reembolsos depois que você acessa os dados premium. No entanto, se o serviço ficar fora do ar por mais de 24 horas, iremos compensá-lo.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <ScrollReveal>
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">FAQ</h2>
+            </div>
+          </ScrollReveal>
+          <ScrollReveal delay={100}>
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              <AccordionItem value="item-1" className="border border-white/10 rounded-lg px-4 bg-white/[0.02]">
+                <AccordionTrigger className="hover:no-underline text-lg font-medium py-6">Como funciona o verificador?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-base pb-6 leading-relaxed">
+                  Usamos uma rede distribuída de nós para consultar as APIs das plataformas diretamente. Isso nos permite contornar os limites de taxa padrão e verificar milhares de nomes por segundo sem sermos bloqueados.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-2" className="border border-white/10 rounded-lg px-4 bg-white/[0.02]">
+                <AccordionTrigger className="hover:no-underline text-lg font-medium py-6">É seguro usar?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-base pb-6 leading-relaxed">
+                  Absolutamente. Não exigimos as senhas da sua conta. O monitoramento acontece em nossos servidores. Você só precisa fazer login em nosso painel para ver os resultados.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-3" className="border border-white/10 rounded-lg px-4 bg-white/[0.02]">
+                <AccordionTrigger className="hover:no-underline text-lg font-medium py-6">Posso pedir reembolso?</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-base pb-6 leading-relaxed">
+                  Devido à natureza digital do produto, geralmente não oferecemos reembolsos depois que você acessa os dados premium. No entanto, se o serviço ficar fora do ar por mais de 24 horas, iremos compensá-lo.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </ScrollReveal>
         </section>
       </main>
 
