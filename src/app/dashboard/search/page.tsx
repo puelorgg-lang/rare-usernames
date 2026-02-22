@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, Search, Image } from "lucide-react"
+import { Loader2, Search, Image, User } from "lucide-react"
 
 type ProfileData = {
   userId: string
@@ -87,7 +87,25 @@ export default function SearchPage() {
           )}
 
           {result && !error && (
-            <div className="mt-6">
+            <div className="mt-6 space-y-4">
+              {/* User Info Header */}
+              <div className="flex items-center gap-4 p-4 rounded-lg border bg-white/5 border-white/10">
+                {result.avatar && (
+                  <img 
+                    src={result.avatar} 
+                    alt="Avatar" 
+                    className="h-16 w-16 rounded-full"
+                  />
+                )}
+                <div>
+                  <h4 className="font-bold text-lg flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {result.username || "Unknown"}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">ID: {result.userId}</p>
+                </div>
+              </div>
+
               {/* Avatar Display */}
               <div className="p-4 rounded-lg border bg-white/5 border-white/10">
                 <h5 className="font-semibold mb-3 flex items-center gap-2">
