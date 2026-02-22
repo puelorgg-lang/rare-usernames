@@ -46,7 +46,7 @@ const searchAdditionalData = new Map();
 
 // API endpoint for search from web
 app.post('/api/search', async (req, res) => {
-    const { query, option, channelId, serverId } = req.body;
+    const { query, option, channelId, serverId, category } = req.body;
     
     if (!query) {
         return res.status(400).json({ error: 'Query (ID or username) is required' });
@@ -55,12 +55,16 @@ app.post('/api/search', async (req, res) => {
     // Create a unique ID for this search
     const searchId = `${query}-${Date.now()}`;
     
+    // Store the category for specific button clicking
+    const searchCategory = category || option || 'all';
+    
     // Store resolve/reject functions
     const searchPromise = new Promise((resolve, reject) => {
         pendingSearches.set(searchId, { 
             resolve, 
             reject, 
             startTime: Date.now(),
+            category: searchCategory,
             timeout: setTimeout(() => {
                 pendingSearches.delete(searchId);
                 reject(new Error('Timeout waiting for bot response'));
@@ -75,6 +79,7 @@ app.post('/api/search', async (req, res) => {
         console.log('🔍 Client user:', client.user ? client.user.tag : 'No user');
         console.log('🔍 Channel ID:', channelId || SEARCH_CHANNEL_ID);
         console.log('🔍 Query:', query);
+        console.log('🔍 Category:', searchCategory);
         
         if (client && client.isReady()) {
             const channel = await client.channels.fetch(channelId || SEARCH_CHANNEL_ID);
@@ -214,18 +219,53 @@ async function handleZanyBotResponse(message) {
             if (messageWithComponents.components && messageWithComponents.components.length > 0) {
                 console.log('🔍 Found buttons on message, clicking to get more info...');
                 
+                // Map category names to button customIds
+                const categoryButtonMap = {
+                    'cores do perfil': ['colors', 'cores'],
+                    'profile colors': ['colors', 'cores'],
+                    'cores': ['colors', 'cores'],
+                    'colors': ['colors', 'cores'],
+                    'nomes anteriores': ['names', 'nomes', 'username'],
+                    'previous usernames': ['names', 'nomes', 'username'],
+                    'nomes': ['names', 'nomes'],
+                    'icons antigos': ['icons', 'ícones', 'avatars'],
+                    'old icons': ['icons', 'ícones', 'avatars'],
+                    'banners antigos': ['banners', 'fundos'],
+                    'old banners': ['banners', 'fundos'],
+                    'mensagens': ['messages', 'mensagens', 'msg'],
+                    'last messages': ['messages', 'mensagens', 'msg'],
+                    'calls': ['calls', 'vc', 'chamadas'],
+                    'voice': ['calls', 'vc', 'chamadas'],
+                    'servidores': ['servers', 'servidores', 'guilds'],
+                    'servers': ['servers', 'servidores', 'guilds'],
+                    'visualizações': ['views', 'visualizações', 'history'],
+                    'view history': ['views', 'visualizações', 'history'],
+                    'nitro': ['nitro', 'boost'],
+                    'all': [] // Click all buttons
+                };
+                
+                const targetKeywords = categoryButtonMap[pending.category.toLowerCase()] || [];
+                console.log('🔍 Target category:', pending.category);
+                console.log('🔍 Target keywords:', targetKeywords);
+                
                 // Get all buttons and click them
                 for (const actionRow of messageWithComponents.components) {
                     if (actionRow.components) {
                         for (const button of actionRow.components) {
                             if (button.customId) {
-                                console.log('🔍 Clicking button:', button.customId);
-                                try {
-                                    await button.click();
-                                    // Wait a bit for the response
-                                    await new Promise(r => setTimeout(r, 1500));
-                                } catch (err) {
-                                    console.log('🔍 Error clicking button:', err.message);
+                                const buttonId = button.customId.toLowerCase();
+                                const shouldClick = targetKeywords.length === 0 || // Click all if 'all'
+                                    targetKeywords.some(keyword => buttonId.includes(keyword));
+                                
+                                if (shouldClick) {
+                                    console.log('🔍 Clicking button:', button.customId);
+                                    try {
+                                        await button.click();
+                                        // Wait a bit for the response
+                                        await new Promise(r => setTimeout(r, 1500));
+                                    } catch (err) {
+                                        console.log('🔍 Error clicking button:', err.message);
+                                    }
                                 }
                             }
                         }
@@ -240,35 +280,74 @@ async function handleZanyBotResponse(message) {
                 const additionalData = searchAdditionalData.get(searchId);
                 if (additionalData) {
                     console.log('🔍 Merging additional data...');
-                    if (additionalData.nitroStartDate && !result.nitroStartDate) {
-                        result.nitroStartDate = additionalData.nitroStartDate;
-                    }
-                    if (additionalData.boostStartDate && !result.boostStartDate) {
-                        result.boostStartDate = additionalData.boostStartDate;
-                    }
-                    if (additionalData.profileColors && additionalData.profileColors.length > 0) {
-                        result.profileColors = [...new Set([...result.profileColors, ...additionalData.profileColors])];
-                    }
-                    if (additionalData.previousUsernames && additionalData.previousUsernames.length > 0) {
-                        result.previousUsernames = [...new Set([...result.previousUsernames, ...additionalData.previousUsernames])];
-                    }
-                    if (additionalData.oldIcons && additionalData.oldIcons.length > 0) {
-                        result.oldIcons = [...result.oldIcons, ...additionalData.oldIcons];
-                    }
-                    if (additionalData.oldBanners && additionalData.oldBanners.length > 0) {
-                        result.oldBanners = [...result.oldBanners, ...additionalData.oldBanners];
-                    }
-                    if (additionalData.lastMessages && additionalData.lastMessages.length > 0) {
-                        result.lastMessages = [...result.lastMessages, ...additionalData.lastMessages];
-                    }
-                    if (additionalData.lastCall && !result.lastCall) {
-                        result.lastCall = additionalData.lastCall;
-                    }
-                    if (additionalData.servers && additionalData.servers.length > 0) {
-                        result.servers = [...result.servers, ...additionalData.servers];
-                    }
-                    if (additionalData.viewHistory && additionalData.viewHistory.length > 0) {
-                        result.viewHistory = [...result.viewHistory, ...additionalData.viewHistory];
+                    
+                    // If specific category, only return that data
+                    const isSpecificCategory = pending.category && pending.category.toLowerCase() !== 'all';
+                    
+                    if (!isSpecificCategory) {
+                        // Return all data
+                        if (additionalData.nitroStartDate && !result.nitroStartDate) {
+                            result.nitroStartDate = additionalData.nitroStartDate;
+                        }
+                        if (additionalData.boostStartDate && !result.boostStartDate) {
+                            result.boostStartDate = additionalData.boostStartDate;
+                        }
+                        if (additionalData.profileColors && additionalData.profileColors.length > 0) {
+                            result.profileColors = [...new Set([...result.profileColors, ...additionalData.profileColors])];
+                        }
+                        if (additionalData.previousUsernames && additionalData.previousUsernames.length > 0) {
+                            result.previousUsernames = [...new Set([...result.previousUsernames, ...additionalData.previousUsernames])];
+                        }
+                        if (additionalData.oldIcons && additionalData.oldIcons.length > 0) {
+                            result.oldIcons = [...result.oldIcons, ...additionalData.oldIcons];
+                        }
+                        if (additionalData.oldBanners && additionalData.oldBanners.length > 0) {
+                            result.oldBanners = [...result.oldBanners, ...additionalData.oldBanners];
+                        }
+                        if (additionalData.lastMessages && additionalData.lastMessages.length > 0) {
+                            result.lastMessages = [...result.lastMessages, ...additionalData.lastMessages];
+                        }
+                        if (additionalData.lastCall && !result.lastCall) {
+                            result.lastCall = additionalData.lastCall;
+                        }
+                        if (additionalData.servers && additionalData.servers.length > 0) {
+                            result.servers = [...result.servers, ...additionalData.servers];
+                        }
+                        if (additionalData.viewHistory && additionalData.viewHistory.length > 0) {
+                            result.viewHistory = [...result.viewHistory, ...additionalData.viewHistory];
+                        }
+                    } else {
+                        // Return only specific category data
+                        const category = pending.category.toLowerCase();
+                        
+                        if (category.includes('cores') || category.includes('color')) {
+                            result.profileColors = additionalData.profileColors || [];
+                        }
+                        if (category.includes('nome') || category.includes('name')) {
+                            result.previousUsernames = additionalData.previousUsernames || [];
+                        }
+                        if (category.includes('icon')) {
+                            result.oldIcons = additionalData.oldIcons || [];
+                        }
+                        if (category.includes('banner')) {
+                            result.oldBanners = additionalData.oldBanners || [];
+                        }
+                        if (category.includes('mensagem') || category.includes('message')) {
+                            result.lastMessages = additionalData.lastMessages || [];
+                        }
+                        if (category.includes('call') || category.includes('vc')) {
+                            result.lastCall = additionalData.lastCall;
+                        }
+                        if (category.includes('servidor') || category.includes('server')) {
+                            result.servers = additionalData.servers || [];
+                        }
+                        if (category.includes('visualização') || category.includes('view')) {
+                            result.viewHistory = additionalData.viewHistory || [];
+                        }
+                        if (category.includes('nitro')) {
+                            result.nitroStartDate = additionalData.nitroStartDate;
+                            result.boostStartDate = additionalData.boostStartDate;
+                        }
                     }
                 }
             }
