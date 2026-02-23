@@ -32,13 +32,14 @@ interface WebhookConfig {
 }
 
 const PLATFORMS = [
-  { value: "discord", label: "Discord", color: "#5865F2", icon: "💬" },
-  { value: "roblox", label: "Roblox", color: "#E2231A", icon: "🎮" },
-  { value: "minecraft", label: "Minecraft", color: "#62B47A", icon: "⛏️" },
-  { value: "instagram", label: "Instagram", color: "#E1306C", icon: "📸" },
-  { value: "youtube", label: "YouTube", color: "#FF0000", icon: "▶️" },
-  { value: "tiktok", label: "TikTok", color: "#000000", icon: "🎵" },
-  { value: "twitter", label: "Twitter/X", color: "#1DA1F2", icon: "🐦" },
+  { value: "discord", label: "Discord", color: "#5865F2" },
+  { value: "minecraft", label: "Minecraft", color: "#62B47A" },
+  { value: "instagram", label: "Instagram", color: "#E1306C" },
+  { value: "github", label: "GitHub", color: "#FFFFFF" },
+  { value: "roblox", label: "Roblox", color: "#E2231A" },
+  { value: "tiktok", label: "TikTok", color: "#000000" },
+  { value: "twitter", label: "Twitter", color: "#1DA1F2" },
+  { value: "urls", label: "URLs", color: "#FF6B00" },
 ]
 
 const CATEGORIES = [
@@ -206,10 +207,7 @@ export default function WebhooksPage() {
                 <SelectContent>
                   {PLATFORMS.map((platform) => (
                     <SelectItem key={platform.value} value={platform.value}>
-                      <span className="flex items-center gap-2">
-                        <span>{platform.icon}</span>
-                        <span>{platform.label}</span>
-                      </span>
+                      {platform.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -256,10 +254,7 @@ export default function WebhooksPage() {
                 <SelectItem value="all">Todas as plataformas</SelectItem>
                 {PLATFORMS.map((platform) => (
                   <SelectItem key={platform.value} value={platform.value}>
-                    <span className="flex items-center gap-2">
-                      <span>{platform.icon}</span>
-                      <span>{platform.label}</span>
-                    </span>
+                    {platform.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -279,7 +274,6 @@ export default function WebhooksPage() {
                 .filter(w => platformFilter === "all" || w.platform === platformFilter)
                 .map((webhook, index) => {
                   const platform = PLATFORMS.find(p => p.value === webhook.platform) || PLATFORMS[0]
-                  const originalIndex = webhooks.indexOf(webhook)
                   return (
                     <div 
                       key={index}
@@ -287,10 +281,10 @@ export default function WebhooksPage() {
                     >
                       <div className="flex items-center gap-4">
                         <div 
-                          className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
-                          style={{ backgroundColor: `${platform.color}20`, border: `1px solid ${platform.color}30` }}
+                          className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-medium"
+                          style={{ backgroundColor: `${platform.color}20`, border: `1px solid ${platform.color}30`, color: platform.color }}
                         >
-                          {platform.icon}
+                          {platform.label.substring(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1">
                           <p className="font-mono text-sm">{webhook.channelId}</p>
