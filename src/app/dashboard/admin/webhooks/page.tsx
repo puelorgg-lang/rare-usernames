@@ -306,10 +306,7 @@ export default function WebhooksPage() {
                           <SelectContent>
                             {PLATFORMS.map((p) => (
                               <SelectItem key={p.value} value={p.value}>
-                                <span className="flex items-center gap-2">
-                                  <span>{p.icon}</span>
-                                  <span>{p.label}</span>
-                                </span>
+                                {p.label}
                               </SelectItem>
                             ))}
                           </SelectContent>
