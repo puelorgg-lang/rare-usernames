@@ -298,7 +298,7 @@ export default function WebhooksPage() {
                       <div className="flex items-center gap-2">
                         <Select 
                           value={webhook.platform} 
-                          onValueChange={(value) => updateWebhookPlatform(originalIndex, value)}
+                          onValueChange={(value) => updateWebhookPlatform(index, value)}
                         >
                           <SelectTrigger className="w-[140px] bg-white/5 border-white/10">
                             <SelectValue />
@@ -313,7 +313,7 @@ export default function WebhooksPage() {
                         </Select>
                         <Select 
                           value={webhook.category} 
-                          onValueChange={(value) => updateWebhookCategory(originalIndex, value)}
+                          onValueChange={(value) => updateWebhookCategory(index, value)}
                         >
                           <SelectTrigger className="w-[180px] bg-white/5 border-white/10">
                             <SelectValue />
@@ -329,7 +329,7 @@ export default function WebhooksPage() {
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          onClick={() => removeWebhook(originalIndex)}
+                          onClick={() => removeWebhook(index)}
                           className="ml-4 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                         >
                           ×
