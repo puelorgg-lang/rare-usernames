@@ -206,7 +206,7 @@ async function enviarParaSite(username, channelId, status = 'AVAILABLE', availab
         // Busca webhooks do banco de dados
         const webhooks = await getWebhooks();
         const category = getCategoryForChannel(channelId, webhooks) || CHANNEL_CATEGORY_MAP[channelId] || 'RANDOM';
-        const platform = getPlatformForChannel(channelId, webhooks) || 'discord';
+        const platform = getPlatformForChannel(channelId, webhooks) || 'DISCORD';
         
         const response = await axios.post(`${SITE_URL}/api/webhooks/discord`, {
             content: username,

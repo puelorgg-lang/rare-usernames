@@ -105,7 +105,7 @@ export function UsernameTable({ usernames, category, totalCount, currentPage = 1
     ROBLOX: "bg-red-600 hover:bg-red-600/80",
     TIKTOK: "bg-black hover:bg-gray-900",
     TWITTER: "bg-blue-400 hover:bg-blue-400/80",
-    URL: "bg-orange-500 hover:bg-orange-500/80",
+    URLS: "bg-orange-500 hover:bg-orange-500/80",
   }
 
   return (

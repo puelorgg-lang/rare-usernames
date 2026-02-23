@@ -7,6 +7,7 @@ export const PLATFORMS = {
   TWITTER: "TWITTER",
   INSTAGRAM: "INSTAGRAM",
   TIKTOK: "TIKTOK",
+  URLS: "URLS",
 } as const;
 
 export type Platform = keyof typeof PLATFORMS;

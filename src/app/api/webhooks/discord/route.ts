@@ -78,7 +78,7 @@ async function getPlatformFromChannelId(channelId: string): Promise<string> {
     console.error("Error fetching webhook from DB:", error)
   }
   
-  return "discord"
+  return "DISCORD"
 }
 
 // Get category from query parameter (alternative approach)

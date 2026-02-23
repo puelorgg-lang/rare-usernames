@@ -34,14 +34,14 @@ interface WebhookConfig {
 }
 
 const PLATFORMS = [
-  { value: "discord", label: "Discord", color: "#5865F2" },
-  { value: "minecraft", label: "Minecraft", color: "#62B47A" },
-  { value: "instagram", label: "Instagram", color: "#E1306C" },
-  { value: "github", label: "GitHub", color: "#FFFFFF" },
-  { value: "roblox", label: "Roblox", color: "#E2231A" },
-  { value: "tiktok", label: "TikTok", color: "#000000" },
-  { value: "twitter", label: "Twitter", color: "#1DA1F2" },
-  { value: "urls", label: "URLs", color: "#FF6B00" },
+  { value: "DISCORD", label: "Discord", color: "#5865F2" },
+  { value: "MINECRAFT", label: "Minecraft", color: "#62B47A" },
+  { value: "INSTAGRAM", label: "Instagram", color: "#E1306C" },
+  { value: "GITHUB", label: "GitHub", color: "#FFFFFF" },
+  { value: "ROBLOX", label: "Roblox", color: "#E2231A" },
+  { value: "TIKTOK", label: "TikTok", color: "#000000" },
+  { value: "TWITTER", label: "Twitter", color: "#1DA1F2" },
+  { value: "URLS", label: "URLs", color: "#FF6B00" },
 ]
 
 const CATEGORIES = [
@@ -57,7 +57,7 @@ export default function WebhooksPage() {
   const [webhooks, setWebhooks] = useState<WebhookConfig[]>([])
   const [newChannelId, setNewChannelId] = useState("")
   const [newCategory, setNewCategory] = useState("CHARS_2")
-  const [newPlatform, setNewPlatform] = useState("discord")
+  const [newPlatform, setNewPlatform] = useState("DISCORD")
   const [platformFilter, setPlatformFilter] = useState("all")
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
