@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -104,20 +105,30 @@ export default async function LandingPage() {
 
               {/* Minecraft */}
               <div className="group flex flex-col items-center gap-2">
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#8FCDA8]/20 border border-[#8FCDA8]/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(143,205,168,0.5)] hover:bg-[#8FCDA8]/30">
-                  <svg viewBox="0 0 24 24" className="w-7 h-7 md:w-8 md:h-8" fill="#8FCDA8">
-                    <path d="M18.7 3.1c-.6-.3-1.3-.4-2-.2l-1.1.3c-.7.2-1.3.7-1.6 1.4l-.7 1.4c-.4.7-.6 1.5-.6 2.3v6.9c0 1.1.4 2.1 1 2.9l-2.6 2.6c-.5-.3-1.1-.5-1.7-.5-1.2 0-2.3.8-2.8 1.9-.5-1.2-1.6-1.9-2.8-1.9-.6 0-1.2.2-1.7.5L2.7 17.9c.7-.9 1.7-1.5 2.8-1.5.8 0 1.6.3 2.2.7l1.3 1c.5.4 1.1.6 1.7.6 1.2 0 2.2-.9 2.4-2.1l.3-1.6c.1-.6.4-1.2.8-1.7l1-1.2c.3-.4.5-.9.5-1.4V5.7c0-.8-.3-1.6-.8-2.2l.7-.4zm-1.5 1.4c.2 0 .4.1.5.2l1.1 1.1c.2.2.3.5.3.8v5.9l-1.4 1.4c-.1.1-.2.1-.4.1-.6 0-1.1-.5-1.1-1.1V8.1l.7-.7c.2-.2.5-.3.8-.3l-.5-3.6zm-6.2.5c.2 0 .4.1.5.2l1.1 1.1c.2.2.3.5.3.8v5.9l-1.4 1.4c-.1.1-.2.1-.4.1-.6 0-1.1-.5-1.1-1.1V8.1l.7-.7c.2-.2.5-.3.8-.3l-.5-3.6zm-5.4 3.7l.6.5c.2.2.3.4.3.7v5.3c0 .6-.5 1.1-1.1 1.1-.2 0-.4-.1-.5-.2l-1-1.1V9.4l1.7-1.7zm10.3 8.3c0 .2-.1.3-.2.5l-.7.7c-.2.2-.4.3-.7.3-.5 0-1-.4-1-1V7.8l2.6-2.6c.2-.2.5-.2.8 0l1.8 1.8c.2.2.2.5 0 .8l-2.6 2.6v5.1z"/>
-                  </svg>
+                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.3)] hover:bg-white/20">
+                  <div className="relative w-8 h-8 md:w-9 md:h-9">
+                    <Image 
+                      src="/minecraft-logo.png" 
+                      alt="Minecraft" 
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">Minecraft</span>
               </div>
 
               {/* Roblox */}
               <div className="group flex flex-col items-center gap-2">
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#FFFFFF]/20 border border-[#FFFFFF]/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.5)] hover:bg-[#FFFFFF]/30">
-                  <svg viewBox="0 0 24 24" className="w-7 h-7 md:w-8 md:h-8" fill="#FFFFFF">
-                    <path d="M12.08 1.5c-.73 0-1.42.19-2.03.53L4.49 4.62c-.93.36-1.58 1.22-1.77 2.22L1.44 10.5c-.1.53.12 1.08.56 1.42l3.37 2.56c.37.28.84.37 1.28.23l3.2-1.04c.37-.12.75-.12 1.12 0l3.2 1.04c.44.14.91.05 1.28-.23l3.37-2.56c.44-.34.66-.89.56-1.42l-1.28-3.66c-.19-1-.84-1.86-1.77-2.22l-5.56-2.59c-.61-.34-1.3-.53-2.03-.53h-.08zM8.5 7.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zm7 0c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5z"/>
-                  </svg>
+                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.3)] hover:bg-white/20">
+                  <div className="relative w-8 h-8 md:w-9 md:h-9">
+                    <Image 
+                      src="/roblox-logo.png" 
+                      alt="Roblox" 
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">Roblox</span>
               </div>
