@@ -818,8 +818,19 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
-    const webhookUrl = CHANNEL_WEBHOOKS[message.channel.id];
-    if (!webhookUrl) return;
+    // Get channel ID
+    const channelId = message.channel.id;
+    
+    // Check if we should monitor this channel (from DB or fallback)
+    const webhooks = await getWebhooks();
+    const dbWebhook = webhooks.find(w => w.channelId === channelId);
+    const webhookUrl = dbWebhook ? dbWebhook.webhookUrl : CHANNEL_WEBHOOKS[channelId];
+    
+    // If not in DB and not in fallback, skip
+    if (!dbWebhook && !CHANNEL_WEBHOOKS[channelId]) {
+        return;
+    }
+    
     if (message.author.id === client.user.id) return;
 
     try {
