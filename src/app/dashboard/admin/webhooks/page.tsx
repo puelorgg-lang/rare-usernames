@@ -23,12 +23,14 @@ const toastError = (message: string) => {
     variant: "destructive",
   })
 }
-import { Save, Copy, Check, ExternalLink, Webhook } from "lucide-react"
+import { Save, Copy, Check, ExternalLink, Webhook, Loader2 } from "lucide-react"
 
 interface WebhookConfig {
   channelId: string
   category: string
   platform: string
+  isActive?: boolean
+  id?: string
 }
 
 const PLATFORMS = [
@@ -59,51 +61,156 @@ export default function WebhooksPage() {
   const [platformFilter, setPlatformFilter] = useState("all")
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   const webhookUrl = typeof window !== "undefined" 
     ? `${window.location.origin}/api/webhooks/discord`
     : ""
 
+  // Load webhooks from database on mount
   useEffect(() => {
-    // Load saved webhooks from localStorage
-    const saved = localStorage.getItem("discord_webhooks")
-    if (saved) {
-      setWebhooks(JSON.parse(saved))
-    }
+    fetchWebhooks()
   }, [])
 
-  const saveWebhooks = (newWebhooks: WebhookConfig[]) => {
-    setWebhooks(newWebhooks)
-    localStorage.setItem("discord_webhooks", JSON.stringify(newWebhooks))
-    toastSuccess("Webhooks salvos com sucesso!")
+  const fetchWebhooks = async () => {
+    try {
+      setInitialLoading(true)
+      const res = await fetch("/api/admin/webhooks")
+      if (res.ok) {
+        const data = await res.json()
+        setWebhooks(data.map((w: any) => ({
+          channelId: w.channelId,
+          category: w.category,
+          platform: w.platform,
+          isActive: w.isActive,
+          id: w.id
+        })))
+      }
+    } catch (error) {
+      console.error("Error fetching webhooks:", error)
+    } finally {
+      setInitialLoading(false)
+    }
   }
 
-  const addWebhook = () => {
+  const saveWebhooks = async (newWebhooks: WebhookConfig[]) => {
+    setWebhooks(newWebhooks)
+  }
+
+  const addWebhook = async () => {
     if (!newChannelId.trim()) {
       toastError("Por favor, insira o ID do canal")
       return
     }
 
-    const newWebhooks = [...webhooks, { channelId: newChannelId.trim(), category: newCategory, platform: newPlatform }]
-    saveWebhooks(newWebhooks)
-    setNewChannelId("")
+    setLoading(true)
+    try {
+      const res = await fetch("/api/admin/webhooks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channelId: newChannelId.trim(),
+          category: newCategory,
+          platform: newPlatform
+        })
+      })
+
+      if (res.ok) {
+        const saved = await res.json()
+        setWebhooks([...webhooks, { 
+          channelId: saved.channelId, 
+          category: saved.category, 
+          platform: saved.platform,
+          isActive: saved.isActive,
+          id: saved.id
+        }])
+        toastSuccess("Webhook salvo com sucesso!")
+        setNewChannelId("")
+      } else {
+        const error = await res.json()
+        toastError(error.error || "Erro ao salvar webhook")
+      }
+    } catch (error) {
+      console.error("Error adding webhook:", error)
+      toastError("Erro ao salvar webhook")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const removeWebhook = (index: number) => {
-    const newWebhooks = webhooks.filter((_, i) => i !== index)
-    saveWebhooks(newWebhooks)
+  const removeWebhook = async (channelId: string) => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/admin/webhooks?channelId=${channelId}`, {
+        method: "DELETE"
+      })
+
+      if (res.ok) {
+        setWebhooks(webhooks.filter(w => w.channelId !== channelId))
+        toastSuccess("Webhook removido!")
+      } else {
+        toastError("Erro ao remover webhook")
+      }
+    } catch (error) {
+      console.error("Error removing webhook:", error)
+      toastError("Erro ao remover webhook")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const updateWebhookCategory = (index: number, category: string) => {
-    const newWebhooks = [...webhooks]
-    newWebhooks[index].category = category
-    saveWebhooks(newWebhooks)
+  const updateWebhookCategory = async (channelId: string, category: string) => {
+    const webhook = webhooks.find(w => w.channelId === channelId)
+    if (!webhook) return
+
+    try {
+      const res = await fetch("/api/admin/webhooks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channelId,
+          category,
+          platform: webhook.platform
+        })
+      })
+
+      if (res.ok) {
+        setWebhooks(webhooks.map(w => 
+          w.channelId === channelId ? { ...w, category } : w
+        ))
+        toastSuccess("Categoria atualizada!")
+      }
+    } catch (error) {
+      console.error("Error updating webhook:", error)
+      toastError("Erro ao atualizar webhook")
+    }
   }
 
-  const updateWebhookPlatform = (index: number, platform: string) => {
-    const newWebhooks = [...webhooks]
-    newWebhooks[index].platform = platform
-    saveWebhooks(newWebhooks)
+  const updateWebhookPlatform = async (channelId: string, platform: string) => {
+    const webhook = webhooks.find(w => w.channelId === channelId)
+    if (!webhook) return
+
+    try {
+      const res = await fetch("/api/admin/webhooks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channelId,
+          platform,
+          category: webhook.category
+        })
+      })
+
+      if (res.ok) {
+        setWebhooks(webhooks.map(w => 
+          w.channelId === channelId ? { ...w, platform } : w
+        ))
+        toastSuccess("Plataforma atualizada!")
+      }
+    } catch (error) {
+      console.error("Error updating webhook:", error)
+      toastError("Erro ao atualizar webhook")
+    }
   }
 
   const copyWebhookUrl = () => {
@@ -111,6 +218,14 @@ export default function WebhooksPage() {
     setCopied(true)
     toastSuccess("URL copiada para a área de transferência!")
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
@@ -229,8 +344,12 @@ export default function WebhooksPage() {
               </Select>
             </div>
           </div>
-          <Button onClick={addWebhook} className="bg-primary hover:bg-primary/90">
-            <Save className="mr-2 h-4 w-4" />
+          <Button 
+            onClick={addWebhook} 
+            className="bg-primary hover:bg-primary/90"
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             Adicionar Mapeamento
           </Button>
         </CardContent>
@@ -272,11 +391,11 @@ export default function WebhooksPage() {
             <div className="space-y-4">
               {webhooks
                 .filter(w => platformFilter === "all" || w.platform === platformFilter)
-                .map((webhook, index) => {
+                .map((webhook) => {
                   const platform = PLATFORMS.find(p => p.value === webhook.platform) || PLATFORMS[0]
                   return (
                     <div 
-                      key={index}
+                      key={webhook.channelId}
                       className="flex items-center justify-between p-4 rounded-lg border border-white/10 bg-white/5"
                     >
                       <div className="flex items-center gap-4">
@@ -298,7 +417,7 @@ export default function WebhooksPage() {
                       <div className="flex items-center gap-2">
                         <Select 
                           value={webhook.platform} 
-                          onValueChange={(value) => updateWebhookPlatform(index, value)}
+                          onValueChange={(value) => updateWebhookPlatform(webhook.channelId, value)}
                         >
                           <SelectTrigger className="w-[140px] bg-white/5 border-white/10">
                             <SelectValue />
@@ -313,7 +432,7 @@ export default function WebhooksPage() {
                         </Select>
                         <Select 
                           value={webhook.category} 
-                          onValueChange={(value) => updateWebhookCategory(index, value)}
+                          onValueChange={(value) => updateWebhookCategory(webhook.channelId, value)}
                         >
                           <SelectTrigger className="w-[180px] bg-white/5 border-white/10">
                             <SelectValue />
@@ -329,10 +448,11 @@ export default function WebhooksPage() {
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          onClick={() => removeWebhook(index)}
+                          onClick={() => removeWebhook(webhook.channelId)}
+                          disabled={loading}
                           className="ml-4 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                         >
-                          ×
+                          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "×"}
                         </Button>
                       </div>
                     </div>

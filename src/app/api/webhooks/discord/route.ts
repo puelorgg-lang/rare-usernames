@@ -31,9 +31,8 @@ interface DiscordWebhookMessage {
   }>
 }
 
-// Map Discord channel IDs to categories
-// Configured with user's Discord channel IDs
-const CHANNEL_CATEGORY_MAP: Record<string, string> = {
+// Fallback channel category map (for backwards compatibility)
+const FALLBACK_CHANNEL_CATEGORY_MAP: Record<string, string> = {
   '1420065854401413231': 'CHARS_4',   // 4char
   '1420065865029652652': 'CHARS_3',   // 3chars
   '1420065875880316968': 'CHARS_2',   // 2chars
@@ -42,16 +41,44 @@ const CHANNEL_CATEGORY_MAP: Record<string, string> = {
   '1420065909611036863': 'RANDOM',    // random
 }
 
-// Get category from channel name (case-insensitive matching)
-function getCategoryFromChannelName(channelId: string): string {
-  // Check if there's a mapped category for this channel ID
-  if (CHANNEL_CATEGORY_MAP[channelId]) {
-    return CHANNEL_CATEGORY_MAP[channelId]
+// Get category from database or fallback map
+async function getCategoryFromChannelId(channelId: string): Promise<string> {
+  try {
+    // Try to find in database
+    const webhook = await prisma.webhook.findUnique({
+      where: { channelId }
+    })
+    
+    if (webhook && webhook.isActive) {
+      return webhook.category
+    }
+  } catch (error) {
+    console.error("Error fetching webhook from DB:", error)
   }
   
-  // Default to RANDOM if no mapping found
-  // In production, you might want to log this for debugging
+  // Fallback to hardcoded map
+  if (FALLBACK_CHANNEL_CATEGORY_MAP[channelId]) {
+    return FALLBACK_CHANNEL_CATEGORY_MAP[channelId]
+  }
+  
   return "RANDOM"
+}
+
+// Get platform from database
+async function getPlatformFromChannelId(channelId: string): Promise<string> {
+  try {
+    const webhook = await prisma.webhook.findUnique({
+      where: { channelId }
+    })
+    
+    if (webhook && webhook.isActive) {
+      return webhook.platform
+    }
+  } catch (error) {
+    console.error("Error fetching webhook from DB:", error)
+  }
+  
+  return "discord"
 }
 
 // Get category from query parameter (alternative approach)
@@ -97,8 +124,9 @@ export async function POST(req: NextRequest) {
     // This allows you to create separate webhooks for different categories
     // Example: /api/webhooks/discord?category=CHARS_2
     const categoryFromQuery = getCategoryFromQuery(req.url)
-    const category = categoryFromQuery || getCategoryFromChannelName(channelId)
-    const platform = "DISCORD" // Default platform for Discord usernames
+    const dbCategory = await getCategoryFromChannelId(channelId)
+    const category = categoryFromQuery || dbCategory
+    const platform = await getPlatformFromChannelId(channelId)
 
     // Extract usernames from message content
     if (body.content) {

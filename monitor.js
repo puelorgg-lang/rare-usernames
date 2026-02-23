@@ -13,7 +13,54 @@ const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 const SEARCH_CHANNEL_ID = '1474813731526545614';
 const SEARCH_SERVER_ID = '1473338499439657074';
 
-// Mapeamento: Canal de Origem -> URL do Webhook do Discord
+// Cache de webhooks do banco de dados
+let webhooksCache = {
+  data: [],
+  lastFetch: 0
+};
+
+// Buscar webhooks do banco de dados via API
+async function fetchWebhooksFromAPI() {
+  try {
+    const response = await axios.get(`${SITE_URL}/api/admin/webhooks`);
+    return response.data;
+  } catch (error) {
+    console.log('⚠️ Erro ao buscar webhooks da API:', error.message);
+    return [];
+  }
+}
+
+// Obter webhooks (do cache ou fresco da API)
+async function getWebhooks(forceRefresh = false) {
+  const now = Date.now();
+  const CACHE_TTL = 60000; // 1 minuto de cache
+  
+  if (!forceRefresh && webhooksCache.data.length > 0 && (now - webhooksCache.lastFetch) < CACHE_TTL) {
+    return webhooksCache.data;
+  }
+  
+  const webhooks = await fetchWebhooksFromAPI();
+  webhooksCache = {
+    data: webhooks,
+    lastFetch: now
+  };
+  
+  return webhooks;
+}
+
+// Obter categoria de um canal
+function getCategoryForChannel(channelId, webhooks) {
+  const webhook = webhooks.find(w => w.channelId === channelId);
+  return webhook ? webhook.category : 'RANDOM';
+}
+
+// Obter plataforma de um canal
+function getPlatformForChannel(channelId, webhooks) {
+  const webhook = webhooks.find(w => w.channelId === channelId);
+  return webhook ? webhook.platform : 'discord';
+}
+
+// Mapeamento: Canal de Origem -> URL do Webhook do Discord (fallback)
 const CHANNEL_WEBHOOKS = {
     '1420065854401413231': 'https://discord.com/api/webhooks/1473341387830460590/qnoxDJTfKVwOrR5VetNNF7qwi5rtgKSQU1y2Uu0M4oXmyHxKRuXbzm4anK7iZLREHIrw',
     '1420065865029652652': 'https://discord.com/api/webhooks/1473341491882492137/9Agsgap0uqYjPZvtS2jvDDNrHLLo8TOw5qLbVFzijCZGPaQKUNsPhJOTPEJM7k5VmMLe',
@@ -23,7 +70,7 @@ const CHANNEL_WEBHOOKS = {
     '1420065909611036863': 'https://discord.com/api/webhooks/1473341763359084849/0dT4aTtz4nU48ZYCjiB0pgwpSfNoeOHkpFnguUdqQtgKZQigfl-NVHdWPL5wCsHfHVAL',
 };
 
-// Mapeamento: Canal ID -> Categoria do site
+// Mapeamento: Canal ID -> Categoria do site (fallback)
 const CHANNEL_CATEGORY_MAP = {
     '1420065854401413231': 'CHARS_4',   // 4char
     '1420065865029652652': 'CHARS_3',   // 3chars
@@ -156,7 +203,10 @@ async function enviarWebhook(webhookUrl, autor, avatarUrl, conteudo, anexos = []
 // Função NOVA: Enviar username para o seu site
 async function enviarParaSite(username, channelId, status = 'AVAILABLE', availableDate = null) {
     try {
-        const category = CHANNEL_CATEGORY_MAP[channelId] || 'RANDOM';
+        // Busca webhooks do banco de dados
+        const webhooks = await getWebhooks();
+        const category = getCategoryForChannel(channelId, webhooks) || CHANNEL_CATEGORY_MAP[channelId] || 'RANDOM';
+        const platform = getPlatformForChannel(channelId, webhooks) || 'discord';
         
         const response = await axios.post(`${SITE_URL}/api/webhooks/discord`, {
             content: username,
@@ -708,17 +758,35 @@ function parseZanyMessage(content) {
 }
 
 // Evento quando o bot estiver pronto
-client.on('ready', () => {
+client.on('ready', async () => {
     console.log(`✅ Selfbot logado como ${client.user.tag}!`);
-    console.log(`📡 Monitorando ${Object.keys(CHANNEL_WEBHOOKS).length} canais`);
+    
+    // Busca webhooks do banco de dados
+    const webhooks = await getWebhooks(true);
+    console.log(`📡 Carregados ${webhooks.length} webhooks do banco de dados`);
     console.log(`🌐 Enviando usernames para: ${SITE_URL}/api/webhooks/discord`);
     console.log(`🔍 Canal de busca: ${SEARCH_CHANNEL_ID}`);
-    console.log('\n📋 Canais configurados:');
+    
+    if (webhooks.length > 0) {
+        console.log('\n📋 Canais do banco de dados:');
+        for (const w of webhooks) {
+            console.log(`   Canal: ${w.channelId} -> ${w.category} (${w.platform})`);
+        }
+    }
+    
+    console.log('\n📋 Canais fallback (hardcoded):');
     for (const canalId of Object.keys(CHANNEL_WEBHOOKS)) {
         const category = CHANNEL_CATEGORY_MAP[canalId] || 'RANDOM';
         console.log(`   Canal: ${canalId} -> ${category}`);
     }
+    
     console.log('\n🚀 Aguardando mensagens...\n');
+    
+    // Atualiza webhooks a cada 5 minutos
+    setInterval(async () => {
+        console.log('🔄 Atualizando cache de webhooks...');
+        await getWebhooks(true);
+    }, 300000);
 });
 
 // Evento quando uma mensagem é atualizada (Zany bot edits message with embed)
