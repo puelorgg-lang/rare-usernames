@@ -28,7 +28,18 @@ import { Save, Copy, Check, ExternalLink, Webhook } from "lucide-react"
 interface WebhookConfig {
   channelId: string
   category: string
+  platform: string
 }
+
+const PLATFORMS = [
+  { value: "discord", label: "Discord", color: "#5865F2", icon: "💬" },
+  { value: "roblox", label: "Roblox", color: "#E2231A", icon: "🎮" },
+  { value: "minecraft", label: "Minecraft", color: "#62B47A", icon: "⛏️" },
+  { value: "instagram", label: "Instagram", color: "#E1306C", icon: "📸" },
+  { value: "youtube", label: "YouTube", color: "#FF0000", icon: "▶️" },
+  { value: "tiktok", label: "TikTok", color: "#000000", icon: "🎵" },
+  { value: "twitter", label: "Twitter/X", color: "#1DA1F2", icon: "🐦" },
+]
 
 const CATEGORIES = [
   { value: "CHARS_2", label: "2 Caracteres" },
@@ -43,6 +54,8 @@ export default function WebhooksPage() {
   const [webhooks, setWebhooks] = useState<WebhookConfig[]>([])
   const [newChannelId, setNewChannelId] = useState("")
   const [newCategory, setNewCategory] = useState("CHARS_2")
+  const [newPlatform, setNewPlatform] = useState("discord")
+  const [platformFilter, setPlatformFilter] = useState("all")
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -70,7 +83,7 @@ export default function WebhooksPage() {
       return
     }
 
-    const newWebhooks = [...webhooks, { channelId: newChannelId.trim(), category: newCategory }]
+    const newWebhooks = [...webhooks, { channelId: newChannelId.trim(), category: newCategory, platform: newPlatform }]
     saveWebhooks(newWebhooks)
     setNewChannelId("")
   }
@@ -83,6 +96,12 @@ export default function WebhooksPage() {
   const updateWebhookCategory = (index: number, category: string) => {
     const newWebhooks = [...webhooks]
     newWebhooks[index].category = category
+    saveWebhooks(newWebhooks)
+  }
+
+  const updateWebhookPlatform = (index: number, platform: string) => {
+    const newWebhooks = [...webhooks]
+    newWebhooks[index].platform = platform
     saveWebhooks(newWebhooks)
   }
 
@@ -164,7 +183,7 @@ export default function WebhooksPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="channelId">ID do Canal do Discord</Label>
               <Input
@@ -177,6 +196,24 @@ export default function WebhooksPage() {
               <p className="text-xs text-muted-foreground">
                 Para encontrar o ID do canal, ative o modo desenvolvedor no Discord
               </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="platform">Plataforma</Label>
+              <Select value={newPlatform} onValueChange={setNewPlatform}>
+                <SelectTrigger className="bg-white/5 border-white/10">
+                  <SelectValue placeholder="Selecione uma plataforma" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PLATFORMS.map((platform) => (
+                    <SelectItem key={platform.value} value={platform.value}>
+                      <span className="flex items-center gap-2">
+                        <span>{platform.icon}</span>
+                        <span>{platform.label}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Categoria</Label>
@@ -208,6 +245,26 @@ export default function WebhooksPage() {
           <CardDescription>
             Canais do Discord que estão enviando usernames para o site
           </CardDescription>
+          {/* Platform Filter */}
+          <div className="flex items-center gap-2 mt-4">
+            <span className="text-sm text-muted-foreground">Filtrar por:</span>
+            <Select value={platformFilter} onValueChange={setPlatformFilter}>
+              <SelectTrigger className="w-[180px] bg-white/5 border-white/10">
+                <SelectValue placeholder="Todas as plataformas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as plataformas</SelectItem>
+                {PLATFORMS.map((platform) => (
+                  <SelectItem key={platform.value} value={platform.value}>
+                    <span className="flex items-center gap-2">
+                      <span>{platform.icon}</span>
+                      <span>{platform.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           {webhooks.length === 0 ? (
@@ -218,44 +275,78 @@ export default function WebhooksPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {webhooks.map((webhook, index) => (
-                <div 
-                  key={index}
-                  className="flex items-center justify-between p-4 rounded-lg border border-white/10 bg-white/5"
-                >
-                  <div className="flex-1">
-                    <p className="font-mono text-sm">{webhook.channelId}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Enviando para: {
-                        CATEGORIES.find(c => c.value === webhook.category)?.label
-                      }
-                    </p>
-                  </div>
-                  <Select 
-                    value={webhook.category} 
-                    onValueChange={(value) => updateWebhookCategory(index, value)}
-                  >
-                    <SelectTrigger className="w-[180px] bg-white/5 border-white/10">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => removeWebhook(index)}
-                    className="ml-4 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                  >
-                    ×
-                  </Button>
-                </div>
-              ))}
+              {webhooks
+                .filter(w => platformFilter === "all" || w.platform === platformFilter)
+                .map((webhook, index) => {
+                  const platform = PLATFORMS.find(p => p.value === webhook.platform) || PLATFORMS[0]
+                  const originalIndex = webhooks.indexOf(webhook)
+                  return (
+                    <div 
+                      key={index}
+                      className="flex items-center justify-between p-4 rounded-lg border border-white/10 bg-white/5"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div 
+                          className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
+                          style={{ backgroundColor: `${platform.color}20`, border: `1px solid ${platform.color}30` }}
+                        >
+                          {platform.icon}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-mono text-sm">{webhook.channelId}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Plataforma: <span style={{ color: platform.color }}>{platform.label}</span> • Enviando para: {
+                              CATEGORIES.find(c => c.value === webhook.category)?.label
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Select 
+                          value={webhook.platform} 
+                          onValueChange={(value) => updateWebhookPlatform(originalIndex, value)}
+                        >
+                          <SelectTrigger className="w-[140px] bg-white/5 border-white/10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PLATFORMS.map((p) => (
+                              <SelectItem key={p.value} value={p.value}>
+                                <span className="flex items-center gap-2">
+                                  <span>{p.icon}</span>
+                                  <span>{p.label}</span>
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select 
+                          value={webhook.category} 
+                          onValueChange={(value) => updateWebhookCategory(originalIndex, value)}
+                        >
+                          <SelectTrigger className="w-[180px] bg-white/5 border-white/10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIES.map((cat) => (
+                              <SelectItem key={cat.value} value={cat.value}>
+                                {cat.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => removeWebhook(originalIndex)}
+                          className="ml-4 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
             </div>
           )}
         </CardContent>
