@@ -359,10 +359,6 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode, titl
 }
 
 function PricingCard({ title, price, period, features, popular, buttonText }: { title: string, price: string, period: string, features: string[], popular?: boolean, buttonText: string }) {
-  const handleClick = () => {
-    window.open('https://discord.gg/v3DABp73X5', '_blank')
-  }
-  
   return (
     <Card className={`relative flex flex-col p-8 glass-card transition-all duration-300 ${popular ? 'border-primary/50 bg-primary/[0.03] shadow-[0_0_60px_-15px_rgba(124,58,237,0.3)] scale-105 z-10' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10'}`}>
       {popular && (
@@ -389,11 +385,11 @@ function PricingCard({ title, price, period, features, popular, buttonText }: { 
           ))}
         </ul>
       </div>
-      <Button 
-        onClick={handleClick}
-        className={`w-full h-14 rounded-xl text-base font-bold transition-all duration-300 ${popular ? 'bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-primary/40' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
+      <Link href="https://discord.gg/v3DABp73X5" target="_blank" className="w-full">
+        <Button className={`w-full h-14 rounded-xl text-base font-bold transition-all duration-300 ${popular ? 'bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-primary/40' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
           {buttonText}
-      </Button>
+        </Button>
+      </Link>
     </Card>
   )
 }
