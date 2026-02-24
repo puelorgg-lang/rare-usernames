@@ -2,12 +2,33 @@ require('dotenv').config();
 const express = require('express');
 const { Client, GatewayIntentBits, EmbedBuilder, Routes } = require('discord.js');
 const axios = require('axios');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const SITE_URL = process.env.SITE_URL || 'https://your-app.onrender.com';
 
 // Armazenamento de configurações de canais (em memória)
 const channelConfigs = new Map(); // channelId -> { category, platform }
+
+// Carregar configurações do banco ao iniciar
+async function loadChannelConfigs() {
+  try {
+    const webhooks = await prisma.webhook.findMany();
+    webhooks.forEach(webhook => {
+      if (webhook.category && webhook.platform) {
+        channelConfigs.set(webhook.channelId, {
+          category: webhook.category,
+          platform: webhook.platform
+        });
+      }
+    });
+    console.log(`✅ Carregados ${webhooks.length} canais do banco de dados`);
+  } catch (error) {
+    console.log('⚠️ Erro ao carregar configurações do banco:', error.message);
+  }
+}
 
 // Mapeamento de categorias curtas para completas
 const CATEGORY_MAP = {
@@ -103,15 +124,35 @@ async function handleSetarCommand(message, args) {
     category,
     platform: platformUpper
   });
+  
+  // Também salvar no banco de dados
+  try {
+    await prisma.webhook.upsert({
+      where: { channelId: message.channel.id },
+      update: { category, platform: platformUpper },
+      create: {
+        channelId: message.channel.id,
+        platform: platformUpper,
+        category: category,
+        webhookUrl: ''
+      }
+    });
+    console.log(`✅ Salvo no banco: Canal ${message.channel.id} - ${category} - ${platformUpper}`);
+  } catch (error) {
+    console.log('⚠️ Erro ao salvar no banco:', error.message);
+  }
 
   message.reply(`✅ Canal configurado!\n📁 Categoria: ${category}\n🔗 Plataforma: ${platformUpper}\n\nEste canal receberá os usernames automaticamente.`);
   console.log(`✅ Canal ${message.channel.id} configurado para ${category} - ${platformUpper}`);
 }
 
 // Evento quando o bot estiver pronto
-botClient.on('ready', () => {
+botClient.on('ready', async () => {
   console.log(`🤖 Bot logado como ${botClient.user.tag}!`);
   console.log(`📢 Bot está ouvindo comandos em todos os servidores`);
+  
+  // Carregar configurações do banco
+  await loadChannelConfigs();
 });
 
 // Evento de mensagem
