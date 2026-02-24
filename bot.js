@@ -1,8 +1,10 @@
 require('dotenv').config();
+const express = require('express');
 const { Client, GatewayIntentBits, EmbedBuilder, Routes } = require('discord.js');
 const axios = require('axios');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
+const SITE_URL = process.env.SITE_URL || 'https://your-app.onrender.com';
 
 // Armazenamento de configurações de canais (em memória)
 const channelConfigs = new Map(); // channelId -> { category, platform }
@@ -36,9 +38,6 @@ const botClient = new Client({
     GatewayIntentBits.MessageContent
   ]
 });
-
-// Site URL for broadcasting
-const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 
 // Função para enviar embed de username
 async function sendUsernameEmbed(channelId, username, platform) {
@@ -149,3 +148,39 @@ if (BOT_TOKEN) {
 } else {
   console.log('⚠️ BOT_TOKEN não definido - bot não será iniciado');
 }
+
+// ==================== EXPRESS SERVER ====================
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+
+// Endpoint para receber notificações do site
+app.post('/api/notify-bot', async (req, res) => {
+  try {
+    const { username, category, platform } = req.body;
+    
+    if (!username || !category || !platform) {
+      return res.status(400).json({ error: 'Missing parameters' });
+    }
+    
+    console.log(`📥 Notificação recebida: ${username} (${category}) - ${platform}`);
+    
+    // Envia para todos os canais configurados
+    await broadcastUsername(username, category, platform);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Erro ao processar notificação:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', bot: botClient.user ? botClient.user.tag : 'not logged in' });
+});
+
+app.listen(PORT, () => {
+  console.log(`🌐 Bot API server running on port ${PORT}`);
+});
