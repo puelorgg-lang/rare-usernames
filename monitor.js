@@ -2,9 +2,35 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Client } = require('discord.js-selfbot-v13');
+const { Client: DiscordBot } = require('discord.js');
 const axios = require('axios');
 
 const TOKEN = process.env.DISCORD_TOKEN;
+const BOT_TOKEN = process.env.BOT_TOKEN;
+
+// Armazenamento de configurações de canais (em memória - pode ser salvo no banco)
+const channelConfigs = new Map(); // channelId -> { category, platform }
+
+// Mapeamento de categorias curtas para completas
+const CATEGORY_MAP = {
+  '4c': 'CHARS_4',
+  '3c': 'CHARS_3',
+  '2c': 'CHARS_2',
+  'en': 'EN_US',
+  'pt': 'PT_BR',
+  'random': 'RANDOM'
+};
+
+// Mapeamento de plataformas
+const PLATFORM_MAP = {
+  'discord': 'DISCORD',
+  'minecraft': 'MINECRAFT',
+  'roblox': 'ROBLOX',
+  'instagram': 'INSTAGRAM',
+  'github': 'GITHUB',
+  'twitter': 'TWITTER',
+  'tiktok': 'TIKTOK'
+};
 
 // URL do seu site (use variável de ambiente ou fallback para local)
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
@@ -158,6 +184,121 @@ app.listen(3001, () => {
     console.log('🔍 Search API server running on port 3001');
 });
 
+
+// ==================== NOVO BOT PARA ENVIAR MENSAGENS ====================
+const botClient = new DiscordBot({
+    intents: [
+        DiscordBot.GatewayIntentBits.Guilds,
+        DiscordBot.GatewayIntentBits.GuildMessages,
+        DiscordBot.GatewayIntentBits.MessageContent
+    ]
+});
+
+// Função para enviar embed de username
+async function sendUsernameEmbed(channelId, username, platform) {
+    try {
+        const channel = await botClient.channels.fetch(channelId);
+        if (!channel) {
+            console.log(`❌ Canal não encontrado: ${channelId}`);
+            return false;
+        }
+
+        const embed = {
+            title: 'DogUser',
+            description: `\`\`\`${username}\`\`\`\n\n**Status:** Disponível`,
+            color: 0x000000, // Preto
+            footer: {
+                text: `Todos os direitos reservados a @doguser`
+            },
+            timestamp: new Date().toISOString()
+        };
+
+        await channel.send({ embeds: [embed] });
+        console.log(`✅ Enviado username ${username} para canal ${channelId}`);
+        return true;
+    } catch (error) {
+        console.log(`❌ Erro ao enviar embed: ${error.message}`);
+        return false;
+    }
+}
+
+// Broadcast username para todos os canais configurados
+async function broadcastUsername(username, category, platform) {
+    for (const [channelId, config] of channelConfigs.entries()) {
+        if (config.category === category && config.platform === platform) {
+            await sendUsernameEmbed(channelId, username, platform);
+        }
+    }
+}
+
+// Função para processar comando /setar
+async function handleSetarCommand(message, args) {
+    const [categoryShort, platform] = args;
+    
+    if (!categoryShort || !platform) {
+        message.reply('❌ Uso correto: /setar <categoria> <plataforma>\nExemplo: /setar 4c discord');
+        return;
+    }
+
+    const category = CATEGORY_MAP[categoryShort.toLowerCase()];
+    const platformUpper = PLATFORM_MAP[platform.toLowerCase()];
+
+    if (!category) {
+        message.reply('❌ Categoria inválida! Use: 4c, 3c, 2c, en, pt ou random');
+        return;
+    }
+
+    if (!platformUpper) {
+        message.reply('❌ Plataforma inválida! Use: discord, minecraft, roblox, instagram, github, twitter, tiktok');
+        return;
+    }
+
+    // Salvar configuração
+    channelConfigs.set(message.channel.id, {
+        category,
+        platform: platformUpper
+    });
+
+    message.reply(`✅ Canal configurado!\n📁 Categoria: ${category}\n🔗 Plataforma: ${platformUpper}\n\nEste canal receberá os usernames automaticamente.`);
+    console.log(`✅ Canal ${message.channel.id} configurado para ${category} - ${platformUpper}`);
+}
+
+// Evento quando o bot estiver pronto
+botClient.on('ready', () => {
+    console.log(`🤖 Bot logado como ${botClient.user.tag}!`);
+    console.log(`📢 Bot está ouvindo comandos em todos os servidores`);
+});
+
+// Evento de mensagem
+botClient.on('messageCreate', async (message) => {
+    // Ignorar mensagens de bots
+    if (message.author.bot) return;
+
+    // Verificar se é comando /setar
+    const content = message.content.trim();
+    
+    if (content.startsWith('/setar')) {
+        const args = content.slice(6).trim().split(/\s+/);
+        await handleSetarCommand(message, args);
+        return;
+    }
+
+    // Verificar se o canal está configurado para enviar usernames
+    const config = channelConfigs.get(message.channel.id);
+    if (config) {
+        // É uma mensagem de username?
+        const username = content.trim();
+        if (username && username.length >= 2 && username.length <= 32 && /^[a-zA-Z0-9_.]+$/.test(username)) {
+            await sendUsernameEmbed(message.channel.id, username.toLowerCase(), config.platform);
+        }
+    }
+});
+
+// Login do bot
+botClient.login(BOT_TOKEN).catch((error) => {
+    console.error('❌ Erro ao fazer login do bot:', error.message);
+});
+
 // ==================== SELFBOT CODE ====================
 const client = new Client({
     checkUpdate: false,
@@ -217,6 +358,9 @@ async function enviarParaSite(username, channelId, status = 'AVAILABLE', availab
 
         if (response.data.success) {
             console.log(`   ✅ Salvo no site: ${username} (${category}) - ${response.data.count} usernames`);
+            
+            // Envia para os canais do Discord configurados
+            await broadcastUsername(username, category, platform);
             
             // Notifica os clientes conectados para atualizar
             await axios.post(`${SITE_URL}/api/notify`);
