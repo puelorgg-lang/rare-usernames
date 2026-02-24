@@ -184,15 +184,26 @@ botClient.on('messageCreate', async (message) => {
 // Login do bot
 if (BOT_TOKEN) {
   console.log('🤖 Iniciando bot do Discord...');
-  console.log('Token:', BOT_TOKEN.substring(0, 10) + '...'); // Debug log
+  console.log('Token starts with:', BOT_TOKEN.substring(0, 5));
   
-  botClient.login(BOT_TOKEN).then(() => {
-    console.log('✅ Login bem-sucedido!');
-  }).catch((error) => {
-    console.error('❌ Erro ao fazer login do bot:', error.message);
-    console.error('Error code:', error.code);
-    console.error('Error name:', error.name);
-  });
+  // Adicionar timeout para debug
+  const loginTimeout = setTimeout(() => {
+    console.log('⏰ Login timeout - verificando status...');
+    console.log('Bot ready?', botClient.isReady());
+    console.log('Bot user?', botClient.user);
+  }, 10000);
+  
+  botClient.login(BOT_TOKEN)
+    .then(() => {
+      clearTimeout(loginTimeout);
+      console.log('✅ Login bem-sucedido! Bot está online.');
+    })
+    .catch((error) => {
+      clearTimeout(loginTimeout);
+      console.error('❌ Erro ao fazer login do bot:', error.message);
+      console.error('Error code:', error.code);
+      console.error('Error name:', error.name);
+    });
 } else {
   console.log('⚠️ BOT_TOKEN não definido - bot não será iniciado');
 }
