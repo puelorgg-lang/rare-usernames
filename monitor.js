@@ -220,7 +220,7 @@ async function enviarParaSite(username, channelId, status = 'AVAILABLE', availab
             console.log(`   ✅ Salvo no site: ${username} (${category}) - ${response.data.count} usernames`);
             
             // Notifica o bot do Discord
-            const BOT_URL = process.env.BOT_URL;
+            const BOT_URL = process.env.BOT_URL || 'http://localhost:3001';
             if (BOT_URL) {
                 try {
                     await axios.post(`${BOT_URL}/api/notify-bot`, {

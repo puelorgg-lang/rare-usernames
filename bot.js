@@ -187,17 +187,14 @@ if (BOT_TOKEN) {
   console.log('Token starts with:', BOT_TOKEN.substring(0, 5));
   console.log('Token length:', BOT_TOKEN.length);
   
-  // Esperar um pouco antes de fazer login
-  setTimeout(() => {
-    botClient.login(BOT_TOKEN)
-      .then(() => {
-        console.log('✅ Login bem-sucedido! Bot está online.');
-      })
-      .catch((error) => {
-        console.error('❌ Erro ao fazer login do bot:', error.message);
-        console.error('Error code:', error.code);
-      });
-  }, 2000);
+  botClient.login(BOT_TOKEN)
+    .then(() => {
+      console.log('✅ Login bem-sucedido! Bot está online.');
+    })
+    .catch((error) => {
+      console.error('❌ Erro ao fazer login do bot:', error.message);
+      console.error('Error code:', error.code);
+    });
 } else {
   console.log('⚠️ BOT_TOKEN não definido - bot não será iniciado');
 }
