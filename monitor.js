@@ -1,8 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { Client } = require('discord.js-selfbot-v13');
-const { Client: DiscordBot } = require('discord.js');
+const { Client: DiscordBot } = require('discord.js-selfbot-v13');
+const { Client: BotClient, GatewayIntentBits, EmbedBuilder, Routes } = require('discord.js');
 const axios = require('axios');
 
 const TOKEN = process.env.DISCORD_TOKEN;
@@ -187,9 +187,8 @@ app.listen(3001, () => {
 
 // ==================== NOVO BOT PARA ENVIAR MENSAGENS ====================
 // Usar a API compatível com a versão instalada
-const { GatewayIntentBits, Client, EmbedBuilder, Routes } = require('discord.js');
 
-const botClient = new Client({
+const botClient = new BotClient({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,

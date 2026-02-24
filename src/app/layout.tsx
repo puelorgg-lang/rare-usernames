@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Users4U | Usernames Raros e OG",
   description: "Encontre e garanta usernames raros antes de todo mundo.",
+  icons: {
+    icon: "/dogusericon.png",
+  },
 };
 
 export default function RootLayout({
