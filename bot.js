@@ -4,6 +4,15 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
 
+// Debug: Catch unhandled rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
 const prisma = new PrismaClient();
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
