@@ -302,7 +302,7 @@ botClient.login(BOT_TOKEN).catch((error) => {
 });
 
 // ==================== SELFBOT CODE ====================
-const client = new Client({
+const client = new DiscordBot({
     checkUpdate: false,
 });
 
