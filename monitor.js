@@ -219,6 +219,21 @@ async function enviarParaSite(username, channelId, status = 'AVAILABLE', availab
         if (response.data.success) {
             console.log(`   ✅ Salvo no site: ${username} (${category}) - ${response.data.count} usernames`);
             
+            // Notifica o bot do Discord
+            const BOT_URL = process.env.BOT_URL;
+            if (BOT_URL) {
+                try {
+                    await axios.post(`${BOT_URL}/api/notify-bot`, {
+                        username,
+                        category,
+                        platform
+                    });
+                    console.log(`   ✅ Notificado ao bot`);
+                } catch (err) {
+                    console.log(`   ⚠️ Erro ao notificar bot: ${err.message}`);
+                }
+            }
+            
             // Notifica os clientes conectados para atualizar
             await axios.post(`${SITE_URL}/api/notify`);
             
