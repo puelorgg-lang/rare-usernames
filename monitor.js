@@ -186,11 +186,14 @@ app.listen(3001, () => {
 
 
 // ==================== NOVO BOT PARA ENVIAR MENSAGENS ====================
-const botClient = new DiscordBot({
+// Usar a API compatível com a versão instalada
+const { GatewayIntentBits, Client, EmbedBuilder, Routes } = require('discord.js');
+
+const botClient = new Client({
     intents: [
-        DiscordBot.GatewayIntentBits.Guilds,
-        DiscordBot.GatewayIntentBits.GuildMessages,
-        DiscordBot.GatewayIntentBits.MessageContent
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
     ]
 });
 
