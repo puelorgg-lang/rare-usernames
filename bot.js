@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { Client, GatewayIntentBits, EmbedBuilder, Routes } = require('discord.js');
+const { Client } = require('discord.js-selfbot-v13');
 const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
 
@@ -8,6 +8,11 @@ const prisma = new PrismaClient();
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const SITE_URL = process.env.SITE_URL || 'https://your-app.onrender.com';
+
+// Criar o cliente do bot (selfbot para token de usuário)
+const botClient = new Client({
+  checkUpdate: false
+});
 
 // Armazenamento de configurações de canais (em memória)
 const channelConfigs = new Map(); // channelId -> { category, platform }
@@ -50,16 +55,6 @@ const PLATFORM_MAP = {
   'twitter': 'TWITTER',
   'tiktok': 'TIKTOK'
 };
-
-// Criar o cliente do bot
-const botClient = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.DirectMessages
-  ]
-});
 
 // Função para enviar embed de username
 async function sendUsernameEmbed(channelId, username, platform) {
@@ -157,7 +152,7 @@ botClient.on('ready', async () => {
 });
 
 // Evento de mensagem
-botClient.on('messageCreate', async (message) => {
+botClient.on('message', async (message) => {
   // Ignorar mensagens de bots
   if (message.author.bot) return;
 
@@ -189,7 +184,7 @@ if (BOT_TOKEN) {
   // Adicionar timeout para debug
   const loginTimeout = setTimeout(() => {
     console.log('⏰ Login timeout - verificando status...');
-    console.log('Bot ready?', botClient.isReady());
+    console.log('Bot ready?', botClient.ready);
     console.log('Bot user?', botClient.user);
   }, 10000);
   
