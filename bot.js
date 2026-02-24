@@ -1,0 +1,151 @@
+require('dotenv').config();
+const { Client, GatewayIntentBits, EmbedBuilder, Routes } = require('discord.js');
+const axios = require('axios');
+
+const BOT_TOKEN = process.env.BOT_TOKEN;
+
+// Armazenamento de configurações de canais (em memória)
+const channelConfigs = new Map(); // channelId -> { category, platform }
+
+// Mapeamento de categorias curtas para completas
+const CATEGORY_MAP = {
+  '4c': 'CHARS_4',
+  '3c': 'CHARS_3',
+  '2c': 'CHARS_2',
+  'en': 'EN_US',
+  'pt': 'PT_BR',
+  'random': 'RANDOM'
+};
+
+// Mapeamento de plataformas
+const PLATFORM_MAP = {
+  'discord': 'DISCORD',
+  'minecraft': 'MINECRAFT',
+  'roblox': 'ROBLOX',
+  'instagram': 'INSTAGRAM',
+  'github': 'GITHUB',
+  'twitter': 'TWITTER',
+  'tiktok': 'TIKTOK'
+};
+
+// Criar o cliente do bot
+const botClient = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
+
+// Site URL for broadcasting
+const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
+
+// Função para enviar embed de username
+async function sendUsernameEmbed(channelId, username, platform) {
+  try {
+    const channel = await botClient.channels.fetch(channelId);
+    if (!channel) {
+      console.log(`❌ Canal não encontrado: ${channelId}`);
+      return false;
+    }
+
+    const embed = {
+      title: 'DogUser',
+      description: `\`\`\`${username}\`\`\`\n\n**Status:** Disponível`,
+      color: 0x000000, // Preto
+      footer: {
+        text: `Todos os direitos reservados a @doguser`
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    await channel.send({ embeds: [embed] });
+    console.log(`✅ Enviado username ${username} para canal ${channelId}`);
+    return true;
+  } catch (error) {
+    console.log(`❌ Erro ao enviar embed: ${error.message}`);
+    return false;
+  }
+}
+
+// Broadcast username para todos os canais configurados
+async function broadcastUsername(username, category, platform) {
+  for (const [channelId, config] of channelConfigs.entries()) {
+    if (config.category === category && config.platform === platform) {
+      await sendUsernameEmbed(channelId, username, platform);
+    }
+  }
+}
+
+// Função para processar comando /setar
+async function handleSetarCommand(message, args) {
+  const [categoryShort, platform] = args;
+  
+  if (!categoryShort || !platform) {
+    message.reply('❌ Uso correto: /setar <categoria> <plataforma>\nExemplo: /setar 4c discord');
+    return;
+  }
+
+  const category = CATEGORY_MAP[categoryShort.toLowerCase()];
+  const platformUpper = PLATFORM_MAP[platform.toLowerCase()];
+
+  if (!category) {
+    message.reply('❌ Categoria inválida! Use: 4c, 3c, 2c, en, pt ou random');
+    return;
+  }
+
+  if (!platformUpper) {
+    message.reply('❌ Plataforma inválida! Use: discord, minecraft, roblox, instagram, github, twitter, tiktok');
+    return;
+  }
+
+  // Salvar configuração
+  channelConfigs.set(message.channel.id, {
+    category,
+    platform: platformUpper
+  });
+
+  message.reply(`✅ Canal configurado!\n📁 Categoria: ${category}\n🔗 Plataforma: ${platformUpper}\n\nEste canal receberá os usernames automaticamente.`);
+  console.log(`✅ Canal ${message.channel.id} configurado para ${category} - ${platformUpper}`);
+}
+
+// Evento quando o bot estiver pronto
+botClient.on('ready', () => {
+  console.log(`🤖 Bot logado como ${botClient.user.tag}!`);
+  console.log(`📢 Bot está ouvindo comandos em todos os servidores`);
+});
+
+// Evento de mensagem
+botClient.on('messageCreate', async (message) => {
+  // Ignorar mensagens de bots
+  if (message.author.bot) return;
+
+  // Verificar se é comando /setar
+  const content = message.content.trim();
+  
+  if (content.startsWith('/setar')) {
+    const args = content.slice(6).trim().split(/\s+/);
+    await handleSetarCommand(message, args);
+    return;
+  }
+
+  // Verificar se o canal está configurado para enviar usernames
+  const config = channelConfigs.get(message.channel.id);
+  if (config) {
+    // É uma mensagem de username?
+    const username = content.trim();
+    if (username && username.length >= 2 && username.length <= 32 && /^[a-zA-Z0-9_.]+$/.test(username)) {
+      await sendUsernameEmbed(message.channel.id, username.toLowerCase(), config.platform);
+    }
+  }
+});
+
+// Login do bot
+if (BOT_TOKEN) {
+  console.log('🤖 Iniciando bot do Discord...');
+  botClient.login(BOT_TOKEN).catch((error) => {
+    console.error('❌ Erro ao fazer login do bot:', error.message);
+  });
+} else {
+  console.log('⚠️ BOT_TOKEN não definido - bot não será iniciado');
+}
