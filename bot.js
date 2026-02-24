@@ -183,8 +183,14 @@ botClient.on('messageCreate', async (message) => {
 // Login do bot
 if (BOT_TOKEN) {
   console.log('🤖 Iniciando bot do Discord...');
-  botClient.login(BOT_TOKEN).catch((error) => {
+  console.log('Token:', BOT_TOKEN.substring(0, 10) + '...'); // Debug log
+  
+  botClient.login(BOT_TOKEN).then(() => {
+    console.log('✅ Login bem-sucedido!');
+  }).catch((error) => {
     console.error('❌ Erro ao fazer login do bot:', error.message);
+    console.error('Error code:', error.code);
+    console.error('Error name:', error.name);
   });
 } else {
   console.log('⚠️ BOT_TOKEN não definido - bot não será iniciado');
