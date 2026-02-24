@@ -14,9 +14,11 @@ const botClient = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageTyping
-  ]
+    GatewayIntentBits.MessageContent
+  ],
+  rest: {
+    timeout: 30000
+  }
 });
 
 // Armazenamento de configurações de canais (em memória)
@@ -186,6 +188,7 @@ if (BOT_TOKEN) {
   console.log('🤖 Iniciando bot do Discord...');
   console.log('Token starts with:', BOT_TOKEN.substring(0, 5));
   console.log('Token length:', BOT_TOKEN.length);
+  console.log('Making login request...');
   
   botClient.login(BOT_TOKEN)
     .then(() => {
@@ -194,7 +197,11 @@ if (BOT_TOKEN) {
     .catch((error) => {
       console.error('❌ Erro ao fazer login do bot:', error.message);
       console.error('Error code:', error.code);
+      console.error('Error name:', error.name);
     });
+  
+  // Keepalive
+  console.log('Login request sent, waiting...');
 } else {
   console.log('⚠️ BOT_TOKEN não definido - bot não será iniciado');
 }
