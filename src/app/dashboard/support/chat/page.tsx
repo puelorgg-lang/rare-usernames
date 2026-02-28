@@ -144,8 +144,20 @@ export default function SupportChatPage() {
       })
       const data = await res.json()
       
-      // Update selected ticket with new data
+      // Send automatic message to user
       if (data.ticket) {
+        const supportName = session?.user?.name || "Suporte"
+        await fetch("/api/support/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ticketId,
+            sender: "SUPPORT",
+            senderName: supportName,
+            message: `${supportName} Atendeu seu chat, aguarde...`
+          })
+        })
+        
         setSelectedTicket(data.ticket)
       }
       
@@ -242,10 +254,33 @@ export default function SupportChatPage() {
               <div className="flex gap-2">
                 <Button 
                   className="flex-1 bg-green-500 hover:bg-green-600"
-                  onClick={() => {
-                    claimTicket(newTicketNotification.id)
+                  onClick={async () => {
+                    // First claim the ticket
+                    const res = await fetch("/api/support/tickets", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ ticketId: newTicketNotification.id, action: "CLAIM" })
+                    })
+                    const data = await res.json()
+                    
+                    // Send automatic message to user
+                    if (data.ticket) {
+                      const supportName = session?.user?.name || "Suporte"
+                      await fetch("/api/support/messages", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          ticketId: newTicketNotification.id,
+                          sender: "SUPPORT",
+                          senderName: supportName,
+                          message: `${supportName} Atendeu seu chat, aguarde...`
+                        })
+                      })
+                    }
+                    
                     setNewTicketNotification(null)
                     setActiveTab("my_chats")
+                    fetchTickets()
                   }}
                 >
                   <CheckCircle className="w-4 h-4 mr-2" />
