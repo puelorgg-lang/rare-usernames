@@ -90,6 +90,9 @@ const EXTERNAL_SOURCES = [
     }
 ];
 
+// External Discord sources - track last processed message
+let lastProcessedMessages = {};
+
 // Function to scan external sources for usernames
 async function scanExternalSources() {
     console.log('🔄 Scanning external Discord sources...');
@@ -102,10 +105,33 @@ async function scanExternalSources() {
                 continue;
             }
             
-            // Fetch recent messages
-            const messages = await channel.messages.fetch({ limit: 10 });
+            // Get the last processed message ID for this source
+            const lastId = lastProcessedMessages[source.channelId];
             
-            for (const [id, message] of messages) {
+            // Fetch only recent messages (limit to 5 for efficiency)
+            const options = { limit: 5 };
+            if (lastId) {
+                options.after = lastId;
+            }
+            
+            const messages = await channel.messages.fetch(options);
+            
+            if (messages.size === 0) {
+                console.log(`📭 No new messages in ${source.name}`);
+                continue;
+            }
+            
+            console.log(`📬 Found ${messages.size} new message(s) in ${source.name}`);
+            
+            // Sort messages by timestamp (oldest first)
+            const sortedMessages = messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+            
+            let newLastId = lastId;
+            
+            for (const [id, message] of sortedMessages) {
+                // Update the last processed ID
+                newLastId = id;
+                
                 // Check if message has embeds
                 if (message.embeds && message.embeds.length > 0) {
                     const embed = message.embeds[0];
@@ -197,6 +223,13 @@ async function scanExternalSources() {
                     }
                 }
             }
+            
+            // Update last processed message ID
+            if (newLastId && newLastId !== lastId) {
+                lastProcessedMessages[source.channelId] = newLastId;
+                console.log(`📌 Updated last processed message ID for ${source.name}: ${newLastId}`);
+            }
+            
         } catch (error) {
             console.error(`❌ Error scanning ${source.name}:`, error.message);
         }
