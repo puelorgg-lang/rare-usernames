@@ -41,11 +41,11 @@ export default function SubscriptionPage() {
             <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full">POPULAR</span>
           </div>
           <CardHeader>
-            <CardTitle className="text-2xl glow-text">Pro Hunter</CardTitle>
+            <CardTitle className="text-2xl glow-text">Pro Elite</CardTitle>
             <CardDescription>Para caçadores sérios de usernames raros.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-4xl font-bold">R$ 29<span className="text-lg text-muted-foreground font-normal">/mês</span></div>
+            <div className="text-4xl font-bold">R$ 25<span className="text-lg text-muted-foreground font-normal">/mês</span></div>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center"><Check className="mr-2 h-4 w-4 text-primary" /> Verificações Ilimitadas</li>
               <li className="flex items-center"><Check className="mr-2 h-4 w-4 text-primary" /> Acesso a TODAS categorias (2 chars, etc)</li>
