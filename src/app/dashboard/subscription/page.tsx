@@ -35,13 +35,13 @@ export default function SubscriptionPage() {
         </Card>
 
         {/* Pro Plan */}
-        <Card className="glass-card border-primary/50 relative overflow-hidden">
+        <Card className="glass-card border-primary/50 relative overflow-hidden animate-pulse">
           <div className="absolute inset-0 bg-primary/5 z-[-1]"></div>
           <div className="absolute top-0 right-0 p-2">
-            <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full">POPULAR</span>
+            <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full animate-pulse">POPULAR</span>
           </div>
           <CardHeader>
-            <CardTitle className="text-2xl glow-text">Pro</CardTitle>
+            <CardTitle className="text-2xl glow-text animate-pulse">Pro</CardTitle>
             <CardDescription>Para caçadores de usernames.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
