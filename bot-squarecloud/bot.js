@@ -26,6 +26,9 @@ const botClient = new Client({
 let prisma = null;
 let lastCheckedId = null;
 
+// Void Usernames channel to monitor
+const VOID_USERNAMES_CHANNEL_ID = '1418700979687133394';
+
 // In-memory channel configs
 const channelConfigs = new Map();
 
@@ -36,7 +39,8 @@ const CATEGORY_MAP = {
   'CHARS_2': '2c',
   'EN_US': 'en',
   'PT_BR': 'pt',
-  'RANDOM': 'random'
+  'RANDOM': 'random',
+  'FEED': 'feed'
 };
 
 const PLATFORM_MAP = {
@@ -158,6 +162,99 @@ botClient.on('ready', async () => {
   console.log(`📊 Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
 });
 
+// Monitor Void Usernames channel
+botClient.on('messageCreate', async (message) => {
+  // Only process messages from Void Usernames channel
+  if (message.channelId === VOID_USERNAMES_CHANNEL_ID) {
+    console.log('📬 New message from Void Usernames channel');
+    
+    // Check if message has embeds
+    if (message.embeds && message.embeds.length > 0) {
+      const embed = message.embeds[0];
+      const title = embed.title || '';
+      const description = embed.description || '';
+      
+      // Check embed fields
+      let fieldContent = '';
+      if (embed.fields && embed.fields.length > 0) {
+        for (const field of embed.fields) {
+          fieldContent += (field.name || '') + ' ' + (field.value || '') + ' ';
+        }
+      }
+      
+      const allText = title + ' ' + description + ' ' + fieldContent;
+      
+      // Match username in code blocks: ```username```
+      const usernameMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
+      
+      if (usernameMatch) {
+        const username = usernameMatch[1].toLowerCase();
+        console.log(`📝 Found username from Void Usernames: ${username}`);
+        
+        // Save to database
+        try {
+          const db = await initPrisma();
+          if (db) {
+            // Check if already exists
+            const existing = await db.username.findFirst({
+              where: { name: username }
+            });
+            
+            if (!existing) {
+              await db.username.create({
+                data: {
+                  name: username,
+                  platform: 'DISCORD',
+                  category: 'FEED',
+                  status: 'AVAILABLE',
+                  foundAt: new Date()
+                }
+              });
+              console.log(`✅ Saved username: ${username} to database`);
+            }
+          }
+        } catch (err) {
+          console.log(`⚠️ Error saving username: ${err.message}`);
+        }
+      }
+    }
+    
+    // Also check message content
+    const messageContent = message.content || '';
+    if (messageContent.includes('```')) {
+      const contentMatch = messageContent.match(/```([a-zA-Z0-9_\.\-]+)```/);
+      if (contentMatch) {
+        const username = contentMatch[1].toLowerCase();
+        console.log(`📝 Found username from content: ${username}`);
+        
+        try {
+          const db = await initPrisma();
+          if (db) {
+            const existing = await db.username.findFirst({
+              where: { name: username }
+            });
+            
+            if (!existing) {
+              await db.username.create({
+                data: {
+                  name: username,
+                  platform: 'DISCORD',
+                  category: 'FEED',
+                  status: 'AVAILABLE',
+                  foundAt: new Date()
+                }
+              });
+              console.log(`✅ Saved username: ${username} to database`);
+            }
+          }
+        } catch (err) {
+          console.log(`⚠️ Error saving username: ${err.message}`);
+        }
+      }
+    }
+  }
+});
+
 // Mensagem recebida
 botClient.on('messageCreate', async (message) => {
   if (message.author.bot) return;
@@ -199,7 +296,7 @@ botClient.on('messageCreate', async (message) => {
     const [categoryShort, platform] = args;
 
     if (!categoryShort || !platform) {
-      message.reply('❌ Uso: /setar <categoria> <plataforma>\nEx: /setar 4c discord');
+      message.reply('❌ Uso: /setar <categoria> <plataforma>\nEx: /setar 4c discord\nCategorias: 4c, 3c, 2c, en, pt, random, feed');
       return;
     }
 
@@ -210,7 +307,8 @@ botClient.on('messageCreate', async (message) => {
       '2c': 'CHARS_2',
       'en': 'EN_US',
       'pt': 'PT_BR',
-      'random': 'RANDOM'
+      'random': 'RANDOM',
+      'feed': 'FEED'
     };
     
     const PLATFORM_FULL = {
