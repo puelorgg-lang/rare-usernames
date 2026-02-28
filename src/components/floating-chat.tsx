@@ -2,16 +2,20 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { MessageCircle, X, Send } from "lucide-react"
+import { MessageCircle, X, Send, Headphones } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useSession } from "next-auth/react"
 
 export function FloatingChat() {
+  const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<{ text: string; isBot: boolean }[]>([
     { text: "Olá, seja bem-vindo ao users4u, aguarde enquanto estamos colocando você em contato com um de nossos suportes", isBot: true }
   ])
   const [inputValue, setInputValue] = useState("")
+  const [showSupportButton, setShowSupportButton] = useState(true)
+  const [supportRequested, setSupportRequested] = useState(false)
 
   const handleSend = () => {
     if (!inputValue.trim()) return
@@ -27,6 +31,29 @@ export function FloatingChat() {
         isBot: true 
       }])
     }, 1000)
+  }
+
+  const handleOpenSupport = async () => {
+    try {
+      await fetch("/api/support/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: session?.user?.email || "unknown",
+          userName: session?.user?.name || "Usuário",
+          userEmail: session?.user?.email
+        })
+      })
+      
+      setSupportRequested(true)
+      setMessages(prev => [...prev, { 
+        text: "Seu ticket de suporte foi criado! Um de nossos suportes ira atende-lo em breve.", 
+        isBot: true 
+      }])
+      setShowSupportButton(false)
+    } catch (error) {
+      console.error("Error creating ticket:", error)
+    }
   }
 
   return (
@@ -70,6 +97,20 @@ export function FloatingChat() {
                 </div>
               </div>
             ))}
+            
+            {/* Support Button */}
+            {showSupportButton && (
+              <div className="flex justify-start">
+                <Button 
+                  onClick={handleOpenSupport}
+                  className="bg-primary text-black hover:bg-primary/90 flex items-center gap-2"
+                  disabled={supportRequested}
+                >
+                  <Headphones className="w-4 h-4" />
+                  {supportRequested ? "Ticket Criado!" : "Abrir Suporte"}
+                </Button>
+              </div>
+            )}
           </div>
           
           {/* Input */}
@@ -77,7 +118,7 @@ export function FloatingChat() {
             <Input 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Digite sua mensagem..."
               className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
             />

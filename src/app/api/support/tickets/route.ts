@@ -3,9 +3,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 
-// In-memory store for demo (replace with database in production)
-let tickets: any[] = []
-
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
 
@@ -17,21 +14,25 @@ export async function GET(req: Request) {
   const status = searchParams.get("status")
 
   try {
-    let filteredTickets = tickets
+    let whereClause: any = {}
     
-    if (status) {
-      if (status === "OPEN") {
-        filteredTickets = tickets.filter(t => t.status === "OPEN")
-      } else if (status === "IN_PROGRESS") {
-        // Show tickets assigned to this support
-        filteredTickets = tickets.filter(t => 
-          t.status === "IN_PROGRESS" && t.assignedTo === session.user.email
-        )
-      }
+    if (status === "OPEN") {
+      whereClause.status = "OPEN"
+    } else if (status === "IN_PROGRESS") {
+      whereClause.status = "IN_PROGRESS"
+      whereClause.assignedTo = session.user.email
     }
 
-    return NextResponse.json({ tickets: filteredTickets })
+    const tickets = await prisma.supportTicket.findMany({
+      where: whereClause,
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    return NextResponse.json({ tickets })
   } catch (error) {
+    console.error("Error fetching tickets:", error)
     return NextResponse.json({ error: "Internal Error" }, { status: 500 })
   }
 }
@@ -47,20 +48,23 @@ export async function PATCH(req: Request) {
     const body = await req.json()
     const { ticketId, action } = body
 
-    const ticketIndex = tickets.findIndex(t => t.id === ticketId)
-    if (ticketIndex === -1) {
-      return NextResponse.json({ error: "Ticket not found" }, { status: 404 })
-    }
+    let updateData: any = {}
 
     if (action === "CLAIM") {
-      tickets[ticketIndex].status = "IN_PROGRESS"
-      tickets[ticketIndex].assignedTo = session.user.email
+      updateData.status = "IN_PROGRESS"
+      updateData.assignedTo = session.user.email
     } else if (action === "CLOSE") {
-      tickets[ticketIndex].status = "CLOSED"
+      updateData.status = "CLOSED"
     }
 
-    return NextResponse.json({ success: true, ticket: tickets[ticketIndex] })
+    const ticket = await prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: updateData
+    })
+
+    return NextResponse.json({ success: true, ticket })
   } catch (error) {
+    console.error("Error updating ticket:", error)
     return NextResponse.json({ error: "Internal Error" }, { status: 500 })
   }
 }
@@ -68,23 +72,20 @@ export async function PATCH(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { userId, userName, userEmail, message } = body
+    const { userId, userName, userEmail } = body
 
-    const newTicket = {
-      id: Date.now().toString(),
-      userId,
-      userName: userName || "Usuário",
-      userEmail,
-      status: "OPEN",
-      assignedTo: null,
-      createdAt: new Date().toISOString(),
-      lastMessage: message
-    }
+    const ticket = await prisma.supportTicket.create({
+      data: {
+        userId,
+        userName,
+        userEmail,
+        status: "OPEN"
+      }
+    })
 
-    tickets.push(newTicket)
-
-    return NextResponse.json({ success: true, ticket: newTicket })
+    return NextResponse.json({ success: true, ticket })
   } catch (error) {
+    console.error("Error creating ticket:", error)
     return NextResponse.json({ error: "Internal Error" }, { status: 500 })
   }
 }
