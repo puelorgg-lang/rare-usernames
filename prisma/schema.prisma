@@ -89,3 +89,19 @@ model SupportMessage {
 
   @@map("support_messages")
 }
+
+// External Discord sources for username scanning
+model DiscordSource {
+  id          String   @id @default(uuid())
+  name        String
+  serverId    String   @unique @map("server_id")
+  channelId   String   @map("channel_id")
+  threadId    String?  @map("thread_id")
+  webhookUrl  String?  @map("webhook_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  category    String   @default("DISCORD_FREE") // DISCORD_FREE, MINECRAFT, ROBLOX, etc
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("discord_sources")
+}
