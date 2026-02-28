@@ -39,3 +39,47 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
 }
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json()
+    const { name, platform, category } = body
+
+    if (!name) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 })
+    }
+
+    // Check if username already exists
+    const existingUsername = await prisma.username.findFirst({
+      where: {
+        name: name.toLowerCase(),
+      },
+    })
+
+    if (existingUsername) {
+      return NextResponse.json({ 
+        message: "Username already exists",
+        username: existingUsername 
+      }, { status: 200 })
+    }
+
+    // Create new username
+    const newUsername = await prisma.username.create({
+      data: {
+        name: name.toLowerCase(),
+        platform: (platform || 'discord').toUpperCase() as Platform,
+        category: (category || 'DISCORD_FREE').toUpperCase() as Category,
+        status: 'AVAILABLE',
+        foundAt: new Date(),
+      },
+    })
+
+    return NextResponse.json({ 
+      success: true, 
+      username: newUsername 
+    }, { status: 201 })
+  } catch (error) {
+    console.error("Error creating username:", error)
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+  }
+}
