@@ -64,10 +64,19 @@ export default function SupportChatPage() {
     }
   }, [status, router])
 
+  // Fetch tickets when tab changes
   useEffect(() => {
     fetchTickets()
-    // Poll for new tickets every 5 seconds
-    const interval = setInterval(fetchTickets, 5000)
+  }, [activeTab])
+
+  // Only poll for new tickets when on open tab
+  useEffect(() => {
+    if (activeTab !== "open") return
+    
+    const interval = setInterval(() => {
+      fetchTickets()
+    }, 5000)
+    
     return () => clearInterval(interval)
   }, [activeTab])
 
@@ -89,8 +98,8 @@ export default function SupportChatPage() {
       const data = await res.json()
       const newTickets = data.tickets || []
       
-      // Check for new tickets (only for open tickets)
-      if (activeTab === "open" && newTickets.length > 0) {
+      // Check for new tickets only when on open tab
+      if (activeTab === "open") {
         const currentTicketIds = tickets.map(t => t.id)
         const newestTicket = newTickets.find((t: ChatTicket) => !currentTicketIds.includes(t.id))
         
@@ -114,7 +123,11 @@ export default function SupportChatPage() {
         }
       }
       
-      setTickets(newTickets)
+      // Don't update if tickets haven't changed (prevent flickering)
+      const hasChanged = JSON.stringify(newTickets) !== JSON.stringify(tickets)
+      if (hasChanged) {
+        setTickets(newTickets)
+      }
     } catch (error) {
       console.error("Error fetching tickets:", error)
     } finally {

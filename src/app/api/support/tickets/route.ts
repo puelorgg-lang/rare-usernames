@@ -22,6 +22,9 @@ export async function GET(req: Request) {
     } else if (status === "IN_PROGRESS") {
       whereClause.status = "IN_PROGRESS"
       whereClause.assignedTo = session.user.email
+    } else if (status === "ALL_PROGRESS" && session.user.role === "ADMIN") {
+      // Admin can see all in-progress tickets
+      whereClause.status = "IN_PROGRESS"
     }
 
     const tickets = await prisma.supportTicket.findMany({
