@@ -10,13 +10,14 @@ import { useSession } from "next-auth/react"
 export function FloatingChat() {
   const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState<{ text: string; isBot: boolean }[]>([
+  const [messages, setMessages] = useState<{ text: string; isBot: boolean; senderName?: string }[]>([
     { text: "Olá, seja bem-vindo ao users4u! Clique no botão abaixo para falar com nosso suporte.", isBot: true }
   ])
   const [inputValue, setInputValue] = useState("")
   const [showSupportButton, setShowSupportButton] = useState(true)
   const [supportRequested, setSupportRequested] = useState(false)
   const [currentTicketId, setCurrentTicketId] = useState<string | null>(null)
+  const [supportTyping, setSupportTyping] = useState(false)
 
   // Poll for messages when ticket is created
   useEffect(() => {
@@ -24,6 +25,7 @@ export function FloatingChat() {
     
     const interval = setInterval(async () => {
       try {
+        // Fetch messages
         const res = await fetch(`/api/support/messages?ticketId=${currentTicketId}`)
         const data = await res.json()
         if (data.messages && data.messages.length > 0) {
@@ -38,8 +40,6 @@ export function FloatingChat() {
           setMessages(prev => {
             // Get user messages from previous state
             const userMessages = prev.filter(p => !p.isBot)
-            // Get bot/support messages from API
-            const apiMessages = newMessages.filter((m: any) => !m.isBot || !prev.some(p => p.text === m.text && p.isBot))
             // Combine and remove duplicates
             const combined = [...userMessages, ...newMessages]
             // Remove duplicates based on text
@@ -49,11 +49,35 @@ export function FloatingChat() {
             return unique
           })
         }
+        
+        // Fetch ticket list to get typing status (no auth needed)
+        try {
+          const ticketRes = await fetch(`/api/support/tickets?status=BY_ID&id=${currentTicketId}`)
+          const ticketData = await ticketRes.json()
+          if (ticketData.tickets && ticketData.tickets.length > 0) {
+            setSupportTyping(ticketData.tickets[0].supportTyping || false)
+          }
+        } catch (e) {}
       } catch (e) {}
     }, 3000)
     
     return () => clearInterval(interval)
   }, [currentTicketId])
+
+  const handleTyping = (isTyping: boolean) => {
+    if (!currentTicketId) return
+    
+    fetch("/api/support/tickets", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ticketId: currentTicketId,
+        action: "TYPING",
+        isTyping,
+        sender: "USER"
+      })
+    }).catch(() => {})
+  }
 
   const handleSend = async () => {
     if (!inputValue.trim()) return
@@ -168,6 +192,20 @@ export function FloatingChat() {
                   <Headphones className="w-4 h-4" />
                   {supportRequested ? "Ticket Criado!" : "Abrir Suporte"}
                 </Button>
+              </div>
+            )}
+            
+            {/* Typing indicator */}
+            {supportTyping && (
+              <div className="flex justify-start">
+                <div className="bg-white/10 text-white rounded-lg px-4 py-2">
+                  <span className="text-sm text-muted-foreground">Suporte está digitando</span>
+                  <span className="inline-flex ml-1">
+                    <span className="animate-bounce">.</span>
+                    <span className="animate-bounce" style={{ animationDelay: '0.1s' }}>.</span>
+                    <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>.</span>
+                  </span>
+                </div>
               </div>
             )}
           </div>

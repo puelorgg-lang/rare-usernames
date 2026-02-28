@@ -27,6 +27,8 @@ interface ChatTicket {
   status: "OPEN" | "IN_PROGRESS" | "CLOSED"
   assignedTo: string | null
   assignedToName: string | null
+  userTyping: boolean
+  supportTyping: boolean
   createdAt: string
 }
 
@@ -42,7 +44,9 @@ export default function SupportChatPage() {
   const [newMessage, setNewMessage] = useState("")
   const [messagesLoading, setMessagesLoading] = useState(false)
   const [newTicketNotification, setNewTicketNotification] = useState<ChatTicket | null>(null)
+  const [userIsTyping, setUserIsTyping] = useState(false)
   const notificationSoundRef = useRef<HTMLAudioElement | null>(null)
+  let typingTimeout: NodeJS.Timeout
 
   // Play notification sound
   const playNotificationSound = () => {
@@ -223,10 +227,30 @@ export default function SupportChatPage() {
         })
       })
       setNewMessage("")
+      // Stop typing indicator
+      setUserIsTyping(false)
       fetchMessages(selectedTicket.id)
     } catch (error) {
       console.error("Error sending message:", error)
     }
+  }
+
+  const handleTyping = (isTyping: boolean) => {
+    if (!selectedTicket) return
+    
+    setUserIsTyping(isTyping)
+    
+    // Send typing status to API
+    fetch("/api/support/tickets", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ticketId: selectedTicket.id,
+        action: "TYPING",
+        isTyping,
+        sender: "SUPPORT"
+      })
+    }).catch(() => {})
   }
 
   if (loading) {
@@ -456,17 +480,43 @@ export default function SupportChatPage() {
                       </div>
                     ))
                   )}
+                  {/* Typing indicator */}
+                  {selectedTicket.userTyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-white/10 text-white rounded-lg px-4 py-2">
+                        <span className="text-sm text-muted-foreground">{selectedTicket.userName} está digitando...</span>
+                        <span className="inline-flex ml-1">
+                          <span className="animate-bounce">.</span>
+                          <span className="animate-bounce" style={{ animationDelay: '0.1s' }}>.</span>
+                          <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>.</span>
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
                 {selectedTicket.status !== "CLOSED" && (
                   <div className="p-3 border-t border-white/10 flex gap-2">
                     <Input 
                       value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                      onChange={(e) => {
+                        setNewMessage(e.target.value)
+                        // Send typing status
+                        handleTyping(e.target.value.length > 0)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleTyping(false)
+                          sendMessage()
+                        }
+                      }}
+                      onBlur={() => handleTyping(false)}
                       placeholder="Digite sua mensagem..."
                       className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                     />
-                    <Button onClick={sendMessage} className="bg-primary text-black hover:bg-primary/90">
+                    <Button onClick={() => {
+                      handleTyping(false)
+                      sendMessage()
+                    }} className="bg-primary text-black hover:bg-primary/90">
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>

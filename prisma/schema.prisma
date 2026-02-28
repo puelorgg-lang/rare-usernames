@@ -71,6 +71,8 @@ model SupportTicket {
   status      String   @default("OPEN") // OPEN, IN_PROGRESS, CLOSED
   assignedTo  String?  @map("assigned_to")
   assignedToName String? @map("assigned_to_name")
+  userTyping  Boolean  @default(false) @map("user_typing")
+  supportTyping Boolean @default(false) @map("support_typing")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
