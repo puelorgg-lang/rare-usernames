@@ -27,11 +27,14 @@ export function Sidebar({ className }: SidebarProps) {
             <SidebarItem href="/dashboard/search" icon={<UserSearch className="mr-2 h-4 w-4" />} label="Buscar Profile" active={isActive("/dashboard/search")} />
             <SidebarItem href="/dashboard/subscription" icon={<CreditCard className="mr-2 h-4 w-4" />} label="Assinatura" active={isActive("/dashboard/subscription")} />
             <SidebarItem href="/dashboard/support" icon={<LifeBuoy className="mr-2 h-4 w-4" />} label="Suporte" active={isActive("/dashboard/support")} />
-            {(session?.user?.role === "ADMIN" || session?.user?.role === "SUPPORT") && (
-              <SidebarItem href="/dashboard/admin/support" icon={<LifeBuoy className="mr-2 h-4 w-4 text-green-500" />} label="Chat Suporte" active={isActive("/dashboard/admin/support")} />
-            )}
             {session?.user?.role === "ADMIN" && (
-              <SidebarItem href="/dashboard/admin" icon={<Lock className="mr-2 h-4 w-4 text-red-500" />} label="Admin" active={isActive("/dashboard/admin")} />
+              <>
+                <SidebarItem href="/dashboard/admin/support" icon={<LifeBuoy className="mr-2 h-4 w-4 text-green-500" />} label="Gerenciar Suporte" active={isActive("/dashboard/admin/support")} />
+                <SidebarItem href="/dashboard/admin" icon={<Lock className="mr-2 h-4 w-4 text-red-500" />} label="Admin" active={isActive("/dashboard/admin")} />
+              </>
+            )}
+            {session?.user?.role === "SUPPORT" && (
+              <SidebarItem href="/dashboard/support/chat" icon={<LifeBuoy className="mr-2 h-4 w-4 text-green-500" />} label="Chat Suporte" active={isActive("/dashboard/support/chat")} />
             )}
           </div>
         </div>

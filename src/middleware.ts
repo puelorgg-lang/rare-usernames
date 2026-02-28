@@ -6,8 +6,8 @@ export default withAuth(
     const token = req.nextauth.token
     const path = req.nextUrl.pathname
 
-    // Allow ADMIN and SUPPORT roles to access admin pages
-    if (path.startsWith("/dashboard/admin") || path === "/dashboard/admin/support") {
+    // Allow ADMIN and SUPPORT roles to access admin/support pages
+    if (path.startsWith("/dashboard/admin") || path.startsWith("/dashboard/support/chat")) {
       if (token?.role === "ADMIN" || token?.role === "SUPPORT") {
         return NextResponse.next()
       }
