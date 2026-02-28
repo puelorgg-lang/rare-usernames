@@ -13,8 +13,8 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -43,16 +43,20 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    cursor: url('/cursor.png'), auto;
+  }
+  a, button {
+    cursor: url('/cursor.png'), pointer;
   }
 }
 
 /* Custom Utilities for Glow Effects */
 .glow-text {
-  text-shadow: 0 0 40px rgba(124, 58, 237, 0.7);
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
 }
 
 .glow-box {
-  box-shadow: 0 0 60px -20px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 0 60px -20px rgba(255, 255, 255, 0.2);
 }
 
 .glass-card {
@@ -62,7 +66,7 @@
 }
 
 .gradient-text {
-  background: linear-gradient(to right, #ffffff 30%, #a78bfa 100%);
+  background: linear-gradient(to right, #ffffff 30%, #ffffff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

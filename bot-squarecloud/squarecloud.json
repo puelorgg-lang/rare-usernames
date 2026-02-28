@@ -1,0 +1,12 @@
+{
+  "name": "discord-bot-webhooks",
+  "version": "1.0.0",
+  "description": "Discord bot for sending usernames to webhooks",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "engines": {
+    "node": "18"
+  }
+}

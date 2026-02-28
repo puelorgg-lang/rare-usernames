@@ -8,76 +8,101 @@ import { Check, Zap, Globe, Lock, ArrowRight, Shield, Star, Rocket, User, Sparkl
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { ScrollReveal } from "@/components/scroll-reveal"
+import { Typewriter } from "@/components/typewriter"
+import { Navbar } from "@/components/navbar"
 
 export default async function LandingPage() {
   const session = await getServerSession(authOptions)
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0b0b0d] overflow-hidden selection:bg-primary/30 text-white">
-      {/* Background Elements */}
-      <div className="fixed inset-0 -z-10 h-full w-full bg-[#0b0b0d]">
-        <div className="absolute top-0 z-[-2] h-screen w-screen bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))]"></div>
-        <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f0a_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f0a_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
-      </div>
+    <div className="flex min-h-screen flex-col bg-black overflow-hidden selection:bg-primary/30 text-white">
+      <Navbar session={!!session} />
 
-      {/* Navbar */}
-      <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-[#0b0b0d]/80 backdrop-blur-md">
-        <div className="container flex h-20 items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            
-            <span className="font-bold">Users4U</span>
-          </div>
-          
-          <nav className="hidden md:flex gap-8 text-sm font-medium text-muted-foreground">
-            <Link href="#features" className="hover:text-white transition-colors">Funcionalidades</Link>
-            <Link href="#pricing" className="hover:text-white transition-colors">Preços</Link>
-            <Link href="#faq" className="hover:text-white transition-colors">FAQ</Link>
-          </nav>
-          
-          <div className="flex items-center gap-4">
-            {session ? (
-              <Link href="/dashboard">
-                <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 h-10 shadow-[0_0_20px_-5px_rgba(124,58,237,0.5)] transition-all hover:shadow-[0_0_25px_-5px_rgba(124,58,237,0.6)]">
-                  Ir para Dashboard
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/auth/signin">
-                <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 h-10 shadow-[0_0_20px_-5px_rgba(124,58,237,0.5)] transition-all hover:shadow-[0_0_25px_-5px_rgba(124,58,237,0.6)]">
-                  Entrar com Discord
-                </Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-16">
         {/* Hero Section */}
-        <section className="container relative py-20 md:py-32 flex flex-col items-center text-center space-y-8">
-          <Badge variant="secondary" className="px-4 py-1.5 text-sm font-medium border-primary/30 bg-primary/10 text-primary-foreground rounded-full animate-in fade-in slide-in-from-bottom-4 duration-700 hover:bg-primary/20 transition-colors">
-            ✨ A Ferramenta #1 de Sniping de Usernames
-          </Badge>
+        <section className="container relative py-12 md:py-16 flex flex-col items-center text-center space-y-6">
           
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight max-w-5xl leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-            Garanta os usernames <br />
-            <span className="text-primary glow-text">mais raros agora.</span>
+          {/* Headline */}
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white uppercase animate-in fade-in slide-in-from-bottom-8 duration-700">
+            Garanta seus usernames
           </h1>
-          
-          <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-            Pare de adivinhar. Nosso sistema avançado monitora Discord, Minecraft e Roblox 24/7, notificando você no segundo em que ficam disponíveis.
+
+          {/* Video with icons overlay */}
+          <div className="w-full max-w-lg mx-auto relative">
+            {/* Left side icons - overlaid on video - alternating */}
+            <div className="hidden md:flex flex-col gap-3 absolute -left-16 top-1/2 -translate-y-1/2 z-10">
+              <div className="flex items-center gap-2 animate-pulse -translate-x-2 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s' }}>
+                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
+                  <Image src="/discord-icon.png" alt="Discord" width={40} height={40} className="object-contain" />
+                  <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Discord: 40,000 Users</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 animate-pulse translate-x-1 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.3s' }}>
+                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
+                  <Image src="/minecraft-new.png" alt="Minecraft" width={40} height={40} className="object-contain" />
+                  <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Minecraft: 12,340 Users</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 animate-pulse -translate-x-3 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.6s' }}>
+                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
+                  <Image src="/roblox-icon.png" alt="Roblox" width={40} height={40} className="object-contain" />
+                  <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Roblox: 32,345 Users</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Video */}
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+              <video
+                src="/videomain1.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-auto rounded-lg"
+              />
+            </div>
+
+            {/* Right side icons - overlaid on video - alternating */}
+            <div className="hidden md:flex flex-col gap-3 absolute -right-16 top-1/2 -translate-y-1/2 z-10">
+              <div className="flex items-center gap-2 animate-pulse translate-x-2 group hover:-translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.2s' }}>
+                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
+                  <Image src="/instagram-icon.png" alt="Instagram" width={40} height={40} className="object-contain" />
+                  <span className="absolute right-full mr-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Instagram: 1,324 Users</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 animate-pulse -translate-x-1 group hover:-translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.5s' }}>
+                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
+                  <svg viewBox="0 0 24 24" className="w-8 h-8" fill="white">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
+                  <span className="absolute right-full mr-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Tiktok: 4,543 Users</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 animate-pulse translate-x-3 group hover:-translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.8s' }}>
+                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
+                  <Image src="/twitter-icon.png" alt="Twitter" width={40} height={40} className="object-contain" />
+                  <span className="absolute right-full mr-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Twitter: 234 Users</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
+            <Typewriter text="Pare de adivinhar. Nosso sistema avançado monitora Discord, Minecraft e Roblox 24/7, notificando você no segundo em que ficam disponíveis." speed={40} />
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 pt-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+
+          <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
             {session ? (
               <Link href="/dashboard">
-                <Button size="lg" className="h-14 px-8 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 shadow-[0_0_40px_-10px_rgba(124,58,237,0.6)] transition-all hover:scale-105">
+                <Button size="lg" className="h-14 px-8 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] transition-all hover:scale-105 text-black">
                   Acessar Painel <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
             ) : (
               <Link href="/auth/signin">
-                <Button size="lg" className="h-14 px-8 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 shadow-[0_0_40px_-10px_rgba(124,58,237,0.6)] transition-all hover:scale-105">
+                <Button size="lg" className="h-14 px-8 rounded-full text-lg font-semibold bg-primary hover:bg-primary/90 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] transition-all hover:scale-105 text-black">
                   Começar Agora <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -89,102 +114,19 @@ export default async function LandingPage() {
             </Link>
           </div>
 
-          {/* Supported Platforms - App Icons */}
-          <div className="flex flex-col items-center pt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500">
-            <p className="text-muted-foreground text-sm font-medium uppercase tracking-wider mb-6">Plataformas suportadas</p>
-            <div className="flex flex-wrap justify-center gap-6 md:gap-8">
-              {/* Discord */}
-              <div className="group flex flex-col items-center gap-2">
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#5865F2]/20 border border-[#5865F2]/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(88,101,242,0.5)] hover:bg-[#5865F2]/30">
-                  <svg viewBox="0 0 24 24" className="w-7 h-7 md:w-8 md:h-8" fill="#5865F2">
-                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-                  </svg>
-                </div>
-                <span className="text-xs text-muted-foreground font-medium">Discord</span>
-              </div>
-
-              {/* Minecraft */}
-              <div className="group flex flex-col items-center gap-2">
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.3)] hover:bg-white/20">
-                  <div className="relative w-8 h-8 md:w-9 md:h-9">
-                    <Image 
-                      src="/minecraft-logo.png" 
-                      alt="Minecraft" 
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
-                <span className="text-xs text-muted-foreground font-medium">Minecraft</span>
-              </div>
-
-              {/* Roblox */}
-              <div className="group flex flex-col items-center gap-2">
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.3)] hover:bg-white/20">
-                  <div className="relative w-8 h-8 md:w-9 md:h-9">
-                    <Image 
-                      src="/roblox-logo.png" 
-                      alt="Roblox" 
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
-                <span className="text-xs text-muted-foreground font-medium">Roblox</span>
-              </div>
-
-              {/* Instagram */}
-              <div className="group flex flex-col items-center gap-2">
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-[#833AB4]/20 via-[#FD1D1D]/20 to-[#F77737]/20 border border-[#E1306C]/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(225,48,108,0.5)] hover:bg-gradient-to-br hover:from-[#833AB4]/30 hover:via-[#FD1D1D]/30 hover:to-[#F77737]/30">
-                  <svg viewBox="0 0 24 24" className="w-7 h-7 md:w-8 md:h-8" fill="url(#insta-gradient)">
-                    <defs>
-                      <linearGradient id="insta-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#833AB4"/>
-                        <stop offset="50%" stopColor="#FD1D1D"/>
-                        <stop offset="100%" stopColor="#F77737"/>
-                      </linearGradient>
-                    </defs>
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-                  </svg>
-                </div>
-                <span className="text-xs text-muted-foreground font-medium">Instagram</span>
-              </div>
-
-              {/* TikTok */}
-              <div className="group flex flex-col items-center gap-2">
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#000000]/40 border border-[#FFFFFF]/20 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.3)] hover:border-[#FF0050]/50">
-                  <svg viewBox="0 0 24 24" className="w-7 h-7 md:w-8 md:h-8" fill="white">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                  </svg>
-                </div>
-                <span className="text-xs text-muted-foreground font-medium">TikTok</span>
-              </div>
-
-              {/* Twitter */}
-              <div className="group flex flex-col items-center gap-2">
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#1DA1F2]/20 border border-[#1DA1F2]/30 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_-5px_rgba(29,161,242,0.5)] hover:bg-[#1DA1F2]/30">
-                  <svg viewBox="0 0 24 24" className="w-7 h-7 md:w-8 md:h-8" fill="#1DA1F2">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                  </svg>
-                </div>
-                <span className="text-xs text-muted-foreground font-medium">Twitter</span>
-              </div>
-            </div>
-          </div>
-
           {/* Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-12 gap-y-8 pt-16 opacity-80 animate-in fade-in duration-1000 delay-500">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-12 gap-y-6 pt-8 opacity-80 animate-in fade-in duration-1000 delay-200">
             <div className="text-center space-y-1">
-              <div className="text-3xl font-bold text-white">50k+</div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Monitorados</div>
+              <div className="text-2xl font-bold text-white">50k+</div>
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Monitorados</div>
             </div>
             <div className="text-center space-y-1">
-              <div className="text-3xl font-bold text-white">1.2s</div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Intervalo</div>
+              <div className="text-2xl font-bold text-white">1.2s</div>
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Intervalo</div>
             </div>
             <div className="text-center space-y-1">
-              <div className="text-3xl font-bold text-white">99%</div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Taxa de Sucesso</div>
+              <div className="text-2xl font-bold text-white">99%</div>
+              <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Taxa de Sucesso</div>
             </div>
             <div className="text-center space-y-1">
               <div className="text-3xl font-bold text-white">24/7</div>
@@ -228,7 +170,7 @@ export default async function LandingPage() {
             </ScrollReveal>
             <ScrollReveal delay={300}>
               <FeatureCard 
-                icon={<Rocket className="h-6 w-6 text-purple-400" />}
+                icon={<Rocket className="h-6 w-6 text-white" />}
                 title="Auto-Claimer"
                 description="Não apenas assista. Configure nosso bot para tentar reivindicar o nome automaticamente para você."
               />
@@ -360,10 +302,10 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode, titl
 
 function PricingCard({ title, price, period, features, popular, buttonText }: { title: string, price: string, period: string, features: string[], popular?: boolean, buttonText: string }) {
   return (
-    <Card className={`relative flex flex-col p-8 glass-card transition-all duration-300 ${popular ? 'border-primary/50 bg-primary/[0.03] shadow-[0_0_60px_-15px_rgba(124,58,237,0.3)] scale-105 z-10' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10'}`}>
+    <Card className={`relative flex flex-col p-8 glass-card transition-all duration-300 ${popular ? 'border-primary/50 bg-primary/[0.03] shadow-[0_0_60px_-15px_rgba(255,255,255,0.2)] scale-105 z-10' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10'}`}>
       {popular && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-           <Badge className="bg-primary hover:bg-primary text-white border-0 px-4 py-1.5 text-sm shadow-lg shadow-primary/40">Mais Popular</Badge>
+           <Badge className="bg-primary hover:bg-primary text-black border-0 px-4 py-1.5 text-sm shadow-lg shadow-primary/40">Mais Popular</Badge>
         </div>
       )}
       <div className="mb-8">

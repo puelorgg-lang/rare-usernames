@@ -20,10 +20,10 @@ export function PricingCard({ title, price, period, features, popular, buttonTex
   }
 
   return (
-    <Card className={`relative flex flex-col p-8 glass-card transition-all duration-300 ${popular ? 'border-primary/50 bg-primary/[0.03] shadow-[0_0_60px_-15px_rgba(124,58,237,0.3)] scale-105 z-10' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10'}`}>
+    <Card className={`relative flex flex-col p-8 glass-card transition-all duration-300 ${popular ? 'border-primary/50 bg-primary/[0.03] shadow-[0_0_60px_-15px_rgba(255,255,255,0.2)] scale-105 z-10' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10'}`}>
       {popular && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-           <Badge className="bg-primary hover:bg-primary text-white border-0 px-4 py-1.5 text-sm shadow-lg shadow-primary/40">Mais Popular</Badge>
+           <Badge className="bg-primary hover:bg-primary text-black border-0 px-4 py-1.5 text-sm shadow-lg shadow-white/40">Mais Popular</Badge>
         </div>
       )}
       <div className="mb-8">

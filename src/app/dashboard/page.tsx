@@ -15,7 +15,7 @@ const categories = [
   { id: "chars_4", name: "4 Caracteres", description: "Usernames limpos de 4 letras.", icon: <Hash className="h-6 w-6 text-yellow-400" />, color: "border-yellow-500/20 bg-yellow-500/5 hover:border-yellow-500/50" },
   { id: "pt_br", name: "Palavras PT-BR", description: "Melhores palavras em Português.", icon: <Globe className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
   { id: "en_us", name: "Palavras EN-US", description: "Palavras premium do dicionário inglês.", icon: <Globe className="h-6 w-6 text-blue-400" />, color: "border-blue-500/20 bg-blue-500/5 hover:border-blue-500/50" },
-  { id: "random", name: "Aleatórios", description: "Descobertas únicas e legais.", icon: <Ghost className="h-6 w-6 text-purple-400" />, color: "border-purple-500/20 bg-purple-500/5 hover:border-purple-500/50" },
+  { id: "random", name: "Aleatórios", description: "Descobertas únicas e legais.", icon: <Ghost className="h-6 w-6 text-white" />, color: "border-white/20 bg-white/5 hover:border-white/50" },
 ]
 
 export default async function DashboardPage() {
