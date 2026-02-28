@@ -36,8 +36,15 @@ export function FloatingChat() {
             senderName: m.senderName
           }))
           
-          // Update messages - keep user messages and add new ones
+          // Only update if there are new messages
           setMessages(prev => {
+            // Check if we have new messages
+            const prevTexts = prev.map((p: any) => p.text)
+            const newTexts = newMessages.map((m: any) => m.text)
+            const hasNew = newTexts.some((t: string) => !prevTexts.includes(t))
+            
+            if (!hasNew && prev.length > 0) return prev
+            
             // Get user messages from previous state
             const userMessages = prev.filter(p => !p.isBot)
             // Combine and remove duplicates
@@ -59,7 +66,7 @@ export function FloatingChat() {
           }
         } catch (e) {}
       } catch (e) {}
-    }, 3000)
+    }, 5000)
     
     return () => clearInterval(interval)
   }, [currentTicketId])

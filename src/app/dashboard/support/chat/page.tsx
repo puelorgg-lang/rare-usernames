@@ -79,7 +79,7 @@ export default function SupportChatPage() {
     
     const interval = setInterval(() => {
       fetchTickets()
-    }, 5000)
+    }, 10000)
     
     return () => clearInterval(interval)
   }, [activeTab])
@@ -87,8 +87,8 @@ export default function SupportChatPage() {
   useEffect(() => {
     if (selectedTicket) {
       fetchMessages(selectedTicket.id)
-      // Poll for new messages every 3 seconds
-      const interval = setInterval(() => fetchMessages(selectedTicket.id), 3000)
+      // Poll for new messages every 5 seconds
+      const interval = setInterval(() => fetchMessages(selectedTicket.id), 5000)
       return () => clearInterval(interval)
     }
   }, [selectedTicket])
@@ -144,7 +144,12 @@ export default function SupportChatPage() {
       setMessagesLoading(true)
       const res = await fetch(`/api/support/messages?ticketId=${ticketId}`)
       const data = await res.json()
-      setMessages(data.messages || [])
+      const newMessages = data.messages || []
+      
+      // Only update if messages have changed
+      if (JSON.stringify(newMessages) !== JSON.stringify(messages)) {
+        setMessages(newMessages)
+      }
     } catch (error) {
       console.error("Error fetching messages:", error)
     } finally {
