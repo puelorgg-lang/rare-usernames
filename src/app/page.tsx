@@ -327,7 +327,7 @@ function PricingCard({ title, price, period, features, popular, buttonText }: { 
           ))}
         </ul>
       </div>
-      <Link href="https://discord.gg/v3DABp73X5" target="_blank" className="w-full">
+      <Link href="https://discord.gg/x7d5g89kNe" target="_blank" className="w-full">
         <Button className={`w-full h-14 rounded-xl text-base font-bold transition-all duration-300 ${popular ? 'bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-primary/40' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
           {buttonText}
         </Button>
