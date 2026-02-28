@@ -80,6 +80,135 @@ const CHANNEL_CATEGORY_MAP = {
     '1420065909611036863': 'RANDOM',    // random
 };
 
+// ==================== EXTERNAL DISCORD SOURCES ====================
+// Additional Discord servers/channels to scan for usernames
+const EXTERNAL_SOURCES = [
+    {
+        name: 'Void Usernames',
+        channelId: '1418701271107375124',  // Thread ID
+        category: 'DISCORD_FREE'
+    }
+];
+
+// Function to scan external sources for usernames
+async function scanExternalSources() {
+    console.log('🔄 Scanning external Discord sources...');
+    
+    for (const source of EXTERNAL_SOURCES) {
+        try {
+            const channel = await client.channels.fetch(source.channelId);
+            if (!channel) {
+                console.log(`⚠️ Channel not found: ${source.channelId}`);
+                continue;
+            }
+            
+            // Fetch recent messages
+            const messages = await channel.messages.fetch({ limit: 10 });
+            
+            for (const [id, message] of messages) {
+                // Check if message has embeds
+                if (message.embeds && message.embeds.length > 0) {
+                    const embed = message.embeds[0];
+                    let username = null;
+                    
+                    // Try to extract username from embed
+                    // Format: Discord Username
+                    // ```username```
+                    // Void Usernames•Hoje às 18:26
+                    
+                    // Check in embed title
+                    const title = embed.title || '';
+                    
+                    // Check in embed description
+                    const description = embed.description || '';
+                    
+                    // Check in embed fields
+                    let fieldContent = '';
+                    if (embed.fields && embed.fields.length > 0) {
+                        for (const field of embed.fields) {
+                            fieldContent += (field.name || '') + ' ' + (field.value || '') + ' ';
+                        }
+                    }
+                    
+                    // Combine all text sources
+                    const allText = title + ' ' + description + ' ' + fieldContent;
+                    
+                    // Try to match username in code blocks: ```username```
+                    const usernameMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
+                    
+                    if (usernameMatch) {
+                        username = usernameMatch[1].toLowerCase();
+                        console.log(`📝 Found username: ${username} from ${source.name}`);
+                        console.log(`📝 Embed title: "${title}"`);
+                        console.log(`📝 Embed description: "${description.substring(0, 50)}..."`);
+                        
+                        // Send to API to save
+                        try {
+                            await axios.post(`${SITE_URL}/api/usernames`, {
+                                name: username,
+                                platform: 'discord',
+                                category: source.category
+                            });
+                            console.log(`✅ Saved username: ${username}`);
+                        } catch (err) {
+                            console.log(`⚠️ Error saving username: ${err.message}`);
+                        }
+                    } else {
+                        // Try alternative format: plain username (no code blocks)
+                        // Some embeds might have username directly in description
+                        const plainUsernameMatch = allText.match(/^([a-zA-Z0-9_\.\-]+)$/m);
+                        if (plainUsernameMatch && title.toLowerCase().includes('username')) {
+                            username = plainUsernameMatch[1].toLowerCase();
+                            console.log(`📝 Found username (plain): ${username} from ${source.name}`);
+                            
+                            try {
+                                await axios.post(`${SITE_URL}/api/usernames`, {
+                                    name: username,
+                                    platform: 'discord',
+                                    category: source.category
+                                });
+                                console.log(`✅ Saved username: ${username}`);
+                            } catch (err) {
+                                console.log(`⚠️ Error saving username: ${err.message}`);
+                            }
+                        }
+                    }
+                }
+                
+                // Also check message content (non-embed messages)
+                // Format might be plain text with username
+                const messageContent = message.content || '';
+                if (messageContent.includes('```')) {
+                    const contentMatch = messageContent.match(/```([a-zA-Z0-9_\.\-]+)```/);
+                    if (contentMatch) {
+                        const username = contentMatch[1].toLowerCase();
+                        console.log(`📝 Found username from message content: ${username} from ${source.name}`);
+                        
+                        try {
+                            await axios.post(`${SITE_URL}/api/usernames`, {
+                                name: username,
+                                platform: 'discord',
+                                category: source.category
+                            });
+                            console.log(`✅ Saved username: ${username}`);
+                        } catch (err) {
+                            console.log(`⚠️ Error saving username: ${err.message}`);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(`❌ Error scanning ${source.name}:`, error.message);
+        }
+    }
+}
+
+// Scan external sources every 30 seconds
+setInterval(scanExternalSources, 30000);
+
+// Initial scan after client is ready
+setTimeout(scanExternalSources, 5000);
+
 // ==================== EXPRESS SERVER FOR SEARCH API ====================
 const app = express();
 app.use(cors());
