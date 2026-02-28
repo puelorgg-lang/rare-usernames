@@ -13,7 +13,7 @@ export function CheckoutButton() {
 
   return (
     <Button 
-      className="w-full bg-primary hover:bg-primary/90 text-white" 
+      className="w-full bg-primary hover:bg-primary/90 text-black" 
       onClick={handleCheckout}
     >
       <Zap className="mr-2 h-4 w-4" />
