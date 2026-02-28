@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutGrid, CreditCard, LifeBuoy, Hash, Globe, Ghost, Gamepad2, Search, Lock, UserSearch } from "lucide-react"
+import { LayoutGrid, CreditCard, LifeBuoy, Hash, Globe, Ghost, Gamepad2, Lock, UserSearch } from "lucide-react"
 import { useSession } from "next-auth/react"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -24,7 +24,6 @@ export function Sidebar({ className }: SidebarProps) {
           </h2>
           <div className="space-y-1">
             <SidebarItem href="/dashboard" icon={<LayoutGrid className="mr-2 h-4 w-4" />} label="Painel" active={isActive("/dashboard")} />
-            <SidebarItem href="/dashboard/checker" icon={<Search className="mr-2 h-4 w-4" />} label="Verificador" active={isActive("/dashboard/checker")} />
             <SidebarItem href="/dashboard/search" icon={<UserSearch className="mr-2 h-4 w-4" />} label="Buscar Profile" active={isActive("/dashboard/search")} />
             <SidebarItem href="/dashboard/subscription" icon={<CreditCard className="mr-2 h-4 w-4" />} label="Assinatura" active={isActive("/dashboard/subscription")} />
             <SidebarItem href="/dashboard/support" icon={<LifeBuoy className="mr-2 h-4 w-4" />} label="Suporte" active={isActive("/dashboard/support")} />
