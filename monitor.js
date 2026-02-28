@@ -85,7 +85,7 @@ const CHANNEL_CATEGORY_MAP = {
 const EXTERNAL_SOURCES = [
     {
         name: 'Void Usernames',
-        channelId: '1418701271107375124',  // Thread ID
+        channelId: '1418700979687133394',  // Channel ID
         category: 'DISCORD_FREE'
     }
 ];
@@ -999,7 +999,7 @@ client.on('messageCreate', async (message) => {
     // ============================================
     // Handle Void Usernames (external source) in REAL-TIME
     // ============================================
-    const voidUsernamesChannelId = '1418701271107375124';
+    const voidUsernamesChannelId = '1418700979687133394';
     if (message.channelId === voidUsernamesChannelId) {
         console.log('📬 New message from Void Usernames channel');
         
