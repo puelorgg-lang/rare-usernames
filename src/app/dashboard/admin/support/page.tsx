@@ -10,8 +10,8 @@ import { useRouter } from "next/navigation"
 
 interface User {
   id: string
-  name: string | null
-  email: string | null
+  discordId: string
+  email: string
   image: string | null
   role: string
 }
