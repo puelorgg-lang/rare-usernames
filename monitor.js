@@ -1035,6 +1035,7 @@ client.on('messageCreate', async (message) => {
                 
                 // Send to API to save with FEED category
                 try {
+                    console.log(`📤 Sending to API: ${SITE_URL}/api/usernames`);
                     await axios.post(`${SITE_URL}/api/usernames`, {
                         name: username,
                         platform: 'discord',
