@@ -995,7 +995,82 @@ client.on('messageCreate', async (message) => {
         }
         return;
     }
-
+    
+    // ============================================
+    // Handle Void Usernames (external source) in REAL-TIME
+    // ============================================
+    const voidUsernamesChannelId = '1418701271107375124';
+    if (message.channelId === voidUsernamesChannelId) {
+        console.log('📬 New message from Void Usernames channel');
+        
+        // Check if message has embeds
+        if (message.embeds && message.embeds.length > 0) {
+            const embed = message.embeds[0];
+            let username = null;
+            
+            // Extract username from embed format:
+            // Discord Username
+            // ```username```
+            // Void Usernames•Hoje às 18:26
+            
+            const title = embed.title || '';
+            const description = embed.description || '';
+            
+            // Check embed fields
+            let fieldContent = '';
+            if (embed.fields && embed.fields.length > 0) {
+                for (const field of embed.fields) {
+                    fieldContent += (field.name || '') + ' ' + (field.value || '') + ' ';
+                }
+            }
+            
+            const allText = title + ' ' + description + ' ' + fieldContent;
+            
+            // Match username in code blocks: ```username```
+            const usernameMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
+            
+            if (usernameMatch) {
+                username = usernameMatch[1].toLowerCase();
+                console.log(`📝 Found username from Void Usernames: ${username}`);
+                
+                // Send to API to save
+                try {
+                    await axios.post(`${SITE_URL}/api/usernames`, {
+                        name: username,
+                        platform: 'discord',
+                        category: 'DISCORD_FREE'
+                    });
+                    console.log(`✅ Saved username: ${username}`);
+                } catch (err) {
+                    console.log(`⚠️ Error saving username: ${err.message}`);
+                }
+            }
+        }
+        
+        // Also check message content (non-embed)
+        const messageContent = message.content || '';
+        if (messageContent.includes('```')) {
+            const contentMatch = messageContent.match(/```([a-zA-Z0-9_\.\-]+)```/);
+            if (contentMatch) {
+                const username = contentMatch[1].toLowerCase();
+                console.log(`📝 Found username from Void Usernames (content): ${username}`);
+                
+                try {
+                    await axios.post(`${SITE_URL}/api/usernames`, {
+                        name: username,
+                        platform: 'discord',
+                        category: 'DISCORD_FREE'
+                    });
+                    console.log(`✅ Saved username: ${username}`);
+                } catch (err) {
+                    console.log(`⚠️ Error saving username: ${err.message}`);
+                }
+            }
+        }
+        
+        return; // Don't process this message further
+    }
+    
     // Get channel ID
     const channelId = message.channel.id;
     
