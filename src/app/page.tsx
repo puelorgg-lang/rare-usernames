@@ -10,6 +10,7 @@ import { authOptions } from "@/lib/auth"
 import { ScrollReveal } from "@/components/scroll-reveal"
 import { Typewriter } from "@/components/typewriter"
 import { Navbar } from "@/components/navbar"
+import { PlatformButton } from "@/components/platform-button"
 
 export default async function LandingPage() {
   const session = await getServerSession(authOptions)
@@ -31,24 +32,9 @@ export default async function LandingPage() {
           <div className="w-full max-w-lg mx-auto relative">
             {/* Left side icons - overlaid on video - alternating */}
             <div className="hidden md:flex flex-col gap-3 absolute -left-16 top-1/2 -translate-y-1/2 z-10">
-              <div className="flex items-center gap-2 animate-pulse -translate-x-2 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s' }}>
-                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
-                  <Image src="/discord-icon.png" alt="Discord" width={40} height={40} className="object-contain" />
-                  <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Discord: 40,000 Users</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 animate-pulse translate-x-1 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.3s' }}>
-                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
-                  <Image src="/minecraft-new.png" alt="Minecraft" width={40} height={40} className="object-contain" />
-                  <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Minecraft: 12,340 Users</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 animate-pulse -translate-x-3 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.6s' }}>
-                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
-                  <Image src="/roblox-icon.png" alt="Roblox" width={40} height={40} className="object-contain" />
-                  <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Roblox: 32,345 Users</span>
-                </div>
-              </div>
+              <PlatformButton src="/discord-icon.png" alt="Discord" label="Discord: 40,000 Users" delay={0} />
+              <PlatformButton src="/minecraft-new.png" alt="Minecraft" label="Minecraft: 12,340 Users" delay={0.3} />
+              <PlatformButton src="/roblox-icon.png" alt="Roblox" label="Roblox: 32,345 Users" delay={0.6} />
             </div>
 
             {/* Video */}
@@ -65,12 +51,7 @@ export default async function LandingPage() {
 
             {/* Right side icons - overlaid on video - alternating */}
             <div className="hidden md:flex flex-col gap-3 absolute -right-16 top-1/2 -translate-y-1/2 z-10">
-              <div className="flex items-center gap-2 animate-pulse translate-x-2 group hover:-translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.2s' }}>
-                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
-                  <Image src="/instagram-icon.png" alt="Instagram" width={40} height={40} className="object-contain" />
-                  <span className="absolute right-full mr-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Instagram: 1,324 Users</span>
-                </div>
-              </div>
+              <PlatformButton src="/instagram-icon.png" alt="Instagram" label="Instagram: 1,324 Users" delay={0.2} />
               <div className="flex items-center gap-2 animate-pulse -translate-x-1 group hover:-translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.5s' }}>
                 <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
                   <svg viewBox="0 0 24 24" className="w-8 h-8" fill="white">
@@ -79,12 +60,7 @@ export default async function LandingPage() {
                   <span className="absolute right-full mr-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Tiktok: 4,543 Users</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 animate-pulse translate-x-3 group hover:-translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.8s' }}>
-                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
-                  <Image src="/twitter-icon.png" alt="Twitter" width={40} height={40} className="object-contain" />
-                  <span className="absolute right-full mr-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Twitter: 234 Users</span>
-                </div>
-              </div>
+              <PlatformButton src="/twitter-icon.png" alt="Twitter" label="Twitter: 234 Users" delay={0.8} />
             </div>
           </div>
 
