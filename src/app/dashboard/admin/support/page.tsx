@@ -47,7 +47,7 @@ export default function SupportManagementPage() {
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
       await fetch("/api/admin/users", {
-        method: "POST",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, role: newRole })
       })
@@ -90,14 +90,14 @@ export default function SupportManagementPage() {
                 <div key={user.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                   <div className="flex items-center gap-3">
                     {user.image ? (
-                      <img src={user.image} alt={user.name || ""} className="w-10 h-10 rounded-full" />
+                      <img src={user.image} alt={user.discordId} className="w-10 h-10 rounded-full" />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                         <Users className="w-5 h-5 text-black" />
                       </div>
                     )}
                     <div>
-                      <p className="font-medium">{user.name || "Usuário sem nome"}</p>
+                      <p className="font-medium">{user.discordId}</p>
                       <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
@@ -133,14 +133,14 @@ export default function SupportManagementPage() {
                 <div key={user.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                   <div className="flex items-center gap-3">
                     {user.image ? (
-                      <img src={user.image} alt={user.name || ""} className="w-10 h-10 rounded-full" />
+                      <img src={user.image} alt={user.discordId} className="w-10 h-10 rounded-full" />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                         <Users className="w-5 h-5 text-black" />
                       </div>
                     )}
                     <div>
-                      <p className="font-medium">{user.name || "Usuário sem nome"}</p>
+                      <p className="font-medium">{user.discordId}</p>
                       <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
