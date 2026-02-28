@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutGrid, CreditCard, LifeBuoy, Hash, Globe, Ghost, Gamepad2, Lock, UserSearch } from "lucide-react"
+import { LayoutGrid, CreditCard, LifeBuoy, Hash, Globe, Ghost, Gamepad2, Lock, UserSearch, Rss } from "lucide-react"
 import { useSession } from "next-auth/react"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -49,6 +49,7 @@ export function Sidebar({ className }: SidebarProps) {
             <SidebarItem href="/dashboard/category/pt_br" icon={<Globe className="mr-2 h-4 w-4" />} label="Palavras PT-BR" active={isActive("/dashboard/category/pt_br")} />
             <SidebarItem href="/dashboard/category/en_us" icon={<Globe className="mr-2 h-4 w-4" />} label="Palavras EN-US" active={isActive("/dashboard/category/en_us")} />
             <SidebarItem href="/dashboard/category/random" icon={<Ghost className="mr-2 h-4 w-4" />} label="Aleatórios" active={isActive("/dashboard/category/random")} />
+            <SidebarItem href="/dashboard/category/feed" icon={<Rss className="mr-2 h-4 w-4" />} label="Feed" active={isActive("/dashboard/category/feed")} />
           </div>
         </div>
       </div>

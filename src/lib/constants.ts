@@ -19,6 +19,7 @@ export const CATEGORIES = {
   PT_BR: "PT_BR",
   EN_US: "EN_US",
   RANDOM: "RANDOM",
+  FEED: "FEED",
 } as const;
 
 export type Category = keyof typeof CATEGORIES;
@@ -30,4 +31,5 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   PT_BR: "Palavras PT-BR",
   EN_US: "Palavras EN-US",
   RANDOM: "Aleatórios",
+  FEED: "Feed",
 };

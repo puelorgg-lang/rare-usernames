@@ -86,7 +86,7 @@ const EXTERNAL_SOURCES = [
     {
         name: 'Void Usernames',
         channelId: '1418700979687133394',  // Channel ID
-        category: 'DISCORD_FREE'
+        category: 'FEED'
     }
 ];
 
@@ -1031,16 +1031,16 @@ client.on('messageCreate', async (message) => {
             
             if (usernameMatch) {
                 username = usernameMatch[1].toLowerCase();
-                console.log(`📝 Found username from Void Usernames: ${username}`);
+                console.log(`📝 Found username from Void Usernames (FEED): ${username}`);
                 
-                // Send to API to save
+                // Send to API to save with FEED category
                 try {
                     await axios.post(`${SITE_URL}/api/usernames`, {
                         name: username,
                         platform: 'discord',
-                        category: 'DISCORD_FREE'
+                        category: 'FEED'
                     });
-                    console.log(`✅ Saved username: ${username}`);
+                    console.log(`✅ Saved username: ${username} to FEED`);
                 } catch (err) {
                     console.log(`⚠️ Error saving username: ${err.message}`);
                 }
@@ -1053,15 +1053,15 @@ client.on('messageCreate', async (message) => {
             const contentMatch = messageContent.match(/```([a-zA-Z0-9_\.\-]+)```/);
             if (contentMatch) {
                 const username = contentMatch[1].toLowerCase();
-                console.log(`📝 Found username from Void Usernames (content): ${username}`);
+                console.log(`📝 Found username from Void Usernames (FEED): ${username}`);
                 
                 try {
                     await axios.post(`${SITE_URL}/api/usernames`, {
                         name: username,
                         platform: 'discord',
-                        category: 'DISCORD_FREE'
+                        category: 'FEED'
                     });
-                    console.log(`✅ Saved username: ${username}`);
+                    console.log(`✅ Saved username: ${username} to FEED`);
                 } catch (err) {
                     console.log(`⚠️ Error saving username: ${err.message}`);
                 }
