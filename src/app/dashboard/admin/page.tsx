@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, DollarSign, Activity, Play, Settings, Webhook } from "lucide-react"
+import { Users, DollarSign, Activity, Play, Settings, Webhook, Headphones } from "lucide-react"
 import prisma from "@/lib/prisma"
 import Link from "next/link"
 import { ScannerButton } from "@/components/dashboard/scanner-button"
@@ -84,6 +84,12 @@ export default async function AdminPage() {
           <Link href="/dashboard/admin/webhooks">
             <Button variant="outline" className="border-white/10 hover:bg-white/5">
               <Webhook className="mr-2 h-4 w-4" /> Webhooks Discord
+            </Button>
+          </Link>
+
+          <Link href="/dashboard/admin/support">
+            <Button variant="outline" className="border-white/10 hover:bg-white/5">
+              <Headphones className="mr-2 h-4 w-4" /> Gerenciar Suporte
             </Button>
           </Link>
         </div>
