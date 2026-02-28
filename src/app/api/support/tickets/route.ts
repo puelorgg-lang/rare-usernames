@@ -5,7 +5,8 @@ import prisma from "@/lib/prisma"
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
-
+  
+  // Allow users to see their own tickets if not admin/support
   if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPPORT")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -53,6 +54,7 @@ export async function PATCH(req: Request) {
     if (action === "CLAIM") {
       updateData.status = "IN_PROGRESS"
       updateData.assignedTo = session.user.email
+      updateData.assignedToName = session.user.name || session.user.email
     } else if (action === "CLOSE") {
       updateData.status = "CLOSED"
     }

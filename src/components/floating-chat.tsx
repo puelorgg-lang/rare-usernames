@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { MessageCircle, X, Send, Headphones } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,31 +11,77 @@ export function FloatingChat() {
   const { data: session } = useSession()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<{ text: string; isBot: boolean }[]>([
-    { text: "Olá, seja bem-vindo ao users4u, aguarde enquanto estamos colocando você em contato com um de nossos suportes", isBot: true }
+    { text: "Olá, seja bem-vindo ao users4u! Clique no botão abaixo para falar com nosso suporte.", isBot: true }
   ])
   const [inputValue, setInputValue] = useState("")
   const [showSupportButton, setShowSupportButton] = useState(true)
   const [supportRequested, setSupportRequested] = useState(false)
+  const [currentTicketId, setCurrentTicketId] = useState<string | null>(null)
 
-  const handleSend = () => {
+  // Poll for messages when ticket is created
+  useEffect(() => {
+    if (!currentTicketId) return
+    
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/support/messages?ticketId=${currentTicketId}`)
+        const data = await res.json()
+        if (data.messages && data.messages.length > 0) {
+          // Convert API messages to display format
+          const newMessages = data.messages.map((m: any) => ({
+            text: m.message,
+            isBot: m.sender !== "USER"
+          }))
+          // Only update if there are new messages (compare last message)
+          setMessages(prev => {
+            if (prev.length === 0 || prev[prev.length - 1].text !== newMessages[newMessages.length - 1]?.text) {
+              return [...prev.filter(p => p.isBot), ...newMessages]
+            }
+            return prev
+          })
+        }
+      } catch (e) {}
+    }, 3000)
+    
+    return () => clearInterval(interval)
+  }, [currentTicketId])
+
+  const handleSend = async () => {
     if (!inputValue.trim()) return
     
     // Add user message
-    setMessages(prev => [...prev, { text: inputValue, isBot: false }])
+    const userMessage = inputValue
+    setMessages(prev => [...prev, { text: userMessage, isBot: false }])
     setInputValue("")
     
-    // Simulate bot response after a delay
-    setTimeout(() => {
-      setMessages(prev => [...prev, { 
-        text: "Recebemos sua mensagem! Um de nossos suportes ira responder em breve.", 
-        isBot: true 
-      }])
-    }, 1000)
+    // Send to API if ticket exists
+    if (currentTicketId) {
+      try {
+        await fetch("/api/support/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ticketId: currentTicketId,
+            sender: "USER",
+            senderName: session?.user?.name || "Usuário",
+            message: userMessage
+          })
+        })
+      } catch (e) {}
+    } else {
+      // Simulate bot response after a delay
+      setTimeout(() => {
+        setMessages(prev => [...prev, { 
+          text: "Recebemos sua mensagem! Clique no botão de suporte para criar um ticket.", 
+          isBot: true 
+        }])
+      }, 1000)
+    }
   }
 
   const handleOpenSupport = async () => {
     try {
-      await fetch("/api/support/tickets", {
+      const res = await fetch("/api/support/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -44,13 +90,17 @@ export function FloatingChat() {
           userEmail: session?.user?.email
         })
       })
+      const data = await res.json()
       
-      setSupportRequested(true)
-      setMessages(prev => [...prev, { 
-        text: "Seu ticket de suporte foi criado! Um de nossos suportes ira atende-lo em breve.", 
-        isBot: true 
-      }])
-      setShowSupportButton(false)
+      if (data.ticket) {
+        setCurrentTicketId(data.ticket.id)
+        setSupportRequested(true)
+        setMessages(prev => [...prev, { 
+          text: "Seu ticket de suporte foi criado! Um de nossos suportes ira atende-lo em breve.", 
+          isBot: true 
+        }])
+        setShowSupportButton(false)
+      }
     } catch (error) {
       console.error("Error creating ticket:", error)
     }

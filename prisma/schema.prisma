@@ -70,8 +70,20 @@ model SupportTicket {
   userEmail   String?  @map("user_email")
   status      String   @default("OPEN") // OPEN, IN_PROGRESS, CLOSED
   assignedTo  String?  @map("assigned_to")
+  assignedToName String? @map("assigned_to_name")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("support_tickets")
+}
+
+model SupportMessage {
+  id        String   @id @default(uuid())
+  ticketId  String   @map("ticket_id")
+  sender    String   // USER or SUPPORT
+  senderName String  @map("sender_name")
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("support_messages")
 }
