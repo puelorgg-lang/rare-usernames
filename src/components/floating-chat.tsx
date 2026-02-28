@@ -30,14 +30,23 @@ export function FloatingChat() {
           // Convert API messages to display format
           const newMessages = data.messages.map((m: any) => ({
             text: m.message,
-            isBot: m.sender !== "USER"
+            isBot: m.sender !== "USER",
+            senderName: m.senderName
           }))
-          // Only update if there are new messages (compare last message)
+          
+          // Update messages - keep user messages and add new ones
           setMessages(prev => {
-            if (prev.length === 0 || prev[prev.length - 1].text !== newMessages[newMessages.length - 1]?.text) {
-              return [...prev.filter(p => p.isBot), ...newMessages]
-            }
-            return prev
+            // Get user messages from previous state
+            const userMessages = prev.filter(p => !p.isBot)
+            // Get bot/support messages from API
+            const apiMessages = newMessages.filter((m: any) => !m.isBot || !prev.some(p => p.text === m.text && p.isBot))
+            // Combine and remove duplicates
+            const combined = [...userMessages, ...newMessages]
+            // Remove duplicates based on text
+            const unique = combined.filter((msg, index, self) => 
+              index === self.findIndex((m) => m.text === msg.text)
+            )
+            return unique
           })
         }
       } catch (e) {}
