@@ -33,17 +33,23 @@ export default async function LandingPage() {
             <div className="hidden md:flex flex-col gap-3 absolute -left-16 top-1/2 -translate-y-1/2 z-10">
               <div className="flex items-center gap-2 animate-pulse -translate-x-2 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s' }}>
                 <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
+                  <User className="w-8 h-8 text-white" />
+                  <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Total: 84,685 Users</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 animate-pulse translate-x-1 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.3s' }}>
+                <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
                   <Image src="/discord-icon.png" alt="Discord" width={40} height={40} className="object-contain" />
                   <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Discord: 40,000 Users</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 animate-pulse translate-x-1 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.3s' }}>
+              <div className="flex items-center gap-2 animate-pulse -translate-x-2 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.5s' }}>
                 <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
                   <Image src="/minecraft-new.png" alt="Minecraft" width={40} height={40} className="object-contain" />
                   <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Minecraft: 12,340 Users</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 animate-pulse -translate-x-3 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.6s' }}>
+              <div className="flex items-center gap-2 animate-pulse translate-x-1 group hover:translate-x-2 transition-transform duration-300" style={{ animationDuration: '2s', animationDelay: '0.7s' }}>
                 <div className="w-16 h-16 rounded-full bg-black border-2 border-white flex items-center justify-center hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all backdrop-blur-sm relative">
                   <Image src="/roblox-icon.png" alt="Roblox" width={40} height={40} className="object-contain" />
                   <span className="absolute left-full ml-3 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-white">Roblox: 32,345 Users</span>
