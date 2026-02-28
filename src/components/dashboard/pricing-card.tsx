@@ -16,7 +16,7 @@ interface PricingCardProps {
 
 export function PricingCard({ title, price, period, features, popular, buttonText }: PricingCardProps) {
   const handleClick = () => {
-    window.open('https://discord.gg/v3DABp73X5', '_blank')
+    window.open('https://discord.gg/x7d5g89kNe', '_blank')
   }
 
   return (

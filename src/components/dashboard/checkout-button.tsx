@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button"
 import { Zap } from "lucide-react"
 
-const DISCORD_INVITE = "https://discord.gg/v3DABp73X5"
+const DISCORD_INVITE = "https://discord.gg/x7d5g89kNe"
 
 export function CheckoutButton() {
   const handleCheckout = () => {
