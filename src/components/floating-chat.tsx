@@ -38,22 +38,18 @@ export function FloatingChat() {
           
           // Only update if there are new messages
           setMessages(prev => {
-            // Check if we have new messages
+            // Get all message texts from previous state
             const prevTexts = prev.map((p: any) => p.text)
-            const newTexts = newMessages.map((m: any) => m.text)
-            const hasNew = newTexts.some((t: string) => !prevTexts.includes(t))
             
-            if (!hasNew && prev.length > 0) return prev
+            // Filter new messages that aren't already in the previous state
+            const trulyNewMessages = newMessages.filter((m: any) => !prevTexts.includes(m.text))
             
-            // Get user messages from previous state
-            const userMessages = prev.filter(p => !p.isBot)
-            // Combine and remove duplicates
-            const combined = [...userMessages, ...newMessages]
-            // Remove duplicates based on text
-            const unique = combined.filter((msg, index, self) => 
-              index === self.findIndex((m) => m.text === msg.text)
-            )
-            return unique
+            // If no new messages, don't update
+            if (trulyNewMessages.length === 0 && prev.length > 0) return prev
+            
+            // Combine all messages and remove duplicates
+            const combined = [...prev, ...trulyNewMessages]
+            return combined
           })
         }
         
