@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Check, Shield } from "lucide-react"
-import { upgradeSubscription } from "@/actions/subscription"
 import { useTransition } from "react"
 import Link from "next/link"
 
@@ -60,9 +59,8 @@ function PlanCard({ title, price, period, features, popular, plan }: { title: st
   const [isPending, startTransition] = useTransition()
 
   const handleSubscribe = () => {
-    startTransition(async () => {
-      await upgradeSubscription(plan)
-    })
+    // Redirect to Discord for payment
+    window.location.href = 'https://discord.gg/x7d5g89kNe'
   }
 
   return (
@@ -91,7 +89,7 @@ function PlanCard({ title, price, period, features, popular, plan }: { title: st
           onClick={handleSubscribe}
           disabled={isPending}
         >
-          {isPending ? "Processing..." : "Subscribe Now"}
+          {isPending ? "Processing..." : "Buy Now"}
         </Button>
       </CardFooter>
     </Card>
