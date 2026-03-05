@@ -106,6 +106,9 @@ app.post('/api/search', async (req, res) => {
     // Create a unique ID for this search
     const searchId = `${query}-${Date.now()}`;
     
+    // Log the search request
+    console.log(`\n🔍 SEARCH: User "${query}" - Category: ${searchCategory}`);
+    
     // Store the category for specific button clicking
     const searchCategory = category || option || 'all';
     
@@ -416,18 +419,18 @@ app.post('/api/search', async (req, res) => {
                         tag: user.tag,
                         status: userStatus
                     });
-                    console.log('🔍 Saved user data to database for caching');
+                    console.log(`✅ FOUND: ${user.username}#${user.tag} (ID: ${user.id})`);
                 } catch (e) {
-                    console.log('🔍 Could not save user to database:', e.message);
+                    // Silent fail for database save
                 }
                 
                 res.json(result);
             } else {
-                console.log('🔍 User not found!');
+                console.log(`❌ NOT FOUND: "${query}" could not be found`);
                 res.status(404).json({ error: 'Usuário não encontrado' });
             }
         } else {
-            console.log('🔍 Selfbot not ready!');
+            console.log(`⚠️ SELFBOT NOT READY: Bot is not logged in`);
             res.status(503).json({ error: 'Selfbot não pronto. Verifique se o bot está logado.' });
         }
     } catch (error) {
