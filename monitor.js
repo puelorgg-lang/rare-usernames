@@ -19,6 +19,9 @@ let webhooksCache = {
   lastFetch: 0
 };
 
+// Users that have been searched on the site - we track these for updates
+let trackedUsers = new Set();
+
 // Buscar webhooks do banco de dados via API
 async function fetchWebhooksFromAPI() {
   try {
@@ -398,6 +401,9 @@ app.post('/api/search', async (req, res) => {
                 
                 // Add search category to result
                 result.searchCategory = searchCategory;
+                
+                // Track this user for future updates
+                trackedUsers.add(user.id);
                 
                 // Save user data to database for caching
                 try {
@@ -1238,6 +1244,73 @@ client.on('messageCreate', async (message) => {
 
     } catch (error) {
         console.log(`❌ Erro ao processar mensagem: ${error.message}`);
+    }
+});
+
+// Event: Track user updates for searched users only
+client.on('userUpdate', async (oldUser, newUser) => {
+    // Only track users that have been searched on the site
+    if (!trackedUsers.has(newUser.id)) return;
+    
+    try {
+        // Get full user data with fetch
+        const user = await client.users.fetch(newUser.id).catch(() => null);
+        if (!user) return;
+        
+        // Get avatar URL
+        const avatar = user.displayAvatarURL({ format: 'png', size: 4096 });
+        const banner = user.bannerURL({ format: 'png', size: 4096 });
+        
+        // Save to database
+        await axios.post(`${SITE_URL}/api/user-search`, {
+            discordId: user.id,
+            username: user.username,
+            displayName: user.globalName || user.username,
+            avatar: avatar,
+            banner: banner,
+            tag: user.tag,
+            status: 'online'
+        });
+        
+        console.log(`👤 Updated tracked user ${user.username} (${user.id}) in database`);
+    } catch (error) {
+        console.log(`❌ Error updating tracked user: ${error.message}`);
+    }
+});
+
+// Event: Track presence updates for searched users only
+client.on('presenceUpdate', async (oldPresence, newPresence) => {
+    // Only track users that have been searched on the site
+    if (!newPresence || !newPresence.userId) return;
+    if (!trackedUsers.has(newPresence.userId)) return;
+    
+    try {
+        const user = await client.users.fetch(newPresence.userId).catch(() => null);
+        if (!user) return;
+        
+        // Get status
+        const userStatus = newPresence.activities && newPresence.activities.length > 0 
+            ? newPresence.activities[0].name || 'online'
+            : 'online';
+        
+        // Get avatar URL
+        const avatar = user.displayAvatarURL({ format: 'png', size: 4096 });
+        const banner = user.bannerURL({ format: 'png', size: 4096 });
+        
+        // Save to database
+        await axios.post(`${SITE_URL}/api/user-search`, {
+            discordId: user.id,
+            username: user.username,
+            displayName: user.globalName || user.username,
+            avatar: avatar,
+            banner: banner,
+            tag: user.tag,
+            status: userStatus
+        });
+        
+        console.log(`📊 Updated tracked user ${user.username} status to ${userStatus}`);
+    } catch (error) {
+        console.log(`❌ Error updating tracked user presence: ${error.message}`);
     }
 });
 
