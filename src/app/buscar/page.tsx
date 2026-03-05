@@ -1,0 +1,166 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Loader2, Search, Image, User, Eye } from "lucide-react"
+
+type ProfileData = {
+  userId: string
+  username?: string
+  avatar?: string
+  avatarDecoration?: string
+  searchCount?: number
+  badges?: string[]
+}
+
+export default function BuscarPage() {
+  const [userId, setUserId] = useState("")
+  const [platform, setPlatform] = useState("DISCORD")
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<ProfileData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSearch = async () => {
+    if (!userId) return
+    setLoading(true)
+    setError(null)
+    setResult(null)
+
+    try {
+      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=avatar`)
+      const data = await res.json()
+      
+      if (data.error) {
+        setError(data.error)
+      } else {
+        setResult(data)
+      }
+    } catch (err) {
+      setError("Falha ao conectar ao servidor")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0b0b0d] pt-24 pb-12">
+      <div className="container">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold tracking-tight glow-text">Buscar Profile</h1>
+            <p className="text-muted-foreground mt-2">
+              Busque informações detalhadas de perfis do Discord.
+            </p>
+          </div>
+
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="text-center">Digite o ID ou username do Discord</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Digite o ID ou username..."
+                    value={userId}
+                    onChange={(e) => setUserId(e.target.value)}
+                    className="bg-white/5 border-white/10 h-12 text-lg"
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  />
+                </div>
+                <Select value={platform} onValueChange={setPlatform}>
+                  <SelectTrigger className="w-full md:w-[180px] bg-white/5 border-white/10 h-12">
+                    <SelectValue placeholder="Plataforma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DISCORD">Discord</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  onClick={handleSearch} 
+                  disabled={loading || !userId} 
+                  className="bg-primary hover:bg-primary/90 text-black h-12 px-8 text-lg"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  <span className="ml-2">Buscar</span>
+                </Button>
+              </div>
+
+              {error && (
+                <div className="mt-6 p-4 rounded-lg border bg-red-500/10 border-red-500/20 text-red-500">
+                  <p>{error}</p>
+                </div>
+              )}
+
+              {result && !error && (
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-center gap-4 p-4 rounded-lg border bg-white/5 border-white/10">
+                    {result.avatar && (
+                      <img 
+                        src={result.avatar} 
+                        alt="Avatar" 
+                        className="h-16 w-16 rounded-full"
+                      />
+                    )}
+                    <div>
+                      <h4 className="font-bold text-lg flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        {result.username || "Unknown"}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">ID: {result.userId}</p>
+                      {result.searchCount && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          Buscado {result.searchCount} {result.searchCount === 1 ? 'vez' : 'vezes'} no site
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {result.badges && result.badges.length > 0 && (
+                    <div className="p-4 rounded-lg border bg-white/5 border-white/10">
+                      <h5 className="font-semibold mb-3">Insígnias do Perfil</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {result.badges.map((badge, index) => (
+                          <span 
+                            key={index}
+                            className="px-3 py-1 rounded-full bg-white/10 text-sm"
+                          >
+                            {badge}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="p-4 rounded-lg border bg-white/5 border-white/10">
+                    <h5 className="font-semibold mb-3 flex items-center gap-2">
+                      <Image className="h-4 w-4" />
+                      Avatar
+                    </h5>
+                    
+                    {result.avatar && (
+                      <div className="space-y-3">
+                        <img src={result.avatar} alt="Avatar" className="max-w-[200px] rounded-lg" />
+                        {result.avatarDecoration && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Avatar Decoration:</p>
+                            <img src={result.avatarDecoration} alt="Avatar Decoration" className="max-w-[200px] rounded-lg" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}

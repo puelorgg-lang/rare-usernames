@@ -35,7 +35,7 @@ export function Navbar({ session }: NavbarProps) {
           <Link href="#features" className="hover:text-white transition-colors">Funcionalidades</Link>
           <Link href="#pricing" className="hover:text-white transition-colors">Preços</Link>
           <Link href="#faq" className="hover:text-white transition-colors">FAQ</Link>
-          <Link href="/dashboard/search" className="hover:text-white transition-colors">Buscar</Link>
+          <Link href="/buscar" className="hover:text-white transition-colors">Buscar</Link>
         </nav>
         
         <div className="flex items-center gap-4">
