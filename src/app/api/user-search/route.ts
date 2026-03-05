@@ -9,7 +9,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "discordId e username são obrigatórios" }, { status: 400 })
     }
 
-    // Upsert user search data
+    console.log('💾 Saving user to database:', discordId, username);
+
+    // Upsert user search data - always overwrite existing
     const userSearch = await prisma.userSearch.upsert({
       where: { discordId },
       update: {
@@ -31,6 +33,8 @@ export async function POST(request: NextRequest) {
         status,
       },
     })
+
+    console.log('✅ User saved to database:', userSearch);
 
     return NextResponse.json({ success: true, userSearch })
   } catch (error: any) {
