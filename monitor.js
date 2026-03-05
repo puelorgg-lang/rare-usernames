@@ -106,11 +106,11 @@ app.post('/api/search', async (req, res) => {
     // Create a unique ID for this search
     const searchId = `${query}-${Date.now()}`;
     
-    // Log the search request
-    console.log(`\n🔍 SEARCH: User "${query}" - Category: ${searchCategory}`);
-    
     // Store the category for specific button clicking
     const searchCategory = category || option || 'all';
+    
+    // Log the search request
+    console.log(`\n🔍 SEARCH: User "${query}" - Category: ${searchCategory}`);
     
     // Store resolve/reject functions
     const searchPromise = new Promise((resolve, reject) => {
