@@ -25,7 +25,6 @@ async function fetchWebhooksFromAPI() {
     const response = await axios.get(`${SITE_URL}/api/admin/webhooks`);
     return response.data;
   } catch (error) {
-    console.log('⚠️ Erro ao buscar webhooks da API:', error.message);
     return [];
   }
 }
@@ -436,9 +435,6 @@ app.post('/api/search', async (req, res) => {
 app.listen(3001, () => {
     console.log('🔍 Search API server running on port 3001');
 });
-
-
-// ==================== SELFBOT CODE ====================
 const client = new Client({
     checkUpdate: false,
     intents: [
@@ -467,7 +463,6 @@ async function enviarWebhook(webhookUrl, autor, avatarUrl, conteudo, anexos = []
         const response = await axios.post(webhookUrl, data);
 
         if (response.status === 200 || response.status === 204) {
-            console.log('   ✅ Mensagem enviada via webhook Discord!');
             for (const anexo of anexos) {
                 const anexoData = {
                     username: autor,
@@ -478,11 +473,9 @@ async function enviarWebhook(webhookUrl, autor, avatarUrl, conteudo, anexos = []
             }
             return true;
         } else {
-            console.log(`   ❌ Erro no webhook Discord: ${response.status}`);
             return false;
         }
     } catch (error) {
-        console.log(`   ❌ Erro ao enviar webhook Discord: ${error.message}`);
         return false;
     }
 }
@@ -503,8 +496,6 @@ async function enviarParaSite(username, channelId, status = 'AVAILABLE', availab
         });
 
         if (response.data.success) {
-            console.log(`   ✅ Salvo no site: ${username} (${category}) - ${response.data.count} usernames`);
-            
             // Notifica o bot do Discord
             const BOT_URL = process.env.BOT_URL || 'http://localhost:3001';
             if (BOT_URL) {
@@ -514,9 +505,8 @@ async function enviarParaSite(username, channelId, status = 'AVAILABLE', availab
                         category,
                         platform
                     });
-                    console.log(`   ✅ Notificado ao bot`);
                 } catch (err) {
-                    console.log(`   ⚠️ Erro ao notificar bot: ${err.message}`);
+                    // Erro ao notificar bot
                 }
             }
             
@@ -525,30 +515,22 @@ async function enviarParaSite(username, channelId, status = 'AVAILABLE', availab
             
             return true;
         } else {
-            console.log(`   ⚠️ Site retornou: ${response.data.message}`);
             return false;
         }
     } catch (error) {
-        console.log(`   ❌ Erro ao enviar para site: ${error.message}`);
         return false;
     }
 }
 
 // Handle zany bot response for search
 async function handleZanyBotResponse(message) {
-    console.log('🔍 Received zany bot response');
-    console.log('🔍 Message author:', message.author.username);
-    console.log('🔍 Has embeds:', message.embeds.length > 0);
-    
     // Only process messages from Zany bot
     if (message.author.username !== 'Zany') {
-        console.log('🔍 Ignoring message from:', message.author.username);
         return;
     }
     
     // Check if this is the "buscando" message - ignore it
     if (message.content.includes('Buscando informações') || message.content.includes('aguarde')) {
-        console.log('🔍 Ignoring "buscando" message, waiting for actual response...');
         return;
     }
     
@@ -1061,32 +1043,11 @@ function parseZanyMessage(content) {
 
 // Evento quando o bot estiver pronto
 client.on('ready', async () => {
-    console.log(`✅ Selfbot logado como ${client.user.tag}!`);
-    
     // Busca webhooks do banco de dados
     const webhooks = await getWebhooks(true);
-    console.log(`📡 Carregados ${webhooks.length} webhooks do banco de dados`);
-    console.log(`🌐 Enviando usernames para: ${SITE_URL}/api/webhooks/discord`);
-    console.log(`🔍 Canal de busca: ${SEARCH_CHANNEL_ID}`);
-    
-    if (webhooks.length > 0) {
-        console.log('\n📋 Canais do banco de dados:');
-        for (const w of webhooks) {
-            console.log(`   Canal: ${w.channelId} -> ${w.category} (${w.platform})`);
-        }
-    }
-    
-    console.log('\n📋 Canais fallback (hardcoded):');
-    for (const canalId of Object.keys(CHANNEL_WEBHOOKS)) {
-        const category = CHANNEL_CATEGORY_MAP[canalId] || 'RANDOM';
-        console.log(`   Canal: ${canalId} -> ${category}`);
-    }
-    
-    console.log('\n🚀 Aguardando mensagens...\n');
     
     // Atualiza webhooks a cada 5 minutos
     setInterval(async () => {
-        console.log('🔄 Atualizando cache de webhooks...');
         await getWebhooks(true);
     }, 300000);
 });
