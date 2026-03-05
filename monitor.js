@@ -125,54 +125,56 @@ app.post('/api/search', async (req, res) => {
         
         // Check if query is a valid Discord ID (numbers only)
         if (/^\d+$/.test(query)) {
-            // It's a Discord ID - fetch from API directly to get fresh data
+            // It's a Discord ID - clear cache and fetch fresh data using Discord.js
             try {
                 // Clear from cache first
                 client.users.cache.delete(query);
-                // Use selfbot token for API calls
-                const token = client.token || TOKEN;
+                // Also try to remove from someUsers cache if exists
+                if (client.users.someUsers) {
+                    client.users.someUsers.delete(query);
+                }
                 
-                let response;
+                // Use Discord.js fetch which handles caching better
+                user = await client.users.fetch(query);
+            } catch (e) {
+                console.log(`🔍 Error fetching user ${query} via Discord.js:`, e.message);
+                
+                // Fallback: try direct API call with selfbot token
                 try {
-                    response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
+                    const token = client.token || TOKEN;
+                    const response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
                         headers: { Authorization: token }
                     });
-                } catch (authErr) {
-                    // If that fails, try with Bot prefix
-                    response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
-                        headers: { Authorization: `Bot ${token}` }
-                    });
+                    
+                    if (response.data && !response.data.message) {
+                        const userData = response.data;
+                        user = {
+                            id: userData.id,
+                            username: userData.username,
+                            displayName: userData.global_name || userData.username,
+                            tag: `${userData.username}#${userData.discriminator}`,
+                            avatar: userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png?size=4096` : null,
+                            banner: userData.banner ? `https://cdn.discordapp.com/banners/${userData.id}/${userData.banner}.png?size=4096` : null,
+                            createdAt: new Date(((parseInt(userData.id) >> 22) + 1420070400000)),
+                            flags: userData.public_flags ? [userData.public_flags] : [],
+                            presence: { status: 'offline' },
+                            displayAvatarURL: function(options = {}) {
+                                if (!this.avatar) return null;
+                                const format = options.dynamic ? 'gif' : 'png';
+                                const size = options.size || 4096;
+                                return `https://cdn.discordapp.com/avatars/${this.id}/${this.avatar}.${format}?size=${size}`;
+                            },
+                            bannerURL: function(options = {}) {
+                                if (!this.banner) return null;
+                                const format = options.dynamic ? 'gif' : 'png';
+                                const size = options.size || 4096;
+                                return `https://cdn.discordapp.com/banners/${this.id}/${this.banner}.${format}?size=${size}`;
+                            }
+                        };
+                    }
+                } catch (apiErr) {
+                    console.log(`🔍 Error fetching user via API:`, apiErr.message);
                 }
-                
-                if (response.data && !response.data.message) {
-                    const userData = response.data;
-                    // Create a minimal user object from API response
-                    user = {
-                        id: userData.id,
-                        username: userData.username,
-                        displayName: userData.global_name || userData.username,
-                        tag: `${userData.username}#${userData.discriminator}`,
-                        avatar: userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png?size=4096` : null,
-                        banner: userData.banner ? `https://cdn.discordapp.com/banners/${userData.id}/${userData.banner}.png?size=4096` : null,
-                        createdAt: new Date(((parseInt(userData.id) >> 22) + 1420070400000)),
-                        flags: userData.public_flags ? [userData.public_flags] : [],
-                        presence: { status: 'offline' },
-                        displayAvatarURL: function(options = {}) {
-                            if (!this.avatar) return null;
-                            const format = options.dynamic ? 'gif' : 'png';
-                            const size = options.size || 4096;
-                            return `https://cdn.discordapp.com/avatars/${this.id}/${this.avatar}.${format}?size=${size}`;
-                        },
-                        bannerURL: function(options = {}) {
-                            if (!this.banner) return null;
-                            const format = options.dynamic ? 'gif' : 'png';
-                            const size = options.size || 4096;
-                            return `https://cdn.discordapp.com/banners/${this.id}/${this.banner}.${format}?size=${size}`;
-                        }
-                    };
-                }
-            } catch (e) {
-                console.log(`🔍 Error fetching user ${query} via API:`, e.message);
             }
         } else {
             // It's a username - search in cache first, then force refresh
