@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    console.log('Sending search request to selfbot for:', query)
+    console.log('📤 Sending search request to selfbot for:', query)
+    console.log('🌐 Selfbot URL:', SELFBOT_URL)
     
     const response = await fetch(`${SELFBOT_URL}/api/search`, {
       method: "POST",
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json()
-    console.log('Search result:', data)
+    console.log('📥 Response from selfbot:', data)
 
     if (data.userId) {
       try {
