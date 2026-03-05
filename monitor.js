@@ -298,13 +298,51 @@ app.post('/api/search', async (req, res) => {
             
             // Check if query is a valid Discord ID (numbers only)
             if (/^\d+$/.test(query)) {
-                // It's a Discord ID - fetch from API (force fresh fetch)
+                // It's a Discord ID - fetch from API directly to get fresh data
                 try {
-                    // Clear from cache first to ensure fresh data
-                    client.users.cache.delete(query);
-                    user = await client.users.fetch(query);
+                    // Use direct API call to bypass cache entirely
+                    const token = client.token || TOKEN;
+                    let response;
+                    try {
+                        response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
+                            headers: { Authorization: token }
+                        });
+                    } catch (authErr) {
+                        response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
+                            headers: { Authorization: `Bot ${token}` }
+                        });
+                    }
+                    
+                    if (response.data) {
+                        const userData = response.data;
+                        // Create a minimal user object from API response
+                        user = {
+                            id: userData.id,
+                            username: userData.username,
+                            displayName: userData.global_name || userData.username,
+                            tag: `${userData.username}#${userData.discriminator}`,
+                            avatar: userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png?size=4096` : null,
+                            banner: userData.banner ? `https://cdn.discordapp.com/banners/${userData.id}/${userData.banner}.png?size=4096` : null,
+                            createdAt: new Date(((parseInt(userData.id) >> 22) + 1420070400000)),
+                            flags: userData.public_flags ? [userData.public_flags] : [],
+                            presence: { status: 'offline' },
+                            displayAvatarURL: function(options = {}) {
+                                if (!this.avatar) return null;
+                                const format = options.dynamic ? 'gif' : 'png';
+                                const size = options.size || 4096;
+                                return `https://cdn.discordapp.com/avatars/${this.id}/${this.avatar}.${format}?size=${size}`;
+                            },
+                            bannerURL: function(options = {}) {
+                                if (!this.banner) return null;
+                                const format = options.dynamic ? 'gif' : 'png';
+                                const size = options.size || 4096;
+                                return `https://cdn.discordapp.com/banners/${this.id}/${this.banner}.${format}?size=${size}`;
+                            }
+                        };
+                        console.log('🔍 Fetched fresh user data from API:', user.username);
+                    }
                 } catch (e) {
-                    console.log('🔍 Could not fetch user by ID:', e.message);
+                    console.log('🔍 Could not fetch user by ID from API:', e.message);
                 }
             } else {
                 // It's a username - search in cache first, then force refresh
@@ -530,6 +568,22 @@ app.post('/api/search', async (req, res) => {
                 
                 // Add search category to result
                 result.searchCategory = searchCategory;
+                
+                // Save user data to database for caching
+                try {
+                    await axios.post(`${SITE_URL}/api/user-search`, {
+                        discordId: user.id,
+                        username: user.username,
+                        displayName: user.displayName || user.username,
+                        avatar: result.avatar,
+                        banner: result.banner,
+                        tag: user.tag,
+                        status: userStatus
+                    });
+                    console.log('🔍 Saved user data to database for caching');
+                } catch (e) {
+                    console.log('🔍 Could not save user to database:', e.message);
+                }
                 
                 res.json(result);
             } else {

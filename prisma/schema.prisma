@@ -129,3 +129,19 @@ model BannerHistory {
   @@index([discordId, changedAt])
   @@map("banner_history")
 }
+
+// User search cache - stores latest user data for fast retrieval
+model UserSearch {
+  id          String   @id @default(uuid())
+  discordId   String   @unique @map("discord_id")
+  username    String   @map("username")
+  displayName String?  @map("display_name")
+  avatar      String?  @map("avatar")
+  banner      String?  @map("banner")
+  tag         String?  @map("tag")
+  status      String   @default("offline") @map("status")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("user_search")
+}
