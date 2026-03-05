@@ -117,6 +117,8 @@ app.post('/api/search', async (req, res) => {
         console.log(`⚠️ SELFBOT NOT READY: Bot is not logged in`);
         return res.status(503).json({ error: 'Selfbot não pronto. Verifique se o bot está logado.' });
     }
+    
+    console.log(`🔍 Starting search for: ${query} (client ready: ${client.isReady()})`);
 
     try {
         // Use selfbot to fetch user directly - with better error handling
@@ -126,6 +128,7 @@ app.post('/api/search', async (req, res) => {
         // Check if query is a valid Discord ID (numbers only)
         if (/^\d+$/.test(query)) {
             // It's a Discord ID - clear cache and fetch fresh data using Discord.js
+            console.log(`🔍 Search by ID: ${query}`);
             try {
                 // Clear from cache first
                 client.users.cache.delete(query);
@@ -407,6 +410,7 @@ app.post('/api/search', async (req, res) => {
             
             // Save user data to database for caching
             try {
+                console.log(`💾 Saving user to database: ${user.username}`);
                 await axios.post(`${SITE_URL}/api/user-search`, {
                     discordId: user.id,
                     username: user.username,
@@ -422,6 +426,7 @@ app.post('/api/search', async (req, res) => {
             }
             
             res.json(result);
+            console.log(`📤 Returning result for: ${user.username} - Avatar: ${result.avatar ? 'YES' : 'NO'}`);
         } else {
             // User not found via selfbot - return error with helpful message
             console.log(`❌ NOT FOUND: "${query}" could not be found`);
