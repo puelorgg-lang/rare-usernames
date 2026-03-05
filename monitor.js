@@ -366,11 +366,23 @@ app.post('/api/search', async (req, res) => {
                 // Fetch banner directly from Discord API since selfbot fetch might not work
                 let bannerUrl = null;
                 try {
-                    const response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
-                        headers: {
-                            Authorization: `Bot ${client.token}`
-                        }
-                    });
+                    // Use the token from the selfbot client
+                    const token = TOKEN;
+                    console.log('🔍 Using token:', token ? 'Token available' : 'No token');
+                    
+                    // Selfbot uses user token - try both with and without Bot prefix
+                    let response;
+                    try {
+                        response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
+                            headers: { Authorization: token }
+                        });
+                    } catch (authErr) {
+                        // If that fails, try with Bot prefix
+                        console.log('🔍 First auth attempt failed, trying with Bot prefix...');
+                        response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
+                            headers: { Authorization: `Bot ${token}` }
+                        });
+                    }
                     
                     const userData = response.data;
                     console.log('🔍 User API data:', JSON.stringify(userData));
