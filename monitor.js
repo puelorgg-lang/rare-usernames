@@ -305,15 +305,19 @@ app.post('/api/search', async (req, res) => {
                     console.log('🔍 Could not fetch user by ID:', e.message);
                 }
             } else {
-                // It's a username - try to find in cache or search
-                user = client.users.cache.find(u => u.username.toLowerCase() === query.toLowerCase()) ||
-                       client.users.cache.find(u => u.tag.toLowerCase() === query.toLowerCase());
+                // It's a username - try to find in cache
+                const cachedUser = client.users.cache.find(u => 
+                    (u.username && u.username.toLowerCase() === query.toLowerCase()) ||
+                    (u.tag && u.tag.toLowerCase() === query.toLowerCase())
+                );
                 
-                // If not found in cache, we can't search by username with selfbot
-                if (!user) {
+                if (cachedUser) {
+                    user = cachedUser;
+                } else {
+                    // If not found in cache, need ID
                     console.log('🔍 User not found in cache. Need ID to fetch profile.');
                     return res.status(404).json({ 
-                        error: 'Usuário não encontrado. Tente usar o ID do Discord.' 
+                        error: 'Usuário não encontrado no cache. Tente usar o ID do Discord.' 
                     });
                 }
             }
