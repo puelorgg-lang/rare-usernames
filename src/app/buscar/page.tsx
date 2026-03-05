@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle } from "lucide-react"
+import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle, Moon } from "lucide-react"
 
 type ProfileData = {
   userId: string
@@ -14,6 +14,7 @@ type ProfileData = {
   avatar?: string
   banner?: string
   tag?: string
+  status?: string
   createdAt?: string
   flags?: string[]
   nitro?: boolean
@@ -163,11 +164,29 @@ export default function BuscarPage() {
                 <CardContent className="pt-6">
                   <div className="flex flex-col md:flex-row gap-6 items-start">
                     {result.avatar && (
-                      <img 
-                        src={result.avatar} 
-                        alt="Avatar" 
-                        className="h-32 w-32 rounded-full border-4 border-primary"
-                      />
+                      <div className="relative">
+                        <img 
+                          src={result.avatar} 
+                          alt="Avatar" 
+                          className={`h-32 w-32 rounded-full border-4 ${
+                            result.status === 'online' ? 'border-green-500' :
+                            result.status === 'idle' ? 'border-yellow-500' :
+                            result.status === 'dnd' ? 'border-red-500' :
+                            'border-gray-500'
+                          }`}
+                        />
+                        {/* Status indicator */}
+                        <span className={`absolute bottom-0 right-0 h-5 w-5 rounded-full border-4 border-[#0b0b0d] flex items-center justify-center ${
+                          result.status === 'online' ? 'bg-green-500' :
+                          result.status === 'idle' ? 'bg-yellow-500' :
+                          result.status === 'dnd' ? 'bg-red-500' :
+                          'bg-gray-500'
+                        }`}>
+                          {result.status === 'idle' && (
+                            <Moon className="h-3 w-3 text-black" />
+                          )}
+                        </span>
+                      </div>
                     )}
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-3">

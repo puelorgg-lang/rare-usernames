@@ -413,6 +413,8 @@ app.post('/api/search', async (req, res) => {
                     flags: user.flags ? user.flags.toArray() : [],
                     nitro: false,
                     nitroBoost: 0,
+                    // Get presence/status from the user
+                    status: user.presence?.status || 'offline',
                     // Additional data that can be fetched
                     profile: {
                         // Placeholder for profile data
