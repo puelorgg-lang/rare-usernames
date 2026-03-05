@@ -41,6 +41,7 @@ type ProfileData = {
 const searchOptions = [
   { id: "perfil", label: "Perfil", icon: UserCircle },
   { id: "avatares", label: "Avatares", icon: Image },
+  { id: "banners", label: "Banners", icon: Image },
   { id: "mensagens", label: "Mensagens", icon: MessageCircle },
   { id: "chamadas", label: "Chamadas", icon: Phone },
   { id: "servidores", label: "Servidores", icon: Users },
@@ -59,7 +60,10 @@ export default function BuscarPage() {
   const [activeTab, setActiveTab] = useState("perfil")
   const [avatarPage, setAvatarPage] = useState(0)
   const [avatarHistory, setAvatarHistory] = useState<any[]>([])
+  const [bannerPage, setBannerPage] = useState(0)
+  const [bannerHistory, setBannerHistory] = useState<any[]>([])
   const [loadingAvatars, setLoadingAvatars] = useState(false)
+  const [loadingBanners, setLoadingBanners] = useState(false)
 
   useEffect(() => {
     if (result?.userId && activeTab === "avatares") {
@@ -108,9 +112,25 @@ export default function BuscarPage() {
     }
   }
 
+  const fetchBannerHistory = async (discordId: string) => {
+    setLoadingBanners(true)
+    try {
+      const res = await fetch(`/api/banner-history?discordId=${discordId}`)
+      const data = await res.json()
+      setBannerHistory(data)
+    } catch (e) {
+      console.error("Error fetching banner history:", e)
+    } finally {
+      setLoadingBanners(false)
+    }
+  }
+
   useEffect(() => {
     if (result?.userId && activeTab === "avatares") {
       fetchAvatarHistory(result.userId)
+    }
+    if (result?.userId && activeTab === "banners") {
+      fetchBannerHistory(result.userId)
     }
   }, [activeTab, result?.userId])
 
@@ -159,53 +179,49 @@ export default function BuscarPage() {
           {result && !error && (
             <div className="space-y-6">
               {/* Profile Header */}
-              <Card className="glass-card overflow-hidden">
-                <div 
-                  className="relative h-48 bg-cover bg-center"
-                  style={{ 
-                    backgroundImage: result.banner ? `url(${result.banner})` : 'none',
-                    backgroundColor: result.banner ? 'transparent' : '#1a1a1a'
-                  }}
-                >
-                  {result.banner ? (
-                    <div className="absolute inset-0 bg-black/60" />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20" />
-                  )}
-                  <div className="relative z-10 pt-20 px-6 pb-6 flex flex-col md:flex-row gap-6 items-start">
+              <Card className="glass-card">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col md:flex-row gap-6 items-start">
                     {result.avatar && (
                       <img 
                         src={result.avatar} 
                         alt="Avatar" 
-                        className="h-32 w-32 rounded-full border-4 border-background shadow-lg"
+                        className="h-32 w-32 rounded-full border-4 border-primary"
                       />
                     )}
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-bold text-white drop-shadow-md">{result.displayName || result.username}</h2>
+                        <h2 className="text-2xl font-bold">{result.displayName || result.username}</h2>
                         {result.nitro && (
                           <span className="px-2 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-xs font-bold">
                             NITRO
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-white/80">ID: {result.userId}</p>
-                      <p className="text-sm text-white/80">
+                      <p className="text-sm text-muted-foreground">ID: {result.userId}</p>
+                      <p className="text-sm text-muted-foreground">
                         Criado em: {formatDate(result.createdAt)}
                       </p>
                       {result.statistics?.accountAge && (
-                        <p className="text-sm text-white/80">
+                        <p className="text-sm text-muted-foreground">
                           Idade da conta: {result.statistics.accountAge} dias
                         </p>
                       )}
                     </div>
+                    {result.banner && (
+                      <img 
+                        src={result.banner} 
+                        alt="Banner" 
+                        className="h-32 rounded-lg border border-white/10"
+                      />
+                    )}
                   </div>
-                </div>
+                </CardContent>
               </Card>
 
               {/* Search Options Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-3 md:grid-cols-9 w-full h-auto p-1 flex-wrap">
+                <TabsList className="grid grid-cols-3 md:grid-cols-11 w-full h-auto p-1 flex-wrap">
                   {searchOptions.map((option) => (
                     <TabsTrigger 
                       key={option.id} 
@@ -397,6 +413,48 @@ export default function BuscarPage() {
                           <p className="text-sm text-muted-foreground">Servidores em comum</p>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Banners Tab */}
+                <TabsContent value="banners" className="mt-4">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Image className="h-5 w-5" />
+                        Histórico de Banners
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center mb-4">
+                        <p className="text-muted-foreground">Total de banners: {bannerHistory.length}</p>
+                      </div>
+                      
+                      {loadingBanners ? (
+                        <div className="flex justify-center py-8">
+                          <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                      ) : bannerHistory.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-4">
+                          {bannerHistory.map((banner: any, index: number) => (
+                            <div key={index} className="p-3 rounded-lg bg-white/5">
+                              <img 
+                                src={banner.bannerUrl} 
+                                alt="Banner" 
+                                className="w-full h-auto rounded-lg"
+                              />
+                              <p className="text-sm text-muted-foreground mt-2">
+                                Alterado em: {formatDate(banner.changedAt)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">
+                          Nenhum histórico de banner encontrado
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>

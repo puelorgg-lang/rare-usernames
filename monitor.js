@@ -407,6 +407,18 @@ app.post('/api/search', async (req, res) => {
                     }
                 }
                 
+                // Save banner to history
+                if (result.banner) {
+                    try {
+                        await axios.post(`${SITE_URL}/api/banner-history`, {
+                            discordId: user.id,
+                            bannerUrl: result.banner
+                        });
+                    } catch (e) {
+                        console.log('🔍 Could not save banner history:', e.message);
+                    }
+                }
+                
                 // Add search category to result
                 result.searchCategory = searchCategory;
                 
