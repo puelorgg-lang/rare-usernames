@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle, Moon, Banner } from "lucide-react"
+import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle, Moon, Palette } from "lucide-react"
 
 type ProfileData = {
   userId: string
@@ -42,7 +42,7 @@ type ProfileData = {
 const searchOptions = [
   { id: "perfil", label: "Perfil", icon: UserCircle },
   { id: "avatares", label: "Avatares", icon: Image },
-  { id: "banners", label: "Banners", icon: Banner },
+  { id: "banners", label: "Banners", icon: Palette },
   { id: "mensagens", label: "Mensagens", icon: MessageCircle },
   { id: "chamadas", label: "Chamadas", icon: Phone },
   { id: "servidores", label: "Servidores", icon: Users },
@@ -367,7 +367,7 @@ export default function BuscarPage() {
                   <Card className="glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Banner className="h-5 w-5" />
+                        <Palette className="h-5 w-5" />
                         Histórico de Banners
                       </CardTitle>
                     </CardHeader>
