@@ -282,32 +282,117 @@ app.post('/api/search', async (req, res) => {
     });
 
     try {
-        // Send command to Discord channel using selfbot
+        // Use selfbot to fetch user directly
         console.log('🔍 Checking selfbot status...');
         console.log('🔍 Client ready:', client.isReady());
         console.log('🔍 Client user:', client.user ? client.user.tag : 'No user');
-        console.log('🔍 Channel ID:', channelId || SEARCH_CHANNEL_ID);
         console.log('🔍 Query:', query);
         console.log('🔍 Category:', searchCategory);
         
         if (client && client.isReady()) {
-            const channel = await client.channels.fetch(channelId || SEARCH_CHANNEL_ID);
-            console.log('🔍 Channel found:', !!channel);
+            // Try to find user by ID or username
+            let user = null;
+            let userId = query;
             
-            if (channel) {
-                await channel.send(`zui ${query}`);
-                console.log(`🔍 Sent search command for: ${query}`);
+            // Check if query is a valid Discord ID (numbers only)
+            if (/^\d+$/.test(query)) {
+                // It's a Discord ID
+                try {
+                    user = await client.users.fetch(query);
+                } catch (e) {
+                    console.log('🔍 Could not fetch user by ID:', e.message);
+                }
+            } else {
+                // It's a username - try to find in cache or search
+                user = client.users.cache.find(u => u.username.toLowerCase() === query.toLowerCase()) ||
+                       client.users.cache.find(u => u.tag.toLowerCase() === query.toLowerCase());
                 
-                // Wait for response from zany bot
-                const result = await searchPromise;
+                // If not found in cache, we can't search by username with selfbot
+                if (!user) {
+                    console.log('🔍 User not found in cache. Need ID to fetch profile.');
+                    return res.status(404).json({ 
+                        error: 'Usuário não encontrado. Tente usar o ID do Discord.' 
+                    });
+                }
+            }
+            
+            if (user) {
+                console.log('🔍 User found:', user.tag);
+                
+                // Build comprehensive profile data
+                const result = {
+                    userId: user.id,
+                    username: user.username,
+                    displayName: user.displayName || user.username,
+                    avatar: user.displayAvatarURL({ dynamic: true, size: 4096 }),
+                    banner: user.bannerURL({ dynamic: true, size: 4096 }),
+                    tag: user.tag,
+                    createdAt: user.createdAt.toISOString(),
+                    flags: user.flags ? user.flags.toArray() : [],
+                    nitro: false,
+                    nitroBoost: 0,
+                    // Additional data that can be fetched
+                    profile: {
+                        // Placeholder for profile data
+                        biography: null,
+                        pronouns: null,
+                    },
+                    // Placeholder for other data (would need API calls)
+                    messages: [],
+                    calls: [],
+                    servers: [],
+                    alts: [],
+                    connections: [],
+                    interactions: [],
+                    statistics: {
+                        accountAge: Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)),
+                        friendCount: 0,
+                        mutualGuilds: 0,
+                    },
+                    bans: [],
+                    badges: [],
+                };
+                
+                // Try to fetch mutual guilds
+                if (client.guilds) {
+                    const mutuals = [];
+                    for (const [guildId, guild] of client.guilds.cache) {
+                        try {
+                            const member = await guild.members.fetch(user.id);
+                            if (member) {
+                                mutuals.push({
+                                    id: guild.id,
+                                    name: guild.name,
+                                    icon: guild.iconURL(),
+                                    joinedAt: member.joinedAt,
+                                    roles: member.roles.cache.map(r => r.name),
+                                });
+                            }
+                        } catch (e) {
+                            // Can't fetch member
+                        }
+                    }
+                    result.servers = mutuals;
+                    result.statistics.mutualGuilds = mutuals.length;
+                }
+                
+                // Check for nitro based on badges/flags
+                if (result.flags) {
+                    const nitroFlags = ['NITRO', 'NITRO_CLASSIC', 'NITRO_BASIC'];
+                    result.nitro = result.flags.some(f => nitroFlags.includes(f));
+                }
+                
+                // Add search category to result
+                result.searchCategory = searchCategory;
+                
                 res.json(result);
             } else {
-                console.log('🔍 Channel not found!');
-                res.status(404).json({ error: 'Channel not found' });
+                console.log('🔍 User not found!');
+                res.status(404).json({ error: 'Usuário não encontrado' });
             }
         } else {
             console.log('🔍 Selfbot not ready!');
-            res.status(503).json({ error: 'Selfbot not ready. Make sure the bot is logged in.' });
+            res.status(503).json({ error: 'Selfbot não pronto. Verifique se o bot está logado.' });
         }
     } catch (error) {
         console.error('Search error:', error);

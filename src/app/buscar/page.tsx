@@ -4,24 +4,58 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2, Search, Image, User, Eye } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle } from "lucide-react"
 
 type ProfileData = {
   userId: string
   username?: string
+  displayName?: string
   avatar?: string
-  avatarDecoration?: string
-  searchCount?: number
+  banner?: string
+  tag?: string
+  createdAt?: string
+  flags?: string[]
+  nitro?: boolean
+  nitroBoost?: number
+  searchCategory?: string
+  profile?: {
+    biography?: string | null
+    pronouns?: string | null
+  }
+  messages?: any[]
+  calls?: any[]
+  servers?: any[]
+  alts?: any[]
+  connections?: any[]
+  interactions?: any[]
+  statistics?: {
+    accountAge?: number
+    friendCount?: number
+    mutualGuilds?: number
+  }
+  bans?: any[]
   badges?: string[]
 }
 
+const searchOptions = [
+  { id: "perfil", label: "Perfil", icon: UserCircle },
+  { id: "mensagens", label: "Mensagens", icon: MessageCircle },
+  { id: "chamadas", label: "Chamadas", icon: Phone },
+  { id: "servidores", label: "Servidores", icon: Users },
+  { id: "alts", label: "Alts", icon: Link2 },
+  { id: "conexoes", label: "Conexões", icon: Link2 },
+  { id: "interacoes", label: "Interações", icon: GitBranch },
+  { id: "estatisticas", label: "Estatísticas", icon: BarChart3 },
+  { id: "banimentos", label: "Banimentos", icon: Shield },
+]
+
 export default function BuscarPage() {
   const [userId, setUserId] = useState("")
-  const [platform, setPlatform] = useState("DISCORD")
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ProfileData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("perfil")
 
   const handleSearch = async () => {
     if (!userId) return
@@ -30,7 +64,7 @@ export default function BuscarPage() {
     setResult(null)
 
     try {
-      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=avatar`)
+      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=${activeTab}`)
       const data = await res.json()
       
       if (data.error) {
@@ -45,40 +79,36 @@ export default function BuscarPage() {
     }
   }
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A"
+    const date = new Date(dateString)
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
+  }
+
   return (
     <div className="min-h-screen bg-[#0b0b0d] pt-24 pb-12">
       <div className="container">
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-6xl mx-auto space-y-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight glow-text">Buscar Profile</h1>
             <p className="text-muted-foreground mt-2">
-              Busque informações detalhadas de perfis do Discord.
+              Busque informações detalhadas de perfis do Discord
             </p>
           </div>
 
+          {/* Search Input */}
           <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-center">Digite o ID ou username do Discord</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <Input
-                    placeholder="Digite o ID ou username..."
+                    placeholder="Digite o ID ou username do Discord..."
                     value={userId}
                     onChange={(e) => setUserId(e.target.value)}
                     className="bg-white/5 border-white/10 h-12 text-lg"
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   />
                 </div>
-                <Select value={platform} onValueChange={setPlatform}>
-                  <SelectTrigger className="w-full md:w-[180px] bg-white/5 border-white/10 h-12">
-                    <SelectValue placeholder="Plataforma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="DISCORD">Discord</SelectItem>
-                  </SelectContent>
-                </Select>
                 <Button 
                   onClick={handleSearch} 
                   disabled={loading || !userId} 
@@ -88,77 +118,226 @@ export default function BuscarPage() {
                   <span className="ml-2">Buscar</span>
                 </Button>
               </div>
+            </CardContent>
+          </Card>
 
-              {error && (
-                <div className="mt-6 p-4 rounded-lg border bg-red-500/10 border-red-500/20 text-red-500">
-                  <p>{error}</p>
-                </div>
-              )}
+          {error && (
+            <div className="p-4 rounded-lg border bg-red-500/10 border-red-500/20 text-red-500">
+              <p>{error}</p>
+            </div>
+          )}
 
-              {result && !error && (
-                <div className="mt-6 space-y-4">
-                  <div className="flex items-center gap-4 p-4 rounded-lg border bg-white/5 border-white/10">
+          {result && !error && (
+            <div className="space-y-6">
+              {/* Profile Header */}
+              <Card className="glass-card">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col md:flex-row gap-6 items-start">
                     {result.avatar && (
                       <img 
                         src={result.avatar} 
                         alt="Avatar" 
-                        className="h-16 w-16 rounded-full"
+                        className="h-32 w-32 rounded-full border-4 border-primary"
                       />
                     )}
-                    <div>
-                      <h4 className="font-bold text-lg flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        {result.username || "Unknown"}
-                      </h4>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-2xl font-bold">{result.displayName || result.username}</h2>
+                        {result.nitro && (
+                          <span className="px-2 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-xs font-bold">
+                            NITRO
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground">#{result.tag}</p>
                       <p className="text-sm text-muted-foreground">ID: {result.userId}</p>
-                      {result.searchCount && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          Buscado {result.searchCount} {result.searchCount === 1 ? 'vez' : 'vezes'} no site
+                      <p className="text-sm text-muted-foreground">
+                        Conta criada em: {formatDate(result.createdAt)}
+                      </p>
+                      {result.statistics?.accountAge && (
+                        <p className="text-sm text-muted-foreground">
+                          Idade da conta: {result.statistics.accountAge} dias
                         </p>
                       )}
                     </div>
-                  </div>
-
-                  {result.badges && result.badges.length > 0 && (
-                    <div className="p-4 rounded-lg border bg-white/5 border-white/10">
-                      <h5 className="font-semibold mb-3">Insígnias do Perfil</h5>
-                      <div className="flex flex-wrap gap-2">
-                        {result.badges.map((badge, index) => (
-                          <span 
-                            key={index}
-                            className="px-3 py-1 rounded-full bg-white/10 text-sm"
-                          >
-                            {badge}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="p-4 rounded-lg border bg-white/5 border-white/10">
-                    <h5 className="font-semibold mb-3 flex items-center gap-2">
-                      <Image className="h-4 w-4" />
-                      Avatar
-                    </h5>
-                    
-                    {result.avatar && (
-                      <div className="space-y-3">
-                        <img src={result.avatar} alt="Avatar" className="max-w-[200px] rounded-lg" />
-                        {result.avatarDecoration && (
-                          <div>
-                            <p className="text-sm text-muted-foreground mb-1">Avatar Decoration:</p>
-                            <img src={result.avatarDecoration} alt="Avatar Decoration" className="max-w-[200px] rounded-lg" />
-                          </div>
-                        )}
-                      </div>
+                    {result.banner && (
+                      <img 
+                        src={result.banner} 
+                        alt="Banner" 
+                        className="h-32 rounded-lg border border-white/10"
+                      />
                     )}
                   </div>
+                </CardContent>
+              </Card>
 
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              {/* Search Options Tabs */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid grid-cols-3 md:grid-cols-9 w-full h-auto p-1 flex-wrap">
+                  {searchOptions.map((option) => (
+                    <TabsTrigger 
+                      key={option.id} 
+                      value={option.id}
+                      className="flex flex-col items-center gap-1 py-2 data-[state=active]:bg-primary data-[state=active]:text-black"
+                    >
+                      <option.icon className="h-4 w-4" />
+                      <span className="text-xs">{option.label}</span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+
+                {/* Perfil Tab */}
+                <TabsContent value="perfil" className="mt-4">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <UserCircle className="h-5 w-5" />
+                        Informações do Perfil
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-lg bg-white/5">
+                          <p className="text-sm text-muted-foreground">Nome de usuário</p>
+                          <p className="font-medium">{result.username}</p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-white/5">
+                          <p className="text-sm text-muted-foreground">Nome de display</p>
+                          <p className="font-medium">{result.displayName || "Não definido"}</p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-white/5">
+                          <p className="text-sm text-muted-foreground">Tag</p>
+                          <p className="font-medium">{result.tag}</p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-white/5">
+                          <p className="text-sm text-muted-foreground">Criado em</p>
+                          <p className="font-medium">{formatDate(result.createdAt)}</p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-white/5">
+                          <p className="text-sm text-muted-foreground">Nitro</p>
+                          <p className="font-medium">{result.nitro ? "Ativo" : "Inativo"}</p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-white/5">
+                          <p className="text-sm text-muted-foreground">Servidores em comum</p>
+                          <p className="font-medium">{result.statistics?.mutualGuilds || 0}</p>
+                        </div>
+                      </div>
+                      
+                      {result.badges && result.badges.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-sm text-muted-foreground mb-2">Insígnias</p>
+                          <div className="flex flex-wrap gap-2">
+                            {result.badges.map((badge, index) => (
+                              <span 
+                                key={index}
+                                className="px-3 py-1 rounded-full bg-white/10 text-sm"
+                              >
+                                {badge}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Servidores Tab */}
+                <TabsContent value="servidores" className="mt-4">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Servidores em Comum
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {result.servers && result.servers.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {result.servers.map((server: any, index: number) => (
+                            <div key={index} className="p-4 rounded-lg bg-white/5 flex items-center gap-3">
+                              {server.icon ? (
+                                <img src={server.icon} alt={server.name} className="h-10 w-10 rounded-full" />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center">
+                                  <Users className="h-5 w-5" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium">{server.name}</p>
+                                <p className="text-xs text-muted-foreground">Entrou em: {formatDate(server.joinedAt)}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">
+                          Nenhum servidor em comum encontrado
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Estatísticas Tab */}
+                <TabsContent value="estatisticas" className="mt-4">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Estatísticas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="p-4 rounded-lg bg-white/5 text-center">
+                          <p className="text-3xl font-bold">{result.statistics?.accountAge || 0}</p>
+                          <p className="text-sm text-muted-foreground">Dias de conta</p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-white/5 text-center">
+                          <p className="text-3xl font-bold">{result.statistics?.friendCount || 0}</p>
+                          <p className="text-sm text-muted-foreground">Amigos</p>
+                        </div>
+                        <div className="p-4 rounded-lg bg-white/5 text-center">
+                          <p className="text-3xl font-bold">{result.statistics?.mutualGuilds || 0}</p>
+                          <p className="text-sm text-muted-foreground">Servidores em comum</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Other Tabs - Placeholder */}
+                {["mensagens", "chamadas", "alts", "conexoes", "interacoes", "banimentos"].map((tab) => (
+                  <TabsContent key={tab} value={tab} className="mt-4">
+                    <Card className="glass-card">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          {tab === "mensagens" && <MessageCircle className="h-5 w-5" />}
+                          {tab === "chamadas" && <Phone className="h-5 w-5" />}
+                          {tab === "alts" && <Link2 className="h-5 w-5" />}
+                          {tab === "conexoes" && <Link2 className="h-5 w-5" />}
+                          {tab === "interacoes" && <GitBranch className="h-5 w-5" />}
+                          {tab === "banimentos" && <Shield className="h-5 w-5" />}
+                          {tab === "mensagens" && "Mensagens"}
+                          {tab === "chamadas" && "Chamadas"}
+                          {tab === "alts" && "Contas Alternativas"}
+                          {tab === "conexões" && "Conexões"}
+                          {tab === "interacoes" && "Interações"}
+                          {tab === "banimentos" && "Banimentos"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground text-center py-8">
+                          Em breve mais informações nesta seção...
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </div>
+          )}
         </div>
       </div>
     </div>
