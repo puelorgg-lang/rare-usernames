@@ -123,15 +123,8 @@ app.post('/api/search', async (req, res) => {
 
     try {
         // Use selfbot to fetch user directly
-        console.log('🔍 Checking selfbot status...');
-        console.log('🔍 Client exists:', !!client);
-        console.log('🔍 Client ready:', client?.isReady());
-        console.log('🔍 Client user:', client?.user ? client.user.tag : 'No user');
-        console.log('🔍 Query:', query);
-        console.log('🔍 Category:', searchCategory);
         
         if (client && client.isReady()) {
-            console.log('🔍 Client is ready, proceeding with search...');
             // Try to find user by ID or username
             let user = null;
             let userId = query;
@@ -184,7 +177,7 @@ app.post('/api/search', async (req, res) => {
                         console.log('🔍 Fetched fresh user data from API:', user.username);
                     }
                 } catch (e) {
-                    console.log('🔍 Could not fetch user by ID from API:', e.message);
+                    // Error fetching user
                 }
             } else {
                 // It's a username - search in cache first, then force refresh
@@ -200,8 +193,6 @@ app.post('/api/search', async (req, res) => {
                 
                 // If not in cache, try to find in mutual guilds
                 if (!cachedUser && client.guilds.cache.size > 0) {
-                    console.log('🔍 Not in cache, searching in mutual guilds...');
-                    
                     // Search in all cached guild members
                     for (const guild of client.guilds.cache.values()) {
                         try {
@@ -210,7 +201,6 @@ app.post('/api/search', async (req, res) => {
                                 const foundMember = member.first();
                                 if (foundMember && foundMember.user) {
                                     cachedUser = foundMember.user;
-                                    console.log('🔍 Found user in guild:', guild.name);
                                     break;
                                 }
                             }
@@ -236,27 +226,20 @@ app.post('/api/search', async (req, res) => {
                 if (cachedUser) {
                     // Get the user ID and fetch fresh data from API
                     const userIdToFetch = cachedUser.id;
-                    console.log('🔍 Found user in cache, fetching fresh data for ID:', userIdToFetch);
                     // Clear from cache first
                     client.users.cache.delete(cachedUser.id);
                     // Now fetch fresh data
                     try {
                         user = await client.users.fetch(userIdToFetch);
                     } catch (e) {
-                        console.log('🔍 Could not fetch fresh user data:', e.message);
                         user = cachedUser; // Fallback to cached if fetch fails
                     }
                 } else {
                     // If not found in cache or guilds, try to resolve via Discord API
-                    console.log('🔍 User not found in cache or guilds. Attempting to resolve via API...');
                     try {
-                        // Try using the users endpoint directly
-                        // Note: This may not work for all users due to privacy settings
-                        // Clear from cache first
                         client.users.cache.delete(query);
                         user = await client.users.fetch(query);
                     } catch (e) {
-                        console.log('🔍 Could not resolve username:', e.message);
                         return res.status(404).json({ 
                             error: 'Usuário não encontrado. Tente usar o ID do Discord ou certifique-se que o usuário está em algum servidor em comum com o bot.' 
                         });
@@ -265,9 +248,7 @@ app.post('/api/search', async (req, res) => {
             }
             
             if (user) {
-                console.log('🔍 User found:', user.tag);
-                
-                // Fetch banner directly from Discord API since selfbot fetch might not work
+                // Fetch banner directly from Discord API
                 let bannerUrl = null;
                 try {
                     // Try to get the token from the logged-in client
