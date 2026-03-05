@@ -97,6 +97,8 @@ const searchAdditionalData = new Map();
 
 // API endpoint for search from web
 app.post('/api/search', async (req, res) => {
+    console.log('🔥🔥🔥 SEARCH API CALLED -', new Date().toISOString());
+    console.log('📥 Request body:', JSON.stringify(req.body));
     const { query, option, channelId, serverId, category } = req.body;
     
     if (!query) {
