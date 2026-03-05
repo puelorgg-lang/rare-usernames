@@ -149,10 +149,9 @@ export default function BuscarPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-muted-foreground">#{result.tag}</p>
                       <p className="text-sm text-muted-foreground">ID: {result.userId}</p>
                       <p className="text-sm text-muted-foreground">
-                        Conta criada em: {formatDate(result.createdAt)}
+                        Criado em: {formatDate(result.createdAt)}
                       </p>
                       {result.statistics?.accountAge && (
                         <p className="text-sm text-muted-foreground">
@@ -198,16 +197,12 @@ export default function BuscarPage() {
                     <CardContent className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-4 rounded-lg bg-white/5">
-                          <p className="text-sm text-muted-foreground">Nome de usuário</p>
+                          <p className="text-sm text-muted-foreground">Usuário</p>
                           <p className="font-medium">{result.username}</p>
                         </div>
                         <div className="p-4 rounded-lg bg-white/5">
-                          <p className="text-sm text-muted-foreground">Nome de display</p>
-                          <p className="font-medium">{result.displayName || "Não definido"}</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-white/5">
-                          <p className="text-sm text-muted-foreground">Tag</p>
-                          <p className="font-medium">{result.tag}</p>
+                          <p className="text-sm text-muted-foreground">ID</p>
+                          <p className="font-medium">{result.userId}</p>
                         </div>
                         <div className="p-4 rounded-lg bg-white/5">
                           <p className="text-sm text-muted-foreground">Criado em</p>
