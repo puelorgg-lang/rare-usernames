@@ -49,7 +49,13 @@ export async function GET(request: NextRequest) {
       orderBy: { changedAt: "desc" },
     })
 
-    return NextResponse.json(banners)
+    return NextResponse.json(banners, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    })
   } catch (error: any) {
     console.error("Error fetching banners:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
