@@ -1233,7 +1233,7 @@ client.on('messageCreate', async (message) => {
         if (username && embed) {
             await enviarParaSite(username, message.channel.id, status, availableDateStr);
         } else {
-            console.log(`   -> Ignorando mensagem (não é username disponível)`);
+            // Not a username availability message
         }
 
     } catch (error) {
