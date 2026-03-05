@@ -24,7 +24,7 @@ export function Sidebar({ className }: SidebarProps) {
           </h2>
           <div className="space-y-1">
             <SidebarItem href="/dashboard" icon={<LayoutGrid className="mr-2 h-4 w-4" />} label="Painel" active={isActive("/dashboard")} />
-            <SidebarItem href="/dashboard/search" icon={<UserSearch className="mr-2 h-4 w-4" />} label="Buscar Profile" active={isActive("/dashboard/search")} />
+            <SidebarItem href="/dashboard/search" icon={<UserSearch className="mr-2 h-4 w-4" />} label="Buscar" active={isActive("/dashboard/search")} />
             <SidebarItem href="/dashboard/subscription" icon={<CreditCard className="mr-2 h-4 w-4" />} label="Assinatura" active={isActive("/dashboard/subscription")} />
             <SidebarItem href="/dashboard/support" icon={<LifeBuoy className="mr-2 h-4 w-4" />} label="Suporte" active={isActive("/dashboard/support")} />
             {session?.user?.role === "ADMIN" && (
