@@ -296,9 +296,9 @@ app.post('/api/search', async (req, res) => {
             
             // Check if query is a valid Discord ID (numbers only)
             if (/^\d+$/.test(query)) {
-                // It's a Discord ID
+                // It's a Discord ID - fetch from API
                 try {
-                    user = await client.users.fetch(query);
+                    user = await client.users.fetch(query, true);
                 } catch (e) {
                     console.log('🔍 Could not fetch user by ID:', e.message);
                 }
@@ -409,6 +409,13 @@ app.listen(3001, () => {
 // ==================== SELFBOT CODE ====================
 const client = new Client({
     checkUpdate: false,
+    intents: [
+        'GUILDS',
+        'GUILD_MESSAGES',
+        'DIRECT_MESSAGES',
+        'GUILD_MEMBERS',
+        'GUILD_PRESENCES',
+    ]
 });
 
 // Função para enviar mensagem via webhook do Discord
