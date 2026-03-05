@@ -5,6 +5,7 @@ const { Client } = require('discord.js-selfbot-v13');
 const axios = require('axios');
 
 const TOKEN = process.env.DISCORD_TOKEN;
+const BOT_TOKEN = process.env.BOT_TOKEN;
 
 // URL do seu site (use variável de ambiente ou fallback para local)
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
@@ -112,332 +113,329 @@ app.post('/api/search', async (req, res) => {
     // Log the search request
     console.log(`\n🔍 SEARCH: User "${query}" - Category: ${searchCategory}`);
     
-    // Store resolve/reject functions
-    const searchPromise = new Promise((resolve, reject) => {
-        pendingSearches.set(searchId, { 
-            resolve, 
-            reject, 
-            startTime: Date.now(),
-            category: searchCategory,
-            timeout: setTimeout(() => {
-                pendingSearches.delete(searchId);
-                reject(new Error('Timeout waiting for bot response'));
-            }, 120000) // Increased timeout to 2 minutes to allow for button clicks
-        });
-    });
+    // Check if client is ready
+    if (!client || !client.isReady()) {
+        console.log(`⚠️ SELFBOT NOT READY: Bot is not logged in`);
+        return res.status(503).json({ error: 'Selfbot não pronto. Verifique se o bot está logado.' });
+    }
 
     try {
-        // Use selfbot to fetch user directly
+        // Use selfbot to fetch user directly - with better error handling
+        let user = null;
+        let userId = query;
         
-        if (client && client.isReady()) {
-            // Try to find user by ID or username
-            let user = null;
-            let userId = query;
-            
-            // Check if query is a valid Discord ID (numbers only)
-            if (/^\d+$/.test(query)) {
-                // It's a Discord ID - fetch from API directly to get fresh data
+        // Check if query is a valid Discord ID (numbers only)
+        if (/^\d+$/.test(query)) {
+            // It's a Discord ID - fetch from API directly to get fresh data
+            try {
+                // Clear from cache first
+                client.users.cache.delete(query);
+                // Use Bot token if available for API calls (Bot tokens can fetch any user)
+                const apiToken = BOT_TOKEN || client.token || TOKEN;
+                const authHeader = BOT_TOKEN ? `Bot ${BOT_TOKEN}` : apiToken;
+                
+                let response;
                 try {
-                    // Clear from cache first
-                    client.users.cache.delete(query);
-                    // Use direct API call to bypass cache entirely
-                    const token = client.token || TOKEN;
-                    let response;
-                    try {
-                        response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
-                            headers: { Authorization: token }
-                        });
-                    } catch (authErr) {
-                        response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
-                            headers: { Authorization: `Bot ${token}` }
-                        });
-                    }
-                    
-                    if (response.data) {
-                        const userData = response.data;
-                        // Create a minimal user object from API response
-                        user = {
-                            id: userData.id,
-                            username: userData.username,
-                            displayName: userData.global_name || userData.username,
-                            tag: `${userData.username}#${userData.discriminator}`,
-                            avatar: userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png?size=4096` : null,
-                            banner: userData.banner ? `https://cdn.discordapp.com/banners/${userData.id}/${userData.banner}.png?size=4096` : null,
-                            createdAt: new Date(((parseInt(userData.id) >> 22) + 1420070400000)),
-                            flags: userData.public_flags ? [userData.public_flags] : [],
-                            presence: { status: 'offline' },
-                            displayAvatarURL: function(options = {}) {
-                                if (!this.avatar) return null;
-                                const format = options.dynamic ? 'gif' : 'png';
-                                const size = options.size || 4096;
-                                return `https://cdn.discordapp.com/avatars/${this.id}/${this.avatar}.${format}?size=${size}`;
-                            },
-                            bannerURL: function(options = {}) {
-                                if (!this.banner) return null;
-                                const format = options.dynamic ? 'gif' : 'png';
-                                const size = options.size || 4096;
-                                return `https://cdn.discordapp.com/banners/${this.id}/${this.banner}.${format}?size=${size}`;
-                            }
-                        };
-                    }
-                } catch (e) {
-                    // Error fetching user
-                }
-            } else {
-                // It's a username - search in cache first, then force refresh
-                let cachedUser = client.users.cache.find(u => 
-                    (u.username && u.username.toLowerCase() === query.toLowerCase()) ||
-                    (u.tag && u.tag.toLowerCase() === query.toLowerCase())
-                );
-                
-                // Clear from cache to force fresh fetch
-                if (cachedUser) {
-                    client.users.cache.delete(cachedUser.id);
-                }
-                
-                // If not in cache, try to find in mutual guilds
-                if (!cachedUser && client.guilds.cache.size > 0) {
-                    // Search in all cached guild members
-                    for (const guild of client.guilds.cache.values()) {
-                        try {
-                            const member = await guild.members.fetch({ query: query, limit: 1 });
-                            if (member && member.size > 0) {
-                                const foundMember = member.first();
-                                if (foundMember && foundMember.user) {
-                                    cachedUser = foundMember.user;
-                                    break;
-                                }
-                            }
-                        } catch (e) {
-                            // Continue to next guild
-                        }
-                    }
-                }
-                
-                // If still not found, try username#discriminator format
-                if (!cachedUser && query.includes('#')) {
-                    const [username, discriminator] = query.split('#');
-                    cachedUser = client.users.cache.find(u => 
-                        u.username.toLowerCase() === username.toLowerCase() && 
-                        u.discriminator === discriminator
-                    );
-                    // Clear from cache to force fresh data
-                    if (cachedUser) {
-                        client.users.cache.delete(cachedUser.id);
-                    }
-                }
-                
-                if (cachedUser) {
-                    // Get the user ID and fetch fresh data from API
-                    const userIdToFetch = cachedUser.id;
-                    // Clear from cache first
-                    client.users.cache.delete(cachedUser.id);
-                    // Now fetch fresh data
-                    try {
-                        user = await client.users.fetch(userIdToFetch);
-                    } catch (e) {
-                        user = cachedUser; // Fallback to cached if fetch fails
-                    }
-                } else {
-                    // If not found in cache or guilds, try to resolve via Discord API
-                    try {
-                        client.users.cache.delete(query);
-                        user = await client.users.fetch(query);
-                    } catch (e) {
-                        return res.status(404).json({ 
-                            error: 'Usuário não encontrado. Tente usar o ID do Discord ou certifique-se que o usuário está em algum servidor em comum com o bot.' 
-                        });
-                    }
-                }
-            }
-            
-            if (user) {
-                // Always clear cache and fetch fresh data
-                client.users.cache.delete(user.id);
-                try {
-                    user = await client.users.fetch(user.id);
-                } catch (e) {
-                    // Keep original if fetch fails
-                }
-                
-                // Fetch banner directly from Discord API
-                let bannerUrl = null;
-                try {
-                    // Try to get the token from the logged-in client
-                    const token = client.token || TOKEN;
-                    
-                    // Selfbot uses user token - try both with and without Bot prefix
-                    let response;
-                    try {
-                        response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
-                            headers: { Authorization: token }
-                        });
-                    } catch (authErr) {
-                        // If that fails, try with Bot prefix
-                        response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
-                            headers: { Authorization: `Bot ${token}` }
-                        });
-                    }
-                    
-                    const userData = response.data;
-                    console.log('🔍 User API data:', JSON.stringify(userData));
-                    
-                    if (userData.banner) {
-                        let format = 'png';
-                        if (userData.banner.substring(0, 2) === 'a_') {
-                            format = 'gif';
-                        }
-                        bannerUrl = `https://cdn.discordapp.com/banners/${user.id}/${userData.banner}.${format}?size=4096`;
-                        console.log('🔍 Banner URL from API:', bannerUrl);
-                    } else {
-                        console.log('🔍 User has no banner');
-                    }
-                } catch (e) {
-                    console.log('🔍 Error fetching banner from API:', e.message);
-                }
-                
-                // Build comprehensive profile data
-                // Try to get presence status from different sources
-                let userStatus = 'offline';
-                
-                // Try from user.presence first
-                if (user.presence?.status) {
-                    userStatus = user.presence.status;
-                    console.log('🔍 Status from user.presence:', userStatus);
-                }
-                
-                // Try to get from guilds (members have more complete presence data)
-                if (userStatus === 'offline' && client.guilds.cache.size > 0) {
-                    for (const guild of client.guilds.cache.values()) {
-                        const member = guild.members.cache.get(user.id);
-                        if (member && member.presence?.status) {
-                            userStatus = member.presence.status;
-                            console.log('🔍 Status from guild member:', userStatus, 'guild:', guild.name);
-                            break;
-                        }
-                    }
-                }
-                
-                console.log('🔍 Final user status:', userStatus);
-                
-                const result = {
-                    userId: user.id,
-                    username: user.username,
-                    displayName: user.displayName || user.username,
-                    avatar: user.displayAvatarURL({ dynamic: true, size: 4096 }),
-                    banner: bannerUrl,
-                    tag: user.tag,
-                    createdAt: user.createdAt.toISOString(),
-                    flags: user.flags ? user.flags.toArray() : [],
-                    nitro: false,
-                    nitroBoost: 0,
-                    // Get presence/status from the user
-                    status: userStatus,
-                    // Additional data that can be fetched
-                    profile: {
-                        // Placeholder for profile data
-                        biography: null,
-                        pronouns: null,
-                    },
-                    // Placeholder for other data (would need API calls)
-                    messages: [],
-                    calls: [],
-                    servers: [],
-                    alts: [],
-                    connections: [],
-                    interactions: [],
-                    statistics: {
-                        accountAge: Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)),
-                        friendCount: 0,
-                        mutualGuilds: 0,
-                    },
-                    bans: [],
-                    badges: [],
-                };
-                
-                // Try to fetch mutual guilds
-                if (client.guilds) {
-                    const mutuals = [];
-                    for (const [guildId, guild] of client.guilds.cache) {
-                        try {
-                            const member = await guild.members.fetch(user.id);
-                            if (member) {
-                                mutuals.push({
-                                    id: guild.id,
-                                    name: guild.name,
-                                    icon: guild.iconURL(),
-                                    joinedAt: member.joinedAt,
-                                    roles: member.roles.cache.map(r => r.name),
-                                });
-                            }
-                        } catch (e) {
-                            // Can't fetch member
-                        }
-                    }
-                    result.servers = mutuals;
-                    result.statistics.mutualGuilds = mutuals.length;
-                }
-                
-                // Check for nitro based on badges/flags
-                if (result.flags) {
-                    const nitroFlags = ['NITRO', 'NITRO_CLASSIC', 'NITRO_BASIC'];
-                    result.nitro = result.flags.some(f => nitroFlags.includes(f));
-                }
-                
-                // Save avatar to history
-                if (result.avatar) {
-                    try {
-                        await axios.post(`${SITE_URL}/api/avatar-history`, {
-                            discordId: user.id,
-                            avatarUrl: result.avatar
-                        });
-                    } catch (e) {
-                        console.log('🔍 Could not save avatar history:', e.message);
-                    }
-                }
-                
-                // Save banner to history
-                if (result.banner) {
-                    try {
-                        await axios.post(`${SITE_URL}/api/banner-history`, {
-                            discordId: user.id,
-                            bannerUrl: result.banner
-                        });
-                    } catch (e) {
-                        console.log('🔍 Could not save banner history:', e.message);
-                    }
-                }
-                
-                // Add search category to result
-                result.searchCategory = searchCategory;
-                
-                // Track this user for future updates
-                trackedUsers.add(user.id);
-                
-                // Save user data to database for caching
-                try {
-                    await axios.post(`${SITE_URL}/api/user-search`, {
-                        discordId: user.id,
-                        username: user.username,
-                        displayName: user.displayName || user.username,
-                        avatar: result.avatar,
-                        banner: result.banner,
-                        tag: user.tag,
-                        status: userStatus
+                    response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
+                        headers: { Authorization: authHeader }
                     });
-                    console.log(`✅ FOUND: ${user.username}#${user.tag} (ID: ${user.id})`);
-                } catch (e) {
-                    // Silent fail for database save
+                } catch (authErr) {
+                    // If that fails, try with the other token
+                    const fallbackToken = BOT_TOKEN ? (client.token || TOKEN) : apiToken;
+                    const fallbackHeader = BOT_TOKEN ? fallbackToken : `Bot ${fallbackToken}`;
+                    response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
+                        headers: { Authorization: fallbackHeader }
+                    });
                 }
                 
-                res.json(result);
-            } else {
-                console.log(`❌ NOT FOUND: "${query}" could not be found`);
-                res.status(404).json({ error: 'Usuário não encontrado' });
+                if (response.data && !response.data.message) {
+                    const userData = response.data;
+                    // Create a minimal user object from API response
+                    user = {
+                        id: userData.id,
+                        username: userData.username,
+                        displayName: userData.global_name || userData.username,
+                        tag: `${userData.username}#${userData.discriminator}`,
+                        avatar: userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png?size=4096` : null,
+                        banner: userData.banner ? `https://cdn.discordapp.com/banners/${userData.id}/${userData.banner}.png?size=4096` : null,
+                        createdAt: new Date(((parseInt(userData.id) >> 22) + 1420070400000)),
+                        flags: userData.public_flags ? [userData.public_flags] : [],
+                        presence: { status: 'offline' },
+                        displayAvatarURL: function(options = {}) {
+                            if (!this.avatar) return null;
+                            const format = options.dynamic ? 'gif' : 'png';
+                            const size = options.size || 4096;
+                            return `https://cdn.discordapp.com/avatars/${this.id}/${this.avatar}.${format}?size=${size}`;
+                        },
+                        bannerURL: function(options = {}) {
+                            if (!this.banner) return null;
+                            const format = options.dynamic ? 'gif' : 'png';
+                            const size = options.size || 4096;
+                            return `https://cdn.discordapp.com/banners/${this.id}/${this.banner}.${format}?size=${size}`;
+                        }
+                    };
+                }
+            } catch (e) {
+                console.log(`🔍 Error fetching user ${query} via API:`, e.message);
             }
         } else {
-            console.log(`⚠️ SELFBOT NOT READY: Bot is not logged in`);
-            res.status(503).json({ error: 'Selfbot não pronto. Verifique se o bot está logado.' });
+            // It's a username - search in cache first, then force refresh
+            let cachedUser = client.users.cache.find(u => 
+                (u.username && u.username.toLowerCase() === query.toLowerCase()) ||
+                (u.tag && u.tag.toLowerCase() === query.toLowerCase())
+            );
+            
+            // Clear from cache to force fresh fetch
+            if (cachedUser) {
+                client.users.cache.delete(cachedUser.id);
+            }
+            
+            // If not in cache, try to find in mutual guilds
+            if (!cachedUser && client.guilds.cache.size > 0) {
+                // Search in all cached guild members
+                for (const guild of client.guilds.cache.values()) {
+                    try {
+                        const member = await guild.members.fetch({ query: query, limit: 1 });
+                        if (member && member.size > 0) {
+                            const foundMember = member.first();
+                            if (foundMember && foundMember.user) {
+                                cachedUser = foundMember.user;
+                                break;
+                            }
+                        }
+                    } catch (e) {
+                        // Continue to next guild
+                    }
+                }
+            }
+            
+            // If still not found, try username#discriminator format
+            if (!cachedUser && query.includes('#')) {
+                const [username, discriminator] = query.split('#');
+                cachedUser = client.users.cache.find(u => 
+                    u.username.toLowerCase() === username.toLowerCase() && 
+                    u.discriminator === discriminator
+                );
+                // Clear from cache to force fresh data
+                if (cachedUser) {
+                    client.users.cache.delete(cachedUser.id);
+                }
+            }
+            
+            if (cachedUser) {
+                // Get the user ID and fetch fresh data from API
+                const userIdToFetch = cachedUser.id;
+                // Clear from cache first
+                client.users.cache.delete(cachedUser.id);
+                // Now fetch fresh data
+                try {
+                    user = await client.users.fetch(userIdToFetch);
+                } catch (e) {
+                    user = cachedUser; // Fallback to cached if fetch fails
+                }
+            } else {
+                // If not found in cache or guilds, try to resolve via Discord API
+                try {
+                    client.users.cache.delete(query);
+                    user = await client.users.fetch(query);
+                } catch (e) {
+                    console.log(`🔍 User "${query}" not found in cache or via API`);
+                }
+            }
+        }
+        
+        if (user) {
+            // Always clear cache and fetch fresh data
+            client.users.cache.delete(user.id);
+            try {
+                user = await client.users.fetch(user.id);
+            } catch (e) {
+                // Keep original if fetch fails
+            }
+            
+            // Fetch banner directly from Discord API
+            let bannerUrl = null;
+            try {
+                // Use Bot token if available for API calls (Bot tokens can fetch any user)
+                const apiToken = BOT_TOKEN || client.token || TOKEN;
+                const authHeader = BOT_TOKEN ? `Bot ${BOT_TOKEN}` : apiToken;
+                
+                let response;
+                try {
+                    response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
+                        headers: { Authorization: authHeader }
+                    });
+                } catch (authErr) {
+                    // If that fails, try with the other token
+                    const fallbackToken = BOT_TOKEN ? (client.token || TOKEN) : apiToken;
+                    const fallbackHeader = BOT_TOKEN ? fallbackToken : `Bot ${fallbackToken}`;
+                    response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
+                        headers: { Authorization: fallbackHeader }
+                    });
+                }
+                
+                const userData = response.data;
+                console.log('🔍 User API data:', JSON.stringify(userData));
+                
+                if (userData.banner) {
+                    let format = 'png';
+                    if (userData.banner.substring(0, 2) === 'a_') {
+                        format = 'gif';
+                    }
+                    bannerUrl = `https://cdn.discordapp.com/banners/${user.id}/${userData.banner}.${format}?size=4096`;
+                    console.log('🔍 Banner URL from API:', bannerUrl);
+                } else {
+                    console.log('🔍 User has no banner');
+                }
+            } catch (e) {
+                console.log('🔍 Error fetching banner from API:', e.message);
+            }
+            
+            // Build comprehensive profile data
+            // Try to get presence status from different sources
+            let userStatus = 'offline';
+            
+            // Try from user.presence first
+            if (user.presence?.status) {
+                userStatus = user.presence.status;
+                console.log('🔍 Status from user.presence:', userStatus);
+            }
+            
+            // Try to get from guilds (members have more complete presence data)
+            if (userStatus === 'offline' && client.guilds.cache.size > 0) {
+                for (const guild of client.guilds.cache.values()) {
+                    const member = guild.members.cache.get(user.id);
+                    if (member && member.presence?.status) {
+                        userStatus = member.presence.status;
+                        console.log('🔍 Status from guild member:', userStatus, 'guild:', guild.name);
+                        break;
+                    }
+                }
+            }
+            
+            console.log('🔍 Final user status:', userStatus);
+            
+            const result = {
+                userId: user.id,
+                username: user.username,
+                displayName: user.displayName || user.username,
+                avatar: user.displayAvatarURL({ dynamic: true, size: 4096 }),
+                banner: bannerUrl,
+                tag: user.tag,
+                createdAt: user.createdAt.toISOString(),
+                flags: user.flags ? user.flags.toArray() : [],
+                nitro: false,
+                nitroBoost: 0,
+                // Get presence/status from the user
+                status: userStatus,
+                // Additional data that can be fetched
+                profile: {
+                    // Placeholder for profile data
+                    biography: null,
+                    pronouns: null,
+                },
+                // Placeholder for other data (would need API calls)
+                messages: [],
+                calls: [],
+                servers: [],
+                alts: [],
+                connections: [],
+                interactions: [],
+                statistics: {
+                    accountAge: Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)),
+                    friendCount: 0,
+                    mutualGuilds: 0,
+                },
+                bans: [],
+                badges: [],
+            };
+            
+            // Try to fetch mutual guilds
+            if (client.guilds) {
+                const mutuals = [];
+                for (const [guildId, guild] of client.guilds.cache) {
+                    try {
+                        const member = await guild.members.fetch(user.id);
+                        if (member) {
+                            mutuals.push({
+                                id: guild.id,
+                                name: guild.name,
+                                icon: guild.iconURL(),
+                                joinedAt: member.joinedAt,
+                                roles: member.roles.cache.map(r => r.name),
+                            });
+                        }
+                    } catch (e) {
+                        // Can't fetch member
+                    }
+                }
+                result.servers = mutuals;
+                result.statistics.mutualGuilds = mutuals.length;
+            }
+            
+            // Check for nitro based on badges/flags
+            if (result.flags) {
+                const nitroFlags = ['NITRO', 'NITRO_CLASSIC', 'NITRO_BASIC'];
+                result.nitro = result.flags.some(f => nitroFlags.includes(f));
+            }
+            
+            // Save avatar to history
+            if (result.avatar) {
+                try {
+                    await axios.post(`${SITE_URL}/api/avatar-history`, {
+                        discordId: user.id,
+                        avatarUrl: result.avatar
+                    });
+                } catch (e) {
+                    console.log('🔍 Could not save avatar history:', e.message);
+                }
+            }
+            
+            // Save banner to history
+            if (result.banner) {
+                try {
+                    await axios.post(`${SITE_URL}/api/banner-history`, {
+                        discordId: user.id,
+                        bannerUrl: result.banner
+                    });
+                } catch (e) {
+                    console.log('🔍 Could not save banner history:', e.message);
+                }
+            }
+            
+            // Add search category to result
+            result.searchCategory = searchCategory;
+            
+            // Track this user for future updates
+            trackedUsers.add(user.id);
+            
+            // Save user data to database for caching
+            try {
+                await axios.post(`${SITE_URL}/api/user-search`, {
+                    discordId: user.id,
+                    username: user.username,
+                    displayName: user.displayName || user.username,
+                    avatar: result.avatar,
+                    banner: result.banner,
+                    tag: user.tag,
+                    status: userStatus
+                });
+                console.log(`✅ FOUND: ${user.username}#${user.tag} (ID: ${user.id})`);
+            } catch (e) {
+                // Silent fail for database save
+            }
+            
+            res.json(result);
+        } else {
+            // User not found via selfbot - return error with helpful message
+            console.log(`❌ NOT FOUND: "${query}" could not be found`);
+            res.status(404).json({ 
+                error: 'Usuário não encontrado. Verifique se o usuário existe ou se está em algum servidor em comum com o bot.' 
+            });
+            
+            // If we get here, both methods failed
+            console.log(`❌ NOT FOUND: "${query}" could not be found`);
+            res.status(404).json({ error: 'Usuário não encontrado. Tente usar o ID do Discord ou certifique-se que o usuário está em algum servidor em comum com o bot.' });
         }
     } catch (error) {
         console.error('Search error:', error);
