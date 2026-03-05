@@ -41,7 +41,6 @@ type ProfileData = {
 const searchOptions = [
   { id: "perfil", label: "Perfil", icon: UserCircle },
   { id: "avatares", label: "Avatares", icon: Image },
-  { id: "banners", label: "Banners", icon: Image },
   { id: "mensagens", label: "Mensagens", icon: MessageCircle },
   { id: "chamadas", label: "Chamadas", icon: Phone },
   { id: "servidores", label: "Servidores", icon: Users },
@@ -60,10 +59,7 @@ export default function BuscarPage() {
   const [activeTab, setActiveTab] = useState("perfil")
   const [avatarPage, setAvatarPage] = useState(0)
   const [avatarHistory, setAvatarHistory] = useState<any[]>([])
-  const [bannerPage, setBannerPage] = useState(0)
-  const [bannerHistory, setBannerHistory] = useState<any[]>([])
   const [loadingAvatars, setLoadingAvatars] = useState(false)
-  const [loadingBanners, setLoadingBanners] = useState(false)
 
   useEffect(() => {
     if (result?.userId && activeTab === "avatares") {
@@ -112,25 +108,9 @@ export default function BuscarPage() {
     }
   }
 
-  const fetchBannerHistory = async (discordId: string) => {
-    setLoadingBanners(true)
-    try {
-      const res = await fetch(`/api/banner-history?discordId=${discordId}`)
-      const data = await res.json()
-      setBannerHistory(data)
-    } catch (e) {
-      console.error("Error fetching banner history:", e)
-    } finally {
-      setLoadingBanners(false)
-    }
-  }
-
   useEffect(() => {
     if (result?.userId && activeTab === "avatares") {
       fetchAvatarHistory(result.userId)
-    }
-    if (result?.userId && activeTab === "banners") {
-      fetchBannerHistory(result.userId)
     }
   }, [activeTab, result?.userId])
 
@@ -221,7 +201,7 @@ export default function BuscarPage() {
 
               {/* Search Options Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-3 md:grid-cols-11 w-full h-auto p-1 flex-wrap">
+                <TabsList className="grid grid-cols-3 md:grid-cols-10 w-full h-auto p-1 flex-wrap">
                   {searchOptions.map((option) => (
                     <TabsTrigger 
                       key={option.id} 
@@ -413,48 +393,6 @@ export default function BuscarPage() {
                           <p className="text-sm text-muted-foreground">Servidores em comum</p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                {/* Banners Tab */}
-                <TabsContent value="banners" className="mt-4">
-                  <Card className="glass-card">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Image className="h-5 w-5" />
-                        Histórico de Banners
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center mb-4">
-                        <p className="text-muted-foreground">Total de banners: {bannerHistory.length}</p>
-                      </div>
-                      
-                      {loadingBanners ? (
-                        <div className="flex justify-center py-8">
-                          <Loader2 className="h-8 w-8 animate-spin" />
-                        </div>
-                      ) : bannerHistory.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-4">
-                          {bannerHistory.map((banner: any, index: number) => (
-                            <div key={index} className="p-3 rounded-lg bg-white/5">
-                              <img 
-                                src={banner.bannerUrl} 
-                                alt="Banner" 
-                                className="w-full h-auto rounded-lg"
-                              />
-                              <p className="text-sm text-muted-foreground mt-2">
-                                Alterado em: {formatDate(banner.changedAt)}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground text-center py-8">
-                          Nenhum histórico de banner encontrado
-                        </p>
-                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
