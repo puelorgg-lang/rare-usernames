@@ -66,19 +66,12 @@ export default function BuscarPage() {
 
   // Trigger search for profile when tab changes to get fresh data
   useEffect(() => {
-    if (result?.userId && activeTab) {
+    if (userId && activeTab) {
+      console.log('🔄 Tab changed to:', activeTab, 'userId:', userId)
       // Always search for profile data when changing tabs
       handleSearch()
     }
-  }, [activeTab])
-
-  // Trigger search for profile when tab changes to get fresh data
-  useEffect(() => {
-    if (result?.userId && activeTab) {
-      // Always search for profile data when changing tabs
-      handleSearch()
-    }
-  }, [activeTab])
+  }, [activeTab, userId])
 
   // Track newly searched categories
 
