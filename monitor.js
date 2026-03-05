@@ -284,12 +284,14 @@ app.post('/api/search', async (req, res) => {
     try {
         // Use selfbot to fetch user directly
         console.log('🔍 Checking selfbot status...');
-        console.log('🔍 Client ready:', client.isReady());
-        console.log('🔍 Client user:', client.user ? client.user.tag : 'No user');
+        console.log('🔍 Client exists:', !!client);
+        console.log('🔍 Client ready:', client?.isReady());
+        console.log('🔍 Client user:', client?.user ? client.user.tag : 'No user');
         console.log('🔍 Query:', query);
         console.log('🔍 Category:', searchCategory);
         
         if (client && client.isReady()) {
+            console.log('🔍 Client is ready, proceeding with search...');
             // Try to find user by ID or username
             let user = null;
             let userId = query;

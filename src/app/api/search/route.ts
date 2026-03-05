@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     console.error("Search error:", error.message)
     
     return NextResponse.json({ 
-      error: "Selfbot não disponível. Verifique se o monitor está rodando." 
+      error: error.message || "Selfbot não disponível. Verifique se o monitor está rodando." 
     }, { status: 503 })
   }
 }
