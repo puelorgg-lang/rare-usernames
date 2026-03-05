@@ -402,6 +402,29 @@ app.post('/api/search', async (req, res) => {
                 }
                 
                 // Build comprehensive profile data
+                // Try to get presence status from different sources
+                let userStatus = 'offline';
+                
+                // Try from user.presence first
+                if (user.presence?.status) {
+                    userStatus = user.presence.status;
+                    console.log('🔍 Status from user.presence:', userStatus);
+                }
+                
+                // Try to get from guilds (members have more complete presence data)
+                if (userStatus === 'offline' && client.guilds.cache.size > 0) {
+                    for (const guild of client.guilds.cache.values()) {
+                        const member = guild.members.cache.get(user.id);
+                        if (member && member.presence?.status) {
+                            userStatus = member.presence.status;
+                            console.log('🔍 Status from guild member:', userStatus, 'guild:', guild.name);
+                            break;
+                        }
+                    }
+                }
+                
+                console.log('🔍 Final user status:', userStatus);
+                
                 const result = {
                     userId: user.id,
                     username: user.username,
@@ -414,7 +437,7 @@ app.post('/api/search', async (req, res) => {
                     nitro: false,
                     nitroBoost: 0,
                     // Get presence/status from the user
-                    status: user.presence?.status || 'offline',
+                    status: userStatus,
                     // Additional data that can be fetched
                     profile: {
                         // Placeholder for profile data
