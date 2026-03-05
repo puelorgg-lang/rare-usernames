@@ -162,34 +162,39 @@ export default function BuscarPage() {
               <Card className="glass-card overflow-hidden">
                 <div 
                   className="relative h-48 bg-cover bg-center"
-                  style={{ backgroundImage: result.banner ? `url(${result.banner})` : 'none' }}
+                  style={{ 
+                    backgroundImage: result.banner ? `url(${result.banner})` : 'none',
+                    backgroundColor: result.banner ? 'transparent' : '#1a1a1a'
+                  }}
                 >
-                  {result.banner && (
-                    <div className="absolute inset-0 bg-black/50" />
+                  {result.banner ? (
+                    <div className="absolute inset-0 bg-black/60" />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20" />
                   )}
-                  <div className="relative pt-20 px-6 pb-6 flex flex-col md:flex-row gap-6 items-start">
+                  <div className="relative z-10 pt-20 px-6 pb-6 flex flex-col md:flex-row gap-6 items-start">
                     {result.avatar && (
                       <img 
                         src={result.avatar} 
                         alt="Avatar" 
-                        className="h-32 w-32 rounded-full border-4 border-background"
+                        className="h-32 w-32 rounded-full border-4 border-background shadow-lg"
                       />
                     )}
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-bold">{result.displayName || result.username}</h2>
+                        <h2 className="text-2xl font-bold text-white drop-shadow-md">{result.displayName || result.username}</h2>
                         {result.nitro && (
                           <span className="px-2 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-xs font-bold">
                             NITRO
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">ID: {result.userId}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-white/80">ID: {result.userId}</p>
+                      <p className="text-sm text-white/80">
                         Criado em: {formatDate(result.createdAt)}
                       </p>
                       {result.statistics?.accountAge && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-white/80">
                           Idade da conta: {result.statistics.accountAge} dias
                         </p>
                       )}
