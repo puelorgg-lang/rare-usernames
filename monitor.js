@@ -5,7 +5,6 @@ const { Client } = require('discord.js-selfbot-v13');
 const axios = require('axios');
 
 const TOKEN = process.env.DISCORD_TOKEN;
-const BOT_TOKEN = process.env.BOT_TOKEN;
 
 // URL do seu site (use variável de ambiente ou fallback para local)
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
@@ -130,21 +129,18 @@ app.post('/api/search', async (req, res) => {
             try {
                 // Clear from cache first
                 client.users.cache.delete(query);
-                // Use Bot token if available for API calls (Bot tokens can fetch any user)
-                const apiToken = BOT_TOKEN || client.token || TOKEN;
-                const authHeader = BOT_TOKEN ? `Bot ${BOT_TOKEN}` : apiToken;
+                // Use selfbot token for API calls
+                const token = client.token || TOKEN;
                 
                 let response;
                 try {
                     response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
-                        headers: { Authorization: authHeader }
+                        headers: { Authorization: token }
                     });
                 } catch (authErr) {
-                    // If that fails, try with the other token
-                    const fallbackToken = BOT_TOKEN ? (client.token || TOKEN) : apiToken;
-                    const fallbackHeader = BOT_TOKEN ? fallbackToken : `Bot ${fallbackToken}`;
+                    // If that fails, try with Bot prefix
                     response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
-                        headers: { Authorization: fallbackHeader }
+                        headers: { Authorization: `Bot ${token}` }
                     });
                 }
                 
@@ -256,21 +252,19 @@ app.post('/api/search', async (req, res) => {
             // Fetch banner directly from Discord API
             let bannerUrl = null;
             try {
-                // Use Bot token if available for API calls (Bot tokens can fetch any user)
-                const apiToken = BOT_TOKEN || client.token || TOKEN;
-                const authHeader = BOT_TOKEN ? `Bot ${BOT_TOKEN}` : apiToken;
+                // Try to get the token from the logged-in client
+                const token = client.token || TOKEN;
                 
+                // Selfbot uses user token - try both with and without Bot prefix
                 let response;
                 try {
                     response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
-                        headers: { Authorization: authHeader }
+                        headers: { Authorization: token }
                     });
                 } catch (authErr) {
-                    // If that fails, try with the other token
-                    const fallbackToken = BOT_TOKEN ? (client.token || TOKEN) : apiToken;
-                    const fallbackHeader = BOT_TOKEN ? fallbackToken : `Bot ${fallbackToken}`;
+                    // If that fails, try with Bot prefix
                     response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
-                        headers: { Authorization: fallbackHeader }
+                        headers: { Authorization: `Bot ${token}` }
                     });
                 }
                 
