@@ -366,9 +366,9 @@ app.post('/api/search', async (req, res) => {
                 // Fetch banner directly from Discord API since selfbot fetch might not work
                 let bannerUrl = null;
                 try {
-                    // Use the token from the selfbot client
-                    const token = TOKEN;
-                    console.log('🔍 Using token:', token ? 'Token available' : 'No token');
+                    // Try to get the token from the logged-in client
+                    const token = client.token || TOKEN;
+                    console.log('🔍 Using client token:', token ? 'Token available' : 'No token');
                     
                     // Selfbot uses user token - try both with and without Bot prefix
                     let response;
