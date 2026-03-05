@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,6 +40,7 @@ type ProfileData = {
 
 const searchOptions = [
   { id: "perfil", label: "Perfil", icon: UserCircle },
+  { id: "avatares", label: "Avatares", icon: Image },
   { id: "mensagens", label: "Mensagens", icon: MessageCircle },
   { id: "chamadas", label: "Chamadas", icon: Phone },
   { id: "servidores", label: "Servidores", icon: Users },
@@ -56,6 +57,15 @@ export default function BuscarPage() {
   const [result, setResult] = useState<ProfileData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("perfil")
+  const [avatarPage, setAvatarPage] = useState(0)
+  const [avatarHistory, setAvatarHistory] = useState<any[]>([])
+  const [loadingAvatars, setLoadingAvatars] = useState(false)
+
+  useEffect(() => {
+    if (result?.userId && activeTab === "avatares") {
+      fetchAvatarHistory(result.userId)
+    }
+  }, [activeTab, result?.userId])
 
   const handleSearch = async () => {
     if (!userId) return
@@ -84,6 +94,25 @@ export default function BuscarPage() {
     const date = new Date(dateString)
     return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
   }
+
+  const fetchAvatarHistory = async (discordId: string) => {
+    setLoadingAvatars(true)
+    try {
+      const res = await fetch(`/api/avatar-history?discordId=${discordId}`)
+      const data = await res.json()
+      setAvatarHistory(data)
+    } catch (e) {
+      console.error("Error fetching avatar history:", e)
+    } finally {
+      setLoadingAvatars(false)
+    }
+  }
+
+  useEffect(() => {
+    if (result?.userId && activeTab === "avatares") {
+      fetchAvatarHistory(result.userId)
+    }
+  }, [activeTab, result?.userId])
 
   return (
     <div className="min-h-screen bg-[#0b0b0d] pt-24 pb-12">
@@ -232,6 +261,72 @@ export default function BuscarPage() {
                             ))}
                           </div>
                         </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Avatares Tab */}
+                <TabsContent value="avatares" className="mt-4">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Image className="h-5 w-5" />
+                        Histórico de Avatares
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center mb-4">
+                        <p className="text-muted-foreground">Total de avatares: {avatarHistory.length}</p>
+                      </div>
+                      
+                      {loadingAvatars ? (
+                        <div className="flex justify-center py-8">
+                          <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                      ) : avatarHistory.length > 0 ? (
+                        <>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {avatarHistory.slice(avatarPage * 4, (avatarPage + 1) * 4).map((avatar: any, index: number) => (
+                              <div key={index} className="p-3 rounded-lg bg-white/5">
+                                <img 
+                                  src={avatar.avatarUrl} 
+                                  alt="Avatar" 
+                                  className="w-full h-auto rounded-lg"
+                                />
+                                <p className="text-xs text-muted-foreground mt-2 text-center">
+                                  {formatDate(avatar.changedAt)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {avatarHistory.length > 4 && (
+                            <div className="flex items-center justify-center gap-4 mt-6">
+                              <Button
+                                variant="outline"
+                                onClick={() => setAvatarPage(p => Math.max(0, p - 1))}
+                                disabled={avatarPage === 0}
+                              >
+                                Anterior
+                              </Button>
+                              <span className="text-sm text-muted-foreground">
+                                Página {avatarPage + 1} de {Math.ceil(avatarHistory.length / 4)}
+                              </span>
+                              <Button
+                                variant="outline"
+                                onClick={() => setAvatarPage(p => p + 1)}
+                                disabled={(avatarPage + 1) * 4 >= avatarHistory.length}
+                              >
+                                Próxima
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">
+                          Nenhum histórico de avatar encontrado
+                        </p>
                       )}
                     </CardContent>
                   </Card>

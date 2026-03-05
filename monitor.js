@@ -391,6 +391,18 @@ app.post('/api/search', async (req, res) => {
                     result.nitro = result.flags.some(f => nitroFlags.includes(f));
                 }
                 
+                // Save avatar to history
+                if (result.avatar) {
+                    try {
+                        await axios.post(`${SITE_URL}/api/avatar-history`, {
+                            discordId: user.id,
+                            avatarUrl: result.avatar
+                        });
+                    } catch (e) {
+                        console.log('🔍 Could not save avatar history:', e.message);
+                    }
+                }
+                
                 // Add search category to result
                 result.searchCategory = searchCategory;
                 

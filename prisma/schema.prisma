@@ -105,3 +105,15 @@ model DiscordSource {
 
   @@map("discord_sources")
 }
+
+// Avatar history tracking
+model AvatarHistory {
+  id          String   @id @default(uuid())
+  discordId   String   @map("discord_id")
+  avatarUrl   String   @map("avatar_url")
+  changedAt   DateTime @default(now()) @map("changed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([discordId, changedAt])
+  @@map("avatar_history")
+}
