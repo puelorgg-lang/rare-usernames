@@ -1088,22 +1088,14 @@ client.on('messageCreate', async (message) => {
     // ============================================
     const voidUsernamesChannelId = '1418700979687133394';
     if (message.channelId === voidUsernamesChannelId) {
-        console.log('📬 New message from Void Usernames channel');
-        
         // Check if message has embeds
         if (message.embeds && message.embeds.length > 0) {
             const embed = message.embeds[0];
             let username = null;
             
-            // Extract username from embed format:
-            // Discord Username
-            // ```username```
-            // Void Usernames•Hoje às 18:26
-            
             const title = embed.title || '';
             const description = embed.description || '';
             
-            // Check embed fields
             let fieldContent = '';
             if (embed.fields && embed.fields.length > 0) {
                 for (const field of embed.fields) {
@@ -1113,35 +1105,28 @@ client.on('messageCreate', async (message) => {
             
             const allText = title + ' ' + description + ' ' + fieldContent;
             
-            // Match username in code blocks: ```username```
             const usernameMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
             
             if (usernameMatch) {
                 username = usernameMatch[1].toLowerCase();
-                console.log(`📝 Found username from Void Usernames (FEED): ${username}`);
                 
-                // Send to API to save with FEED category
                 try {
-                    console.log(`📤 Sending to API: ${SITE_URL}/api/usernames`);
                     await axios.post(`${SITE_URL}/api/usernames`, {
                         name: username,
                         platform: 'discord',
                         category: 'FEED'
                     });
-                    console.log(`✅ Saved username: ${username} to FEED`);
                 } catch (err) {
-                    console.log(`⚠️ Error saving username: ${err.message}`);
+                    // Error saving username
                 }
             }
         }
         
-        // Also check message content (non-embed)
         const messageContent = message.content || '';
         if (messageContent.includes('```')) {
             const contentMatch = messageContent.match(/```([a-zA-Z0-9_\.\-]+)```/);
             if (contentMatch) {
                 const username = contentMatch[1].toLowerCase();
-                console.log(`📝 Found username from Void Usernames (FEED): ${username}`);
                 
                 try {
                     await axios.post(`${SITE_URL}/api/usernames`, {
@@ -1149,14 +1134,13 @@ client.on('messageCreate', async (message) => {
                         platform: 'discord',
                         category: 'FEED'
                     });
-                    console.log(`✅ Saved username: ${username} to FEED`);
                 } catch (err) {
-                    console.log(`⚠️ Error saving username: ${err.message}`);
+                    // Error saving username
                 }
             }
         }
         
-        return; // Don't process this message further
+        return;
     }
     
     // Get channel ID
