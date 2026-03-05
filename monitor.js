@@ -305,20 +305,58 @@ app.post('/api/search', async (req, res) => {
                     console.log('🔍 Could not fetch user by ID:', e.message);
                 }
             } else {
-                // It's a username - try to find in cache
-                const cachedUser = client.users.cache.find(u => 
+                // It's a username - try to find in cache first
+                let cachedUser = client.users.cache.find(u => 
                     (u.username && u.username.toLowerCase() === query.toLowerCase()) ||
                     (u.tag && u.tag.toLowerCase() === query.toLowerCase())
                 );
                 
+                // If not in cache, try to find in mutual guilds
+                if (!cachedUser && client.guilds.cache.size > 0) {
+                    console.log('🔍 Not in cache, searching in mutual guilds...');
+                    
+                    // Search in all cached guild members
+                    for (const guild of client.guilds.cache.values()) {
+                        try {
+                            const member = await guild.members.fetch({ query: query, limit: 1 });
+                            if (member && member.size > 0) {
+                                const foundMember = member.first();
+                                if (foundMember && foundMember.user) {
+                                    cachedUser = foundMember.user;
+                                    console.log('🔍 Found user in guild:', guild.name);
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                            // Continue to next guild
+                        }
+                    }
+                }
+                
+                // If still not found, try username#discriminator format
+                if (!cachedUser && query.includes('#')) {
+                    const [username, discriminator] = query.split('#');
+                    cachedUser = client.users.cache.find(u => 
+                        u.username.toLowerCase() === username.toLowerCase() && 
+                        u.discriminator === discriminator
+                    );
+                }
+                
                 if (cachedUser) {
                     user = cachedUser;
                 } else {
-                    // If not found in cache, need ID
-                    console.log('🔍 User not found in cache. Need ID to fetch profile.');
-                    return res.status(404).json({ 
-                        error: 'Usuário não encontrado no cache. Tente usar o ID do Discord.' 
-                    });
+                    // If not found in cache or guilds, try to resolve via Discord API
+                    console.log('🔍 User not found in cache or guilds. Attempting to resolve via API...');
+                    try {
+                        // Try using the users endpoint directly
+                        // Note: This may not work for all users due to privacy settings
+                        user = await client.users.fetch(query, true);
+                    } catch (e) {
+                        console.log('🔍 Could not resolve username:', e.message);
+                        return res.status(404).json({ 
+                            error: 'Usuário não encontrado. Tente usar o ID do Discord ou certifique-se que o usuário está em algum servidor em comum com o bot.' 
+                        });
+                    }
                 }
             }
             
