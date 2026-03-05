@@ -252,12 +252,19 @@ app.post('/api/search', async (req, res) => {
             }
             
             if (user) {
+                // Always clear cache and fetch fresh data
+                client.users.cache.delete(user.id);
+                try {
+                    user = await client.users.fetch(user.id);
+                } catch (e) {
+                    // Keep original if fetch fails
+                }
+                
                 // Fetch banner directly from Discord API
                 let bannerUrl = null;
                 try {
                     // Try to get the token from the logged-in client
                     const token = client.token || TOKEN;
-                    console.log('🔍 Using client token:', token ? 'Token available' : 'No token');
                     
                     // Selfbot uses user token - try both with and without Bot prefix
                     let response;
@@ -267,7 +274,6 @@ app.post('/api/search', async (req, res) => {
                         });
                     } catch (authErr) {
                         // If that fails, try with Bot prefix
-                        console.log('🔍 First auth attempt failed, trying with Bot prefix...');
                         response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
                             headers: { Authorization: `Bot ${token}` }
                         });

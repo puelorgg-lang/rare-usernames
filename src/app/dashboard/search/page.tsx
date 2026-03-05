@@ -30,7 +30,9 @@ export default function SearchPage() {
     setResult(null)
 
     try {
-      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=avatar`)
+      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=avatar&t=${Date.now()}`, {
+        cache: 'no-store'
+      })
       const data = await res.json()
       
       if (data.error) {
