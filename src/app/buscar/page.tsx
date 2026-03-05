@@ -89,6 +89,7 @@ export default function BuscarPage() {
   }, [activeTab, result?.userId])
 
   const handleSearch = async () => {
+    console.log('🔍 handleSearch called - userId:', userId, 'activeTab:', activeTab)
     if (!userId) return
     setLoading(true)
     setError(null)
@@ -96,9 +97,15 @@ export default function BuscarPage() {
 
     try {
       const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=perfil&t=${Date.now()}`, {
-        cache: 'no-store'
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
       })
       const data = await res.json()
+      console.log('📥 Search response:', data)
       
       if (data.error) {
         setError(data.error)
