@@ -173,7 +173,6 @@ app.post('/api/search', async (req, res) => {
                                 return `https://cdn.discordapp.com/banners/${this.id}/${this.banner}.${format}?size=${size}`;
                             }
                         };
-                        console.log('🔍 Fetched fresh user data from API:', user.username);
                     }
                 } catch (e) {
                     // Error fetching user
