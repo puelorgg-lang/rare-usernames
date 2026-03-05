@@ -446,6 +446,31 @@ app.post('/api/search', async (req, res) => {
     }
 });
 
+// API endpoint to clear user cache (force fresh Discord API calls)
+app.post('/clear-cache', (req, res) => {
+    console.log('🧹 Clearing user cache...');
+    
+    // Clear all users from cache
+    if (client && client.users && client.users.cache) {
+        client.users.cache.clear();
+        console.log('✅ User cache cleared');
+    }
+    
+    // Clear tracked users set
+    trackedUsers.clear();
+    console.log('✅ Tracked users cleared');
+    
+    // Clear search data maps
+    pendingSearches.clear();
+    searchAdditionalData.clear();
+    console.log('✅ Search data maps cleared');
+    
+    res.json({ 
+        success: true, 
+        message: 'Cache cleared successfully. Next search will fetch fresh data from Discord.' 
+    });
+});
+
 // Start Express server on port 3001
 app.listen(3001, () => {
     console.log('🔍 Search API server running on port 3001');
