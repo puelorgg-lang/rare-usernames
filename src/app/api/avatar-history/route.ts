@@ -9,6 +9,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "discordId e avatarUrl são obrigatórios" }, { status: 400 })
     }
 
+    console.log('💾 Saving avatar to database:', discordId, avatarUrl);
+
     // Check if this avatar already exists for this user
     const existing = await prisma.avatarHistory.findFirst({
       where: {
@@ -26,6 +28,9 @@ export async function POST(request: NextRequest) {
           changedAt: new Date(),
         },
       })
+      console.log('✅ New avatar saved to history');
+    } else {
+      console.log('⏭️ Avatar already exists in history, skipping');
     }
 
     return NextResponse.json({ success: true })
