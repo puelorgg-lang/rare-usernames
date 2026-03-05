@@ -1167,11 +1167,7 @@ client.on('messageCreate', async (message) => {
         let status = 'AVAILABLE'; // Default
         let availableDateStr = null; // For pending usernames
 
-        // Debug: mostra o conteúdo completo
-        console.log(`   Debug Conteudo: "${conteudo}"`);
-        
         // Regex para: - **username** | Está disponível...
-        // Remove markdown ** e pega só o username
         const regexGeral = /^-\s*\*\*(\S+)\*\*\s*\|\s*(.+)$/s;
         const match = conteudo.match(regexGeral);
 
@@ -1179,17 +1175,11 @@ client.on('messageCreate', async (message) => {
         console.log(`   Debug Match: ${match ? 'sim' : 'não'}`);
 
         if (match) {
-            username = match[1]; // Extrai o username (sem **)
+            username = match[1];
             let mensagem = match[2];
             
-            console.log(`   Debug Username: "${username}" Mensagem: "${mensagem.substring(0, 30)}..."`);
-            
-            // Verifica se contém "Está disponível" (pode ter ** ao redor)
             if (mensagem.includes('disponível')) {
-                // Detectar se é disponível agora ou no futuro
                 const dataMatch = mensagem.match(/(\d{1,2})\s*de\s*(\w+)\s*de\s*(\d{4})/);
-                
-                // Verificar se é Discord timestamp format: <t:timestamp:F>
                 const discordTimestampMatch = mensagem.match(/<t:(\d+):F>/);
                 
                 if (mensagem.includes('a partir deste momento') || mensagem.includes('agora')) {
@@ -1238,15 +1228,10 @@ client.on('messageCreate', async (message) => {
                 }
             }
         } else {
-            console.log(`   Debug: Regex não deu match`);
+            // No match
         }
 
-        // Debug: mostra informações sobre a mensagem
-        console.log(`   Debug: username="${username}" embed=${!!embed} color=${embed?.color} status=${status}`);
-
-        // NOVO: Envia para o SEU SITE se for um username disponível ou pendente
         if (username && embed) {
-            console.log(`   -> Enviando para o site... (status: ${status})`);
             await enviarParaSite(username, message.channel.id, status, availableDateStr);
         } else {
             console.log(`   -> Ignorando mensagem (não é username disponível)`);
