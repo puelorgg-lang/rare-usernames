@@ -1270,6 +1270,46 @@ client.on('ready', async () => {
     }, 300000);
 });
 
+// Evento quando o status de um usuário muda (presença)
+client.on('presenceUpdate', async (oldPresence, newPresence) => {
+    if (!newPresence || !newPresence.userId) return;
+    
+    const status = newPresence.status || 'offline';
+    const userId = newPresence.userId;
+    
+    console.log('👤 Presence update for:', userId, 'Status:', status);
+    
+    // Save to database
+    try {
+        await axios.post(`${SITE_URL}/api/user-search`, {
+            discordId: userId,
+            status: status
+        });
+    } catch (e) {
+        console.log('🔍 Could not save presence update:', e.message);
+    }
+});
+
+// Evento quando informações do usuário são atualizadas
+client.on('userUpdate', async (oldUser, newUser) => {
+    if (!newUser) return;
+    
+    console.log('👤 User update for:', newUser.tag);
+    
+    // Save to database
+    try {
+        await axios.post(`${SITE_URL}/api/user-search`, {
+            discordId: newUser.id,
+            username: newUser.username,
+            displayName: newUser.displayName || newUser.username,
+            avatar: newUser.displayAvatarURL({ dynamic: true, size: 4096 }),
+            tag: newUser.tag
+        });
+    } catch (e) {
+        console.log('🔍 Could not save user update:', e.message);
+    }
+});
+
 // Evento quando uma mensagem é atualizada (Zany bot edits message with embed)
 client.on('messageUpdate', async (oldMessage, newMessage) => {
     // Handle zany bot response edit in search channel
