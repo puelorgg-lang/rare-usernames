@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle, Moon } from "lucide-react"
+import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle, Moon, Banner } from "lucide-react"
 
 type ProfileData = {
   userId: string
@@ -42,6 +42,7 @@ type ProfileData = {
 const searchOptions = [
   { id: "perfil", label: "Perfil", icon: UserCircle },
   { id: "avatares", label: "Avatares", icon: Image },
+  { id: "banners", label: "Banners", icon: Banner },
   { id: "mensagens", label: "Mensagens", icon: MessageCircle },
   { id: "chamadas", label: "Chamadas", icon: Phone },
   { id: "servidores", label: "Servidores", icon: Users },
@@ -60,6 +61,7 @@ export default function BuscarPage() {
   const [activeTab, setActiveTab] = useState("perfil")
   const [avatarPage, setAvatarPage] = useState(0)
   const [avatarHistory, setAvatarHistory] = useState<any[]>([])
+  const [bannerHistory, setBannerHistory] = useState<any[]>([])
   const [loadingAvatars, setLoadingAvatars] = useState(false)
 
   useEffect(() => {
@@ -82,6 +84,11 @@ export default function BuscarPage() {
         setError(data.error)
       } else {
         setResult(data)
+        // Fetch history after successful search
+        if (data.userId) {
+          fetchAvatarHistory(data.userId)
+          fetchBannerHistory(data.userId)
+        }
       }
     } catch (err) {
       setError("Falha ao conectar ao servidor")
@@ -109,11 +116,15 @@ export default function BuscarPage() {
     }
   }
 
-  useEffect(() => {
-    if (result?.userId && activeTab === "avatares") {
-      fetchAvatarHistory(result.userId)
+  const fetchBannerHistory = async (discordId: string) => {
+    try {
+      const res = await fetch(`/api/banner-history?discordId=${discordId}`)
+      const data = await res.json()
+      setBannerHistory(data)
+    } catch (e) {
+      console.error("Error fetching banner history:", e)
     }
-  }, [activeTab, result?.userId])
+  }
 
   return (
     <div className="min-h-screen bg-[#0b0b0d] pt-24 pb-12">
@@ -345,6 +356,44 @@ export default function BuscarPage() {
                       ) : (
                         <p className="text-muted-foreground text-center py-8">
                           Nenhum histórico de avatar encontrado
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                {/* Banners Tab */}
+                <TabsContent value="banners" className="mt-4">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Banner className="h-5 w-5" />
+                        Histórico de Banners
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center mb-4">
+                        <p className="text-muted-foreground">Total de banners: {bannerHistory.length}</p>
+                      </div>
+                      
+                      {bannerHistory.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {bannerHistory.map((banner: any, index: number) => (
+                            <div key={index} className="p-3 rounded-lg bg-white/5">
+                              <img 
+                                src={banner.bannerUrl} 
+                                alt="Banner" 
+                                className="w-full h-auto rounded-lg"
+                              />
+                              <p className="text-xs text-muted-foreground mt-2 text-center">
+                                {formatDate(banner.changedAt)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-8">
+                          Nenhum histórico de banner encontrado
                         </p>
                       )}
                     </CardContent>
