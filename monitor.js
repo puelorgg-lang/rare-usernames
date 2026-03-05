@@ -300,6 +300,8 @@ app.post('/api/search', async (req, res) => {
             if (/^\d+$/.test(query)) {
                 // It's a Discord ID - fetch from API directly to get fresh data
                 try {
+                    // Clear from cache first
+                    client.users.cache.delete(query);
                     // Use direct API call to bypass cache entirely
                     const token = client.token || TOKEN;
                     let response;
@@ -392,9 +394,18 @@ app.post('/api/search', async (req, res) => {
                 }
                 
                 if (cachedUser) {
-                    // Clear from cache to force fresh data
+                    // Get the user ID and fetch fresh data from API
+                    const userIdToFetch = cachedUser.id;
+                    console.log('🔍 Found user in cache, fetching fresh data for ID:', userIdToFetch);
+                    // Clear from cache first
                     client.users.cache.delete(cachedUser.id);
-                    user = cachedUser;
+                    // Now fetch fresh data
+                    try {
+                        user = await client.users.fetch(userIdToFetch);
+                    } catch (e) {
+                        console.log('🔍 Could not fetch fresh user data:', e.message);
+                        user = cachedUser; // Fallback to cached if fetch fails
+                    }
                 } else {
                     // If not found in cache or guilds, try to resolve via Discord API
                     console.log('🔍 User not found in cache or guilds. Attempting to resolve via API...');
