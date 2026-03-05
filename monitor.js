@@ -362,24 +362,32 @@ app.post('/api/search', async (req, res) => {
             
             if (user) {
                 console.log('🔍 User found:', user.tag);
-                console.log('🔍 User banner before fetch:', user.banner);
-                console.log('🔍 User bannerURL before fetch:', user.bannerURL());
                 
-                // Need to fetch user with full data to get banner
+                // Fetch banner directly from Discord API since selfbot fetch might not work
+                let bannerUrl = null;
                 try {
-                    const fetchedUser = await user.fetch();
-                    console.log('🔍 User after fetch - banner:', fetchedUser.banner);
-                    user = fetchedUser;
+                    const response = await axios.get(`https://discord.com/api/v8/users/${user.id}`, {
+                        headers: {
+                            Authorization: `Bot ${client.token}`
+                        }
+                    });
+                    
+                    const userData = response.data;
+                    console.log('🔍 User API data:', JSON.stringify(userData));
+                    
+                    if (userData.banner) {
+                        let format = 'png';
+                        if (userData.banner.substring(0, 2) === 'a_') {
+                            format = 'gif';
+                        }
+                        bannerUrl = `https://cdn.discordapp.com/banners/${user.id}/${userData.banner}.${format}?size=4096`;
+                        console.log('🔍 Banner URL from API:', bannerUrl);
+                    } else {
+                        console.log('🔍 User has no banner');
+                    }
                 } catch (e) {
-                    console.log('🔍 Could not fetch full user data:', e.message);
+                    console.log('🔍 Error fetching banner from API:', e.message);
                 }
-                
-                // Get banner URL with correct options
-                const bannerUrl = user.banner ? 
-                    user.bannerURL({ dynamic: true, size: 4096, forceStatic: false }) : 
-                    null;
-                
-                console.log('🔍 Banner URL:', bannerUrl);
                 
                 // Build comprehensive profile data
                 const result = {
