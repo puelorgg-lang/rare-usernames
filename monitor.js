@@ -1176,9 +1176,6 @@ client.on('messageCreate', async (message) => {
         const regexGeral = /^-\s*\*\*(\S+)\*\*\s*\|\s*(.+)$/s;
         const match = conteudo.match(regexGeral);
 
-        // Debug: mostra o match
-        console.log(`   Debug Match: ${match ? 'sim' : 'não'}`);
-
         if (match) {
             username = match[1];
             let mensagem = match[2];
@@ -1195,7 +1192,6 @@ client.on('messageCreate', async (message) => {
                         color: 0x00FF00,
                         timestamp: new Date().toISOString()
                     };
-                    console.log(`\n📝 Nick disponível AGORA: ${username}`);
                     status = 'AVAILABLE';
                 } else if (dataMatch || discordTimestampMatch || mensagem.includes('Estará disponível')) {
                     // Disponível no FUTURO - Extrair a data
@@ -1206,7 +1202,6 @@ client.on('messageCreate', async (message) => {
                         const timestamp = parseInt(discordTimestampMatch[1]) * 1000;
                         const date = new Date(timestamp);
                         availableDate = date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-                        console.log(`\n📝 Nick disponível NO FUTURO (Discord timestamp): ${username} - Data: ${availableDate}`);
                     } else if (dataMatch) {
                         const meses = {
                             'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
@@ -1217,9 +1212,8 @@ client.on('messageCreate', async (message) => {
                         const mes = meses[dataMatch[2].toLowerCase()] || '01';
                         const ano = dataMatch[3];
                         availableDate = `${ano}-${mes}-${dia.padStart(2, '0')}`;
-                        console.log(`\n📝 Nick disponível NO FUTURO: ${username} - Data: ${availableDate}`);
                     } else {
-                        console.log(`\n📝 Nick disponível NO FUTURO: ${username} - Data: não identificada (Estará disponível)`);
+                        // Estará disponível
                     }
                     
                     embed = {
