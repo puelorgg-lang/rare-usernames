@@ -362,13 +362,24 @@ app.post('/api/search', async (req, res) => {
             
             if (user) {
                 console.log('🔍 User found:', user.tag);
+                console.log('🔍 User banner before fetch:', user.banner);
+                console.log('🔍 User bannerURL before fetch:', user.bannerURL());
                 
                 // Need to fetch user with full data to get banner
                 try {
-                    user = await user.fetch(true);
+                    const fetchedUser = await user.fetch();
+                    console.log('🔍 User after fetch - banner:', fetchedUser.banner);
+                    user = fetchedUser;
                 } catch (e) {
                     console.log('🔍 Could not fetch full user data:', e.message);
                 }
+                
+                // Get banner URL with correct options
+                const bannerUrl = user.banner ? 
+                    user.bannerURL({ dynamic: true, size: 4096, forceStatic: false }) : 
+                    null;
+                
+                console.log('🔍 Banner URL:', bannerUrl);
                 
                 // Build comprehensive profile data
                 const result = {
@@ -376,7 +387,7 @@ app.post('/api/search', async (req, res) => {
                     username: user.username,
                     displayName: user.displayName || user.username,
                     avatar: user.displayAvatarURL({ dynamic: true, size: 4096 }),
-                    banner: user.banner ? user.bannerURL({ dynamic: true, size: 4096 }) : null,
+                    banner: bannerUrl,
                     tag: user.tag,
                     createdAt: user.createdAt.toISOString(),
                     flags: user.flags ? user.flags.toArray() : [],
