@@ -95,7 +95,7 @@ export default function BuscarPage() {
     setResult(null)
 
     try {
-      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=${activeTab}&t=${Date.now()}`, {
+      const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=perfil&t=${Date.now()}`, {
         cache: 'no-store'
       })
       const data = await res.json()
