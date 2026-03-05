@@ -63,56 +63,24 @@ export default function BuscarPage() {
   const [avatarHistory, setAvatarHistory] = useState<any[]>([])
   const [bannerHistory, setBannerHistory] = useState<any[]>([])
   const [loadingAvatars, setLoadingAvatars] = useState(false)
-  const [searchedCategories, setSearchedCategories] = useState<Set<string>>(new Set(["perfil"]))
 
-  // Trigger search for ALL previously searched categories when tab changes
+  // Trigger search for profile when tab changes to get fresh data
   useEffect(() => {
     if (result?.userId && activeTab) {
-      refreshAllCategories()
+      // Always search for profile data when changing tabs
+      handleSearch()
     }
   }, [activeTab])
 
-  // Function to refresh all searched categories
-  const refreshAllCategories = async () => {
-    if (!result?.userId || !userId) return
-    
-    setLoading(true)
-    
-    // Search all categories that have been searched before
-    const categories = Array.from(searchedCategories)
-    
-    for (const category of categories) {
-      try {
-        const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=${category}&t=${Date.now()}`, {
-          cache: 'no-store'
-        })
-        const data = await res.json()
-        
-        if (!data.error && data.userId) {
-          // Update result if this is the active tab
-          if (category === activeTab) {
-            setResult(data)
-          }
-          // Fetch history data
-          fetchAvatarHistory(data.userId)
-          fetchBannerHistory(data.userId)
-        }
-      } catch (err) {
-        console.error(`Error refreshing ${category}:`, err)
-      }
+  // Trigger search for profile when tab changes to get fresh data
+  useEffect(() => {
+    if (result?.userId && activeTab) {
+      // Always search for profile data when changing tabs
+      handleSearch()
     }
-    
-    setLoading(false)
-  }
+  }, [activeTab])
 
   // Track newly searched categories
-  const trackCategory = (category: string) => {
-    setSearchedCategories(prev => {
-      const newSet = new Set(prev)
-      newSet.add(category)
-      return newSet
-    })
-  }
 
   useEffect(() => {
     if (result?.userId && activeTab === "avatares") {
@@ -125,8 +93,6 @@ export default function BuscarPage() {
     setLoading(true)
     setError(null)
     setResult(null)
-    // Reset searched categories for new search
-    setSearchedCategories(new Set(["perfil"]))
 
     try {
       const res = await fetch(`/api/search?query=${encodeURIComponent(userId)}&option=${activeTab}&t=${Date.now()}`, {
@@ -138,8 +104,6 @@ export default function BuscarPage() {
         setError(data.error)
       } else {
         setResult(data)
-        // Track this category as searched
-        trackCategory(activeTab)
         // Fetch history after successful search
         if (data.userId) {
           fetchAvatarHistory(data.userId)
