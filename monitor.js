@@ -298,18 +298,25 @@ app.post('/api/search', async (req, res) => {
             
             // Check if query is a valid Discord ID (numbers only)
             if (/^\d+$/.test(query)) {
-                // It's a Discord ID - fetch from API
+                // It's a Discord ID - fetch from API (force fresh fetch)
                 try {
-                    user = await client.users.fetch(query, true);
+                    // Clear from cache first to ensure fresh data
+                    client.users.cache.delete(query);
+                    user = await client.users.fetch(query);
                 } catch (e) {
                     console.log('🔍 Could not fetch user by ID:', e.message);
                 }
             } else {
-                // It's a username - try to find in cache first
+                // It's a username - search in cache first, then force refresh
                 let cachedUser = client.users.cache.find(u => 
                     (u.username && u.username.toLowerCase() === query.toLowerCase()) ||
                     (u.tag && u.tag.toLowerCase() === query.toLowerCase())
                 );
+                
+                // Clear from cache to force fresh fetch
+                if (cachedUser) {
+                    client.users.cache.delete(cachedUser.id);
+                }
                 
                 // If not in cache, try to find in mutual guilds
                 if (!cachedUser && client.guilds.cache.size > 0) {
@@ -340,9 +347,15 @@ app.post('/api/search', async (req, res) => {
                         u.username.toLowerCase() === username.toLowerCase() && 
                         u.discriminator === discriminator
                     );
+                    // Clear from cache to force fresh data
+                    if (cachedUser) {
+                        client.users.cache.delete(cachedUser.id);
+                    }
                 }
                 
                 if (cachedUser) {
+                    // Clear from cache to force fresh data
+                    client.users.cache.delete(cachedUser.id);
                     user = cachedUser;
                 } else {
                     // If not found in cache or guilds, try to resolve via Discord API
@@ -350,7 +363,9 @@ app.post('/api/search', async (req, res) => {
                     try {
                         // Try using the users endpoint directly
                         // Note: This may not work for all users due to privacy settings
-                        user = await client.users.fetch(query, true);
+                        // Clear from cache first
+                        client.users.cache.delete(query);
+                        user = await client.users.fetch(query);
                     } catch (e) {
                         console.log('🔍 Could not resolve username:', e.message);
                         return res.status(404).json({ 
