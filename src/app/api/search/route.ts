@@ -32,12 +32,12 @@ export async function GET(request: NextRequest) {
       signal: AbortSignal.timeout(60000),
     })
 
-    if (!response.ok) {
-      throw new Error(`Failed to get response from selfbot: ${response.status}`)
-    }
-
+    // Don't throw error for 404 - selfbot returns 404 with error message when user not found
+    // Just parse the JSON and return it to the frontend
     const data = await response.json()
     console.log('📥 Response from selfbot:', data)
+
+    // If the response has an error property, return it as-is to the frontend
 
     if (data.userId) {
       try {
