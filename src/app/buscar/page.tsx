@@ -159,14 +159,20 @@ export default function BuscarPage() {
           {result && !error && (
             <div className="space-y-6">
               {/* Profile Header */}
-              <Card className="glass-card">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col md:flex-row gap-6 items-start">
+              <Card className="glass-card overflow-hidden">
+                <div 
+                  className="relative h-48 bg-cover bg-center"
+                  style={{ backgroundImage: result.banner ? `url(${result.banner})` : 'none' }}
+                >
+                  {result.banner && (
+                    <div className="absolute inset-0 bg-black/50" />
+                  )}
+                  <div className="relative pt-20 px-6 pb-6 flex flex-col md:flex-row gap-6 items-start">
                     {result.avatar && (
                       <img 
                         src={result.avatar} 
                         alt="Avatar" 
-                        className="h-32 w-32 rounded-full border-4 border-primary"
+                        className="h-32 w-32 rounded-full border-4 border-background"
                       />
                     )}
                     <div className="flex-1 space-y-2">
@@ -188,15 +194,8 @@ export default function BuscarPage() {
                         </p>
                       )}
                     </div>
-                    {result.banner && (
-                      <img 
-                        src={result.banner} 
-                        alt="Banner" 
-                        className="h-32 rounded-lg border border-white/10"
-                      />
-                    )}
                   </div>
-                </CardContent>
+                </div>
               </Card>
 
               {/* Search Options Tabs */}
