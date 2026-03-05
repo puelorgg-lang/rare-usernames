@@ -64,6 +64,14 @@ export default function BuscarPage() {
   const [bannerHistory, setBannerHistory] = useState<any[]>([])
   const [loadingAvatars, setLoadingAvatars] = useState(false)
 
+  // Trigger search whenever tab changes to get fresh data
+  useEffect(() => {
+    if (result?.userId && activeTab) {
+      // Search again with the new category to get fresh data
+      handleSearch()
+    }
+  }, [activeTab])
+
   useEffect(() => {
     if (result?.userId && activeTab === "avatares") {
       fetchAvatarHistory(result.userId)
