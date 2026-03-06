@@ -50,7 +50,6 @@ const searchOptions = [
   { id: "interacoes", label: "Interações", icon: GitBranch },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3 },
   { id: "banimentos", label: "Banimentos", icon: Shield },
-  { id: "insignias", label: "Insígnias", icon: Badge },
 ]
 
 export default function BuscarPage() {
@@ -309,30 +308,28 @@ export default function BuscarPage() {
                           <p className="font-medium">{formatDate(result.createdAt)}</p>
                         </div>
                         <div className="p-4 rounded-lg bg-white/5">
-                          <p className="text-sm text-muted-foreground">Nitro</p>
-                          <p className="font-medium">{result.nitro ? "Ativo" : "Inativo"}</p>
+                          <p className="text-sm text-muted-foreground">Insígnias</p>
+                          {result.flags && result.flags.length > 0 ? (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {result.flags.slice(0, 6).map((flag: string, index: number) => (
+                                <img 
+                                  key={index}
+                                  src={getBadgeImage(flag)} 
+                                  alt={flag} 
+                                  className="h-8 w-8"
+                                  title={flag}
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="font-medium">Nenhuma</p>
+                          )}
                         </div>
                         <div className="p-4 rounded-lg bg-white/5">
                           <p className="text-sm text-muted-foreground">Servidores em comum</p>
                           <p className="font-medium">{result.statistics?.mutualGuilds || 0}</p>
                         </div>
                       </div>
-                      
-                      {result.badges && result.badges.length > 0 && (
-                        <div className="mt-4">
-                          <p className="text-sm text-muted-foreground mb-2">Insígnias</p>
-                          <div className="flex flex-wrap gap-2">
-                            {result.badges.map((badge, index) => (
-                              <span 
-                                key={index}
-                                className="px-3 py-1 rounded-full bg-white/10 text-sm"
-                              >
-                                {badge}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -397,38 +394,6 @@ export default function BuscarPage() {
                       ) : (
                         <p className="text-muted-foreground text-center py-8">
                           Nenhum histórico de avatar encontrado
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                {/* Insígnias Tab */}
-                <TabsContent value="insignias" className="mt-4">
-                  <Card className="glass-card">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Badge className="h-5 w-5" />
-                        Insígnias do Usuário
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {result.flags && result.flags.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          {result.flags.map((flag: string, index: number) => (
-                            <div key={index} className="p-4 rounded-lg bg-white/5 flex flex-col items-center gap-2">
-                              <img 
-                                src={getBadgeImage(flag)} 
-                                alt={flag} 
-                                className="h-12 w-12"
-                              />
-                              <p className="text-xs text-center text-muted-foreground">{flag}</p>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground text-center py-8">
-                          Nenhuma insígnia encontrada
                         </p>
                       )}
                     </CardContent>
