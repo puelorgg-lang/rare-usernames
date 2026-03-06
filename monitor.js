@@ -287,22 +287,27 @@ app.post('/api/search', async (req, res) => {
             // Try to get presence status from different sources
             let userStatus = 'offline';
             
-            // Try from user.presence first
-            if (user.presence?.status) {
-                userStatus = user.presence.status;
-                console.log('🔍 Status from user.presence:', userStatus);
-            }
-            
-            // Try to get from guilds (members have more complete presence data)
-            if (userStatus === 'offline' && client.guilds.cache.size > 0) {
+            // Always try to fetch fresh presence from guilds first
+            if (client.guilds.cache.size > 0) {
                 for (const guild of client.guilds.cache.values()) {
-                    const member = guild.members.cache.get(user.id);
-                    if (member && member.presence?.status) {
-                        userStatus = member.presence.status;
-                        console.log('🔍 Status from guild member:', userStatus, 'guild:', guild.name);
-                        break;
+                    try {
+                        // Try to fetch fresh member data
+                        const member = await guild.members.fetch(user.id).catch(() => null);
+                        if (member && member.presence?.status) {
+                            userStatus = member.presence.status;
+                            console.log('🔍 Fresh status from guild member:', userStatus, 'guild:', guild.name);
+                            break;
+                        }
+                    } catch (e) {
+                        // Continue to next guild
                     }
                 }
+            }
+
+            // If still offline, try from user.presence
+            if (userStatus === 'offline' && user.presence?.status) {
+                userStatus = user.presence.status;
+                console.log('🔍 Status from user.presence:', userStatus);
             }
             
             console.log('🔍 Final user status:', userStatus);
