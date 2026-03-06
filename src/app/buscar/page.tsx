@@ -320,14 +320,14 @@ export default function BuscarPage() {
                           }`}
                         />
                         {/* Status indicator */}
-                        <span className={`absolute bottom-0 right-0 h-5 w-5 rounded-full border-4 border-[#0b0b0d] flex items-center justify-center ${
+                        <span className={`absolute bottom-0 right-0 h-6 w-6 rounded-full border-4 border-[#0b0b0d] flex items-center justify-center ${
                           result.status === 'online' ? 'bg-green-500' :
                           result.status === 'idle' ? 'bg-yellow-500' :
                           result.status === 'dnd' ? 'bg-red-500' :
                           'bg-gray-500'
                         }`}>
                           {result.status === 'idle' && (
-                            <Moon className="h-3 w-3 text-black" />
+                            <Moon className="h-3.5 w-3.5 text-black" />
                           )}
                         </span>
                       </div>
