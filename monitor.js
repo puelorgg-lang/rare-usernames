@@ -284,6 +284,33 @@ app.post('/api/search', async (req, res) => {
                 } else {
                     console.log('🔍 User has no banner');
                 }
+                
+                // Extract profile badges (Quest, Orb, etc.) from API response
+                const profileBadges = [];
+                if (userData.profileDecoration) {
+                    // User has profile decoration (orb, etc)
+                    console.log('🔍 Profile decoration found:', userData.profileDecoration);
+                    // Extract the decoration type from the asset id
+                    const assetId = userData.profileDecoration.asset || '';
+                    if (assetId.includes('orb')) {
+                        profileBadges.push('ORB');
+                    } else if (assetId.includes('halo')) {
+                        profileBadges.push('HALO');
+                    } else if (assetId.includes('sparkles')) {
+                        profileBadges.push('SPARKLES');
+                    } else if (assetId.includes('glow')) {
+                        profileBadges.push('GLOW');
+                    } else {
+                        profileBadges.push('PROFILE_DECORATION');
+                    }
+                }
+                if (userData.quest) {
+                    profileBadges.push('QUEST');
+                }
+                // Add profile badges to flags if not already present
+                if (profileBadges.length > 0 && result) {
+                    result.profileBadges = profileBadges;
+                }
             } catch (e) {
                 console.log('🔍 Error fetching banner from API:', e.message);
             }
@@ -350,6 +377,7 @@ app.post('/api/search', async (req, res) => {
                 },
                 bans: [],
                 badges: [],
+                profileBadges: [],
             };
             
             // Try to fetch mutual guilds

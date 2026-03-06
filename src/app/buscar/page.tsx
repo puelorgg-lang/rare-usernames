@@ -37,6 +37,7 @@ type ProfileData = {
   }
   bans?: any[]
   badges?: string[]
+  profileBadges?: string[]
 }
 
 const searchOptions = [
@@ -142,6 +143,12 @@ export default function BuscarPage() {
       "ORBS": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
       "ORBS_APPRENTICE": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
       "DISCORD_CIRCLE": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
+      
+      // Profile decorations
+      "PROFILE_DECORATION": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
+      "HALO": "https://github.com/mezotv/discord-badges/raw/main/assets/quest.png",
+      "SPARKLES": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
+      "GLOW": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
       
       // Username badge
       "ORIGINALLY_KNOWN_AS": "https://github.com/mezotv/discord-badges/raw/main/assets/username.png",
@@ -330,11 +337,20 @@ export default function BuscarPage() {
                         </div>
                         <div className="p-4 rounded-lg bg-white/5">
                           <p className="text-sm text-muted-foreground">Insígnias</p>
-                          {result.flags && result.flags.length > 0 ? (
+                          {(result.flags && result.flags.length > 0) || (result.profileBadges && result.profileBadges.length > 0) ? (
                             <div className="flex flex-wrap gap-2 mt-2">
-                              {result.flags.slice(0, 6).map((flag: string, index: number) => (
+                              {result.profileBadges && result.profileBadges.map((badge: string, idx: number) => (
                                 <img 
-                                  key={index}
+                                  key={`profile-${idx}`}
+                                  src={getBadgeImage(badge)} 
+                                  alt={badge} 
+                                  className="h-8 w-8"
+                                  title={badge}
+                                />
+                              ))}
+                              {result.flags && result.flags.slice(0, 6).map((flag: string, index: number) => (
+                                <img 
+                                  key={`flag-${index}`}
                                   src={getBadgeImage(flag)} 
                                   alt={flag} 
                                   className="h-8 w-8"
