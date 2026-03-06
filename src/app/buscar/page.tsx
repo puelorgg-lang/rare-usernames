@@ -182,18 +182,36 @@ export default function BuscarPage() {
       // Hypesquad badges
       "HYPESQUAD_BRILLIANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
       "HYPESQUAD_BRILLIANCE_HOUSE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
+      "HOUSE_BRILLIANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
       "BRILLIANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
       "HYPESQUAD_BRAVERY": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
       "HYPESQUAD_BRAVERY_HOUSE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
+      "HOUSE_BRAVERY": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
       "BRAVERY": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
       "HYPESQUAD_BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
       "HYPESQUAD_BALANCE_HOUSE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
-      "BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
       "HOUSE_BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
-      "HOUSE_BRAVERY": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
-      "HOUSE_BRILLIANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
+      "BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
       "HYPESQUAD": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
+      "HYPESQUAD_EVENTS": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
       "HYPESQUAD_ONLINE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
+      
+      // Staff and Partner
+      "DISCORD_EMPLOYEE": "https://github.com/mezotv/discord-badges/raw/main/assets/staff.png",
+      "STAFF": "https://github.com/mezotv/discord-badges/raw/main/assets/staff.png",
+      "PARTNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
+      "PARTNERED_SERVER_OWNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
+      
+      // Bug Hunter
+      "BUG_HUNTER": "https://github.com/mezotv/discord-badges/raw/main/assets/bughunter.png",
+      "BUG_HUNTER_LEVEL_2": "https://github.com/mezotv/discord-badges/raw/main/assets/bughunter.png",
+      
+      // Verified
+      "VERIFIED_BOT": "https://github.com/mezotv/discord-badges/raw/main/assets/verifiedbot.svg",
+      "VERIFIED_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
+      "EARLY_VERIFIED_BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
+      "BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
+      "ACTIVE_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
       
       // Discord staff
       "DISCORD_EMPLOYEE": "https://github.com/mezotv/discord-badges/raw/main/assets/staff.png",
