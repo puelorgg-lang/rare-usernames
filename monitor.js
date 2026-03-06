@@ -490,6 +490,8 @@ app.post('/api/search', async (req, res) => {
             }
             
             // Check for Nitro (premiumType) from Discord.js user object
+            console.log('🔍 user.premiumType:', user.premiumType);
+            console.log('🔍 user.premium:', user.premium);
             if (user.premiumType) {
                 const nitroBadges = {
                     1: 'NITRO_BOOST',  // Nitro Basic
