@@ -489,6 +489,28 @@ app.post('/api/search', async (req, res) => {
                 console.log('🔍 Decoded flags from bitfield:', flagNames);
             }
             
+            // Check for Nitro (premiumType) from Discord.js user object
+            if (user.premiumType) {
+                const nitroBadges = {
+                    1: 'NITRO_BOOST',  // Nitro Basic
+                    2: 'NITRO_BOOST',  // Nitro Classic
+                    3: 'NITRO'         // Nitro Basic (new)
+                };
+                const nitroBadge = nitroBadges[user.premiumType];
+                if (nitroBadge) {
+                    console.log('🔍 Nitro detected from premiumType:', nitroBadge);
+                    result.flags = result.flags || [];
+                    if (!result.flags.includes(nitroBadge)) {
+                        result.flags.push(nitroBadge);
+                    }
+                }
+            }
+            
+            // Also check for premium (Nitro) status
+            if (user.premium) {
+                console.log('🔍 Premium status:', user.premium);
+            }
+            
             // Log profile badges
             if (result.profileBadges && result.profileBadges.length > 0) {
                 console.log('🔍 Profile badges found:', result.profileBadges);
