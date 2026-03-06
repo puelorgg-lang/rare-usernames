@@ -38,6 +38,23 @@ type ProfileData = {
   bans?: any[]
   badges?: string[]
   profileBadges?: string[]
+  activities?: Array<{
+    name: string
+    type: number
+    state?: string
+    details?: string
+    applicationId?: string
+    assets?: {
+      largeImage?: string
+      smallImage?: string
+      largeText?: string
+      smallText?: string
+    }
+    timestamps?: {
+      start?: Date
+      end?: Date
+    }
+  }>
 }
 
 const searchOptions = [
@@ -172,7 +189,6 @@ export default function BuscarPage() {
       // Early supporter
       "EARLY_SUPPORTER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordearlysupporter.svg",
       "EARLY_VERIFIED_BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
-      "BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
       
       // Partnered server owner
       "PARTNERED": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
@@ -208,16 +224,9 @@ export default function BuscarPage() {
       // Verified
       "VERIFIED_BOT": "https://github.com/mezotv/discord-badges/raw/main/assets/verifiedbot.svg",
       "VERIFIED_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
-      "EARLY_VERIFIED_BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
-      "BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
-      "ACTIVE_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
       
       // Discord staff
-      "DISCORD_EMPLOYEE": "https://github.com/mezotv/discord-badges/raw/main/assets/staff.png",
-      "STAFF": "https://github.com/mezotv/discord-badges/raw/main/assets/staff.png",
       "DISCORD_PARTNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
-      "PARTNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
-      "VERIFIED_BOT": "https://github.com/mezotv/discord-badges/raw/main/assets/verifiedbot.svg",
       "BOT_HTTP_INTERACTIONS": "https://github.com/mezotv/discord-badges/raw/main/assets/verifiedbot.svg",
       "VERIFIED": "https://github.com/mezotv/discord-badges/raw/main/assets/verifiedbot.svg",
       
