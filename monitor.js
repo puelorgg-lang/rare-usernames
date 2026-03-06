@@ -198,13 +198,12 @@ app.post('/api/search', async (req, res) => {
                 // Search in all cached guild members
                 for (const guild of client.guilds.cache.values()) {
                     try {
-                        const member = await guild.members.fetch({ query: query, limit: 1 });
-                        if (member && member.size > 0) {
-                            const foundMember = member.first();
-                            if (foundMember && foundMember.user) {
-                                cachedUser = foundMember.user;
-                                break;
-                            }
+                        // Try to fetch member by ID directly
+                        const member = await guild.members.fetch(query).catch(() => null);
+                        if (member && member.user) {
+                            cachedUser = member.user;
+                            console.log(`✅ Found user ${query} in guild ${guild.name}`);
+                            break;
                         }
                     } catch (e) {
                         // Continue to next guild
