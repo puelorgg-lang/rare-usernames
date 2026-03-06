@@ -252,8 +252,7 @@ app.post('/api/search', async (req, res) => {
                 // Keep original if fetch fails
             }
             
-            // Fetch banner directly from Discord API
-            let bannerUrl = null;
+            // Get user data from Discord API (without banner)
             let userData = {}; // Default empty object in case API fails
             try {
                 // Try to get the token from the logged-in client
@@ -274,17 +273,6 @@ app.post('/api/search', async (req, res) => {
                 
                 userData = response.data;
                 console.log('🔍 User API data:', JSON.stringify(userData));
-                
-                if (userData.banner) {
-                    let format = 'png';
-                    if (userData.banner.substring(0, 2) === 'a_') {
-                        format = 'gif';
-                    }
-                    bannerUrl = `https://cdn.discordapp.com/banners/${user.id}/${userData.banner}.${format}?size=4096`;
-                    console.log('🔍 Banner URL from API:', bannerUrl);
-                } else {
-                    console.log('🔍 User has no banner');
-                }
                 
                 // Extract profile badges (Quest, Orb, etc.) from API response
                 const profileBadges = [];
@@ -345,7 +333,7 @@ app.post('/api/search', async (req, res) => {
                     result.profileBadges = profileBadges;
                 }
             } catch (e) {
-                console.log('🔍 Error fetching banner from API:', e.message);
+                console.log('🔍 Error from Discord API:', e.message);
             }
             
             // Build comprehensive profile data
@@ -382,7 +370,6 @@ app.post('/api/search', async (req, res) => {
                 username: user.username,
                 displayName: user.displayName || user.username,
                 avatar: user.displayAvatarURL({ dynamic: true, size: 4096 }),
-                banner: bannerUrl,
                 tag: user.tag,
                 createdAt: user.createdAt.toISOString(),
                 // Combine Discord.js flags with API flags for more complete data
@@ -459,7 +446,6 @@ app.post('/api/search', async (req, res) => {
                 system: user.system,
                 createdAt: user.createdAt,
                 displayAvatarURL: user.displayAvatarURL(),
-                bannerURL: user.bannerURL ? user.bannerURL() : null,
             });
             
             // Try to decode raw flags bitfield to get all flags
@@ -567,18 +553,6 @@ app.post('/api/search', async (req, res) => {
                 }
             }
             
-            // Save banner to history
-            if (result.banner) {
-                try {
-                    await axios.post(`${SITE_URL}/api/banner-history`, {
-                        discordId: user.id,
-                        bannerUrl: result.banner
-                    });
-                } catch (e) {
-                    console.log('🔍 Could not save banner history:', e.message);
-                }
-            }
-            
             // Add search category to result
             result.searchCategory = searchCategory;
             
@@ -593,7 +567,6 @@ app.post('/api/search', async (req, res) => {
                     username: user.username,
                     displayName: user.displayName || user.username,
                     avatar: result.avatar,
-                    banner: result.banner,
                     tag: user.tag,
                     status: userStatus
                 });
@@ -1462,7 +1435,6 @@ client.on('userUpdate', async (oldUser, newUser) => {
         
         // Get avatar URL
         const avatar = user.displayAvatarURL({ format: 'png', size: 4096 });
-        const banner = user.bannerURL({ format: 'png', size: 4096 });
         
         // Save to database
         await axios.post(`${SITE_URL}/api/user-search`, {
@@ -1470,7 +1442,6 @@ client.on('userUpdate', async (oldUser, newUser) => {
             username: user.username,
             displayName: user.globalName || user.username,
             avatar: avatar,
-            banner: banner,
             tag: user.tag,
             status: 'online'
         });
@@ -1498,7 +1469,6 @@ client.on('presenceUpdate', async (oldPresence, newPresence) => {
         
         // Get avatar URL
         const avatar = user.displayAvatarURL({ format: 'png', size: 4096 });
-        const banner = user.bannerURL({ format: 'png', size: 4096 });
         
         // Save to database
         await axios.post(`${SITE_URL}/api/user-search`, {
@@ -1506,7 +1476,6 @@ client.on('presenceUpdate', async (oldPresence, newPresence) => {
             username: user.username,
             displayName: user.globalName || user.username,
             avatar: avatar,
-            banner: banner,
             tag: user.tag,
             status: userStatus
         });
