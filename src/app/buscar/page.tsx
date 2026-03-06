@@ -189,6 +189,9 @@ export default function BuscarPage() {
       "HYPESQUAD_BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
       "HYPESQUAD_BALANCE_HOUSE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
       "BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
+      "HOUSE_BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
+      "HOUSE_BRAVERY": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
+      "HOUSE_BRILLIANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
       "HYPESQUAD": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
       "HYPESQUAD_ONLINE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
       
