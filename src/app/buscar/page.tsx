@@ -378,6 +378,21 @@ export default function BuscarPage() {
                                 {activity.state && (
                                   <p className="text-xs text-muted-foreground truncate">{activity.state}</p>
                                 )}
+                                {activity.timestamps?.start && (
+                                  <p className="text-xs text-muted-foreground">
+                                    🕐 {(() => {
+                                      const start = new Date(activity.timestamps.start).getTime();
+                                      const now = Date.now();
+                                      const elapsed = Math.floor((now - start) / 1000);
+                                      const hours = Math.floor(elapsed / 3600);
+                                      const minutes = Math.floor((elapsed % 3600) / 60);
+                                      if (hours > 0) {
+                                        return `${hours}h ${minutes}min`;
+                                      }
+                                      return `${minutes}min`;
+                                    })()}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           ))}
