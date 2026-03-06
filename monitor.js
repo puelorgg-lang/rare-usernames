@@ -444,7 +444,19 @@ app.post('/api/search', async (req, res) => {
             if (result.flags) {
                 const nitroFlags = ['NITRO', 'NITRO_CLASSIC', 'NITRO_BASIC'];
                 result.nitro = result.flags.some(f => nitroFlags.includes(f));
+                console.log('🔍 User flags found:', result.flags);
             }
+            
+            // Log profile badges
+            if (result.profileBadges && result.profileBadges.length > 0) {
+                console.log('🔍 Profile badges found:', result.profileBadges);
+            }
+            
+            // Log all badges being sent to frontend
+            console.log('🔍 All badges (flags + profileBadges):', {
+                flags: result.flags,
+                profileBadges: result.profileBadges
+            });
             
             // Calculate boost badge based on boostStartDate
             if (result.boostStartDate) {
@@ -466,6 +478,7 @@ app.post('/api/search', async (req, res) => {
                         if (boostBadge) {
                             result.profileBadges = result.profileBadges || [];
                             result.profileBadges.push(boostBadge);
+                            console.log('🔍 Boost badge added:', boostBadge, '- Months boosting:', monthsBoosting);
                         }
                     }
                 } catch (e) {
