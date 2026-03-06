@@ -254,6 +254,7 @@ app.post('/api/search', async (req, res) => {
             
             // Fetch banner directly from Discord API
             let bannerUrl = null;
+            let userData = {}; // Default empty object in case API fails
             try {
                 // Try to get the token from the logged-in client
                 const token = client.token || TOKEN;
@@ -271,7 +272,7 @@ app.post('/api/search', async (req, res) => {
                     });
                 }
                 
-                const userData = response.data;
+                userData = response.data;
                 console.log('🔍 User API data:', JSON.stringify(userData));
                 
                 if (userData.banner) {
