@@ -134,6 +134,7 @@ export default function BuscarPage() {
       "PREMIUM_TIER_1": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",
       "PREMIUM_TIER_2": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",
       "PREMIUM_TIER_3": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",
+      "PREMIUM_GUILD": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",
       
       // Boost badges (by duration)
       "BOOST_1": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost1.svg",
@@ -150,10 +151,14 @@ export default function BuscarPage() {
       "QUEST": "https://github.com/mezotv/discord-badges/raw/main/assets/quest.png",
       "QUEST_ITERATION": "https://github.com/mezotv/discord-badges/raw/main/assets/quest.png",
       "QUESTS": "https://github.com/mezotv/discord-badges/raw/main/assets/quest.png",
+      "ACTIVE_QUEST": "https://github.com/mezotv/discord-badges/raw/main/assets/quest.png",
+      "HAS_QUEST": "https://github.com/mezotv/discord-badges/raw/main/assets/quest.png",
       "ORB": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
       "ORBS": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
       "ORBS_APPRENTICE": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
       "DISCORD_CIRCLE": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
+      "APPRENTICE": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
+      "CIRCLE": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
       
       // Profile decorations
       "PROFILE_DECORATION": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
@@ -167,14 +172,34 @@ export default function BuscarPage() {
       // Early supporter
       "EARLY_SUPPORTER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordearlysupporter.svg",
       "EARLY_VERIFIED_BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
+      "BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
+      
+      // Partnered server owner
       "PARTNERED_SERVER_OWNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
+      "PARTNERED": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
+      "SERVER_PARTNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
+      
+      // Hypesquad badges
       "HYPESQUAD_BRILLIANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
+      "HYPESQUAD_BRILLIANCE_HOUSE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
+      "BRILLIANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
       "HYPESQUAD_BRAVERY": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
+      "HYPESQUAD_BRAVERY_HOUSE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
+      "BRAVERY": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
       "HYPESQUAD_BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
+      "HYPESQUAD_BALANCE_HOUSE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
+      "BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
+      "HYPESQUAD": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
+      "HYPESQUAD_ONLINE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
+      
+      // Discord staff
       "DISCORD_EMPLOYEE": "https://github.com/mezotv/discord-badges/raw/main/assets/staff.png",
+      "STAFF": "https://github.com/mezotv/discord-badges/raw/main/assets/staff.png",
       "DISCORD_PARTNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
+      "PARTNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
       "VERIFIED_BOT": "https://github.com/mezotv/discord-badges/raw/main/assets/verifiedbot.svg",
       "BOT_HTTP_INTERACTIONS": "https://github.com/mezotv/discord-badges/raw/main/assets/verifiedbot.svg",
+      "VERIFIED": "https://github.com/mezotv/discord-badges/raw/main/assets/verifiedbot.svg",
       
       // Legacy badges
       "GUILD_MEMBER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",

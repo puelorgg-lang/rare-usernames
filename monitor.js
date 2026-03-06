@@ -287,10 +287,16 @@ app.post('/api/search', async (req, res) => {
                 
                 // Extract profile badges (Quest, Orb, etc.) from API response
                 const profileBadges = [];
+                
+                // Check for Quest badge - different possible field names
+                if (userData.quest || userData.questing || userData.hasQuest) {
+                    console.log('🔍 Quest badge found!');
+                    profileBadges.push('QUEST');
+                }
+                
+                // Check for profile decoration (Orb, etc)
                 if (userData.profileDecoration) {
-                    // User has profile decoration (orb, etc)
-                    console.log('🔍 Profile decoration found:', userData.profileDecoration);
-                    // Extract the decoration type from the asset id
+                    console.log('🔍 Profile decoration found:', JSON.stringify(userData.profileDecoration));
                     const assetId = userData.profileDecoration.asset || '';
                     if (assetId.includes('orb')) {
                         profileBadges.push('ORB');
@@ -301,14 +307,40 @@ app.post('/api/search', async (req, res) => {
                     } else if (assetId.includes('glow')) {
                         profileBadges.push('GLOW');
                     } else {
-                        profileBadges.push('PROFILE_DECORATION');
+                        profileBadges.push('ORB'); // Default to orb for unknown decorations
                     }
                 }
-                if (userData.quest) {
-                    profileBadges.push('QUEST');
+                
+                // Also try to get more profile data from user profile endpoint
+                try {
+                    const profileResponse = await axios.get(`https://discord.com/api/v9/users/${user.id}/profile`, {
+                        headers: { Authorization: token }
+                    });
+                    const profileData = profileResponse.data;
+                    console.log('🔍 Profile API data:', JSON.stringify(profileData));
+                    
+                    if (profileData.quest && !profileBadges.includes('QUEST')) {
+                        profileBadges.push('QUEST');
+                    }
+                    if (profileData.profileDecoration && !userData.profileDecoration) {
+                        const assetId = profileData.profileDecoration.asset || '';
+                        if (assetId.includes('orb')) {
+                            profileBadges.push('ORB');
+                        }
+                    }
+                    if (profileData.premium) {
+                        // Check for boost duration
+                        const premiumSince = profileData.premium_since || profileData.premiumStartDate;
+                        if (premiumSince) {
+                            result.boostStartDate = premiumSince;
+                        }
+                    }
+                } catch (profileErr) {
+                    console.log('🔍 Could not fetch profile:', profileErr.message);
                 }
-                // Add profile badges to flags if not already present
-                if (profileBadges.length > 0 && result) {
+                
+                // Add profile badges to result if not already present
+                if (profileBadges.length > 0) {
                     result.profileBadges = profileBadges;
                 }
             } catch (e) {
@@ -352,7 +384,11 @@ app.post('/api/search', async (req, res) => {
                 banner: bannerUrl,
                 tag: user.tag,
                 createdAt: user.createdAt.toISOString(),
-                flags: user.flags ? user.flags.toArray() : [],
+                // Combine Discord.js flags with API flags for more complete data
+                flags: [...new Set([
+                    ...(user.flags ? user.flags.toArray() : []),
+                    ...(userData.flags ? userData.flags : [])
+                ])],
                 nitro: false,
                 nitroBoost: 0,
                 // Get presence/status from the user
