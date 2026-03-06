@@ -462,6 +462,33 @@ app.post('/api/search', async (req, res) => {
                 bannerURL: user.bannerURL ? user.bannerURL() : null,
             });
             
+            // Try to decode raw flags bitfield to get all flags
+            if (user.flags && user.flags.bitfield) {
+                const raw = user.flags.bitfield;
+                const flagNames = [];
+                if (raw & 1) flagNames.push('DISCORD_EMPLOYEE');
+                if (raw & 2) flagNames.push('PARTNERED_SERVER_OWNER');
+                if (raw & 4) flagNames.push('HYPESQUAD_EVENTS');
+                if (raw & 8) flagNames.push('EARLY_SUPPORTER');
+                if (raw & 16) flagNames.push('TEAM_USER');
+                if (raw & 32) flagNames.push('SYSTEM');
+                if (raw & 64) flagNames.push('BUG_HUNTER');
+                if (raw & 128) flagNames.push('VERIFIED_BOT');
+                if (raw & 256) flagNames.push('EARLY_VERIFIED_BOT_DEVELOPER');
+                if (raw & 512) flagNames.push('DISCORD_CERTIFIED_MODERATOR');
+                if (raw & 1024) flagNames.push('ACTIVE_DEVELOPER');
+                if (raw & 2048) flagNames.push('BUG_HUNTER_LEVEL_2');
+                if (raw & 4096) flagNames.push('PROFIT_SHARING_2023');
+                if (raw & 8192) flagNames.push('HYPESQUAD_ONLINE');
+                if (raw & 16384) flagNames.push('HYPESQUAD_BRAVERY');
+                if (raw & 32768) flagNames.push('HYPESQUAD_BRILLIANCE');
+                if (raw & 65536) flagNames.push('HYPESQUAD_BALANCE');
+                if (raw & 131072) flagNames.push('PREMIUM_EARLY_SUPPORTER');
+                if (raw & 262144) flagNames.push('NO_WEBAPPS');
+                if (raw & 524288) flagNames.push('VERIFIED_DEVELOPER');
+                console.log('🔍 Decoded flags from bitfield:', flagNames);
+            }
+            
             // Log profile badges
             if (result.profileBadges && result.profileBadges.length > 0) {
                 console.log('🔍 Profile badges found:', result.profileBadges);
