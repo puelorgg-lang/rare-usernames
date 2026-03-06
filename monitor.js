@@ -339,6 +339,7 @@ app.post('/api/search', async (req, res) => {
             // Build comprehensive profile data
             // Try to get presence status from different sources
             let userStatus = 'offline';
+            let userActivities = [];
             
             // Always try to fetch fresh presence from guilds first
             if (client.guilds.cache.size > 0) {
@@ -348,7 +349,28 @@ app.post('/api/search', async (req, res) => {
                         const member = await guild.members.fetch(user.id).catch(() => null);
                         if (member && member.presence?.status) {
                             userStatus = member.presence.status;
+                            // Get activities from member presence
+                            if (member.presence.activities) {
+                                userActivities = member.presence.activities.map(activity => ({
+                                    name: activity.name,
+                                    type: activity.type,
+                                    state: activity.state,
+                                    details: activity.details,
+                                    applicationId: activity.applicationID,
+                                    assets: activity.assets ? {
+                                        largeImage: activity.assets.largeImageURL(),
+                                        smallImage: activity.assets.smallImageURL(),
+                                        largeText: activity.assets.largeText,
+                                        smallText: activity.assets.smallText
+                                    } : null,
+                                    timestamps: activity.timestamps ? {
+                                        start: activity.timestamps.start,
+                                        end: activity.timestamps.end
+                                    } : null
+                                }));
+                            }
                             console.log('🔍 Fresh status from guild member:', userStatus, 'guild:', guild.name);
+                            console.log('🔍 Activities found:', userActivities.length);
                             break;
                         }
                     } catch (e) {
@@ -360,6 +382,14 @@ app.post('/api/search', async (req, res) => {
             // If still offline, try from user.presence
             if (userStatus === 'offline' && user.presence?.status) {
                 userStatus = user.presence.status;
+                if (user.presence.activities) {
+                    userActivities = user.presence.activities.map(activity => ({
+                        name: activity.name,
+                        type: activity.type,
+                        state: activity.state,
+                        details: activity.details
+                    }));
+                }
                 console.log('🔍 Status from user.presence:', userStatus);
             }
             
@@ -381,6 +411,7 @@ app.post('/api/search', async (req, res) => {
                 nitroBoost: 0,
                 // Get presence/status from the user
                 status: userStatus,
+                activities: userActivities,
                 // Additional data that can be fetched
                 profile: {
                     // Placeholder for profile data

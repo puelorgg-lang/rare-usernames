@@ -342,6 +342,39 @@ export default function BuscarPage() {
                           Idade da conta: {result.statistics.accountAge} dias
                         </p>
                       )}
+                      {/* Rich Presence / Activities */}
+                      {result.activities && result.activities.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          <p className="text-sm font-medium">Atividade:</p>
+                          {result.activities.map((activity: any, index: number) => (
+                            <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
+                              {activity.assets?.largeImage && (
+                                <img 
+                                  src={activity.assets.largeImage} 
+                                  alt="Activity icon" 
+                                  className="h-10 w-10 rounded"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">
+                                  {activity.name}
+                                  {activity.type === 0 && ' 🎮'}
+                                  {activity.type === 1 && ' 📺'}
+                                  {activity.type === 2 && ' 🎵'}
+                                  {activity.type === 3 && ' 🎲'}
+                                  {activity.type === 5 && ' 🏆'}
+                                </p>
+                                {activity.details && (
+                                  <p className="text-xs text-muted-foreground truncate">{activity.details}</p>
+                                )}
+                                {activity.state && (
+                                  <p className="text-xs text-muted-foreground truncate">{activity.state}</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     {result.banner && (
                       <img 
