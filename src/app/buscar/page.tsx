@@ -135,6 +135,17 @@ export default function BuscarPage() {
       "PREMIUM_TIER_2": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",
       "PREMIUM_TIER_3": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",
       
+      // Boost badges (by duration)
+      "BOOST_1": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost1.svg",
+      "BOOST_2": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost2.svg",
+      "BOOST_3": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost3.svg",
+      "BOOST_6": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost4.svg",
+      "BOOST_9": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost5.svg",
+      "BOOST_12": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost6.svg",
+      "BOOST_15": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost7.svg",
+      "BOOST_18": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost8.svg",
+      "BOOST_24": "https://github.com/mezotv/discord-badges/raw/main/assets/boosts/discordboost9.svg",
+      
       // Quest and Orb badges
       "QUEST": "https://github.com/mezotv/discord-badges/raw/main/assets/quest.png",
       "QUEST_ITERATION": "https://github.com/mezotv/discord-badges/raw/main/assets/quest.png",

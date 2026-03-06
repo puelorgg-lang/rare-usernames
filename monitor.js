@@ -409,6 +409,33 @@ app.post('/api/search', async (req, res) => {
                 result.nitro = result.flags.some(f => nitroFlags.includes(f));
             }
             
+            // Calculate boost badge based on boostStartDate
+            if (result.boostStartDate) {
+                try {
+                    const boostDate = new Date(result.boostStartDate);
+                    if (!isNaN(boostDate.getTime())) {
+                        const monthsBoosting = Math.floor((Date.now() - boostDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+                        let boostBadge = '';
+                        if (monthsBoosting >= 24) boostBadge = 'BOOST_24';
+                        else if (monthsBoosting >= 18) boostBadge = 'BOOST_18';
+                        else if (monthsBoosting >= 15) boostBadge = 'BOOST_15';
+                        else if (monthsBoosting >= 12) boostBadge = 'BOOST_12';
+                        else if (monthsBoosting >= 9) boostBadge = 'BOOST_9';
+                        else if (monthsBoosting >= 6) boostBadge = 'BOOST_6';
+                        else if (monthsBoosting >= 3) boostBadge = 'BOOST_3';
+                        else if (monthsBoosting >= 2) boostBadge = 'BOOST_2';
+                        else if (monthsBoosting >= 1) boostBadge = 'BOOST_1';
+                        
+                        if (boostBadge) {
+                            result.profileBadges = result.profileBadges || [];
+                            result.profileBadges.push(boostBadge);
+                        }
+                    }
+                } catch (e) {
+                    console.log('🔍 Error calculating boost months:', e.message);
+                }
+            }
+            
             // Save avatar to history
             if (result.avatar) {
                 try {
