@@ -442,7 +442,7 @@ app.post('/api/search', async (req, res) => {
             
             // Check for nitro based on badges/flags
             if (result.flags) {
-                const nitroFlags = ['NITRO', 'NITRO_CLASSIC', 'NITRO_BASIC'];
+                const nitroFlags = ['NITRO', 'NITRO_CLASSIC', 'NITRO_BASIC', 'PREMIUM', 'PREMIUM_TIER_1', 'PREMIUM_TIER_2', 'PREMIUM_TIER_3', 'PREMIUM_GUILD'];
                 result.nitro = result.flags.some(f => nitroFlags.includes(f));
                 console.log('🔍 User flags found:', result.flags);
             }
