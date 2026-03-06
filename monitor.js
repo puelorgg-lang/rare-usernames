@@ -139,8 +139,8 @@ app.post('/api/search', async (req, res) => {
                     client.users.someUsers.delete(query);
                 }
                 
-                // Use Discord.js fetch which handles caching better
-                user = await client.users.fetch(query);
+                // Use Discord.js fetch which handles caching better - force fresh data
+                user = await client.users.fetch(query, { force: true });
             } catch (e) {
                 console.log(`🔍 Error fetching user ${query} via Discord.js:`, e.message);
                 
@@ -230,9 +230,9 @@ app.post('/api/search', async (req, res) => {
                 const userIdToFetch = cachedUser.id;
                 // Clear from cache first
                 client.users.cache.delete(cachedUser.id);
-                // Now fetch fresh data
+                // Now fetch fresh data - force bypass cache
                 try {
-                    user = await client.users.fetch(userIdToFetch);
+                    user = await client.users.fetch(userIdToFetch, { force: true });
                 } catch (e) {
                     user = cachedUser; // Fallback to cached if fetch fails
                 }
@@ -240,7 +240,8 @@ app.post('/api/search', async (req, res) => {
                 // If not found in cache or guilds, try to resolve via Discord API
                 try {
                     client.users.cache.delete(query);
-                    user = await client.users.fetch(query);
+                    // Force fresh fetch from Discord API
+                    user = await client.users.fetch(query, { force: true });
                 } catch (e) {
                     console.log(`🔍 User "${query}" not found in cache or via API`);
                 }
@@ -251,7 +252,8 @@ app.post('/api/search', async (req, res) => {
             // Always clear cache and fetch fresh data
             client.users.cache.delete(user.id);
             try {
-                user = await client.users.fetch(user.id);
+                // Force fresh fetch from Discord API
+                user = await client.users.fetch(user.id, { force: true });
             } catch (e) {
                 // Keep original if fetch fails
             }
