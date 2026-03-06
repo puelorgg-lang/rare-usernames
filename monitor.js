@@ -433,13 +433,9 @@ app.post('/api/search', async (req, res) => {
         } else {
             // User not found via selfbot - return error with helpful message
             console.log(`❌ NOT FOUND: "${query}" could not be found`);
-            res.status(404).json({ 
+            return res.status(404).json({ 
                 error: 'Usuário não encontrado. Verifique se o usuário existe ou se está em algum servidor em comum com o bot.' 
             });
-            
-            // If we get here, both methods failed
-            console.log(`❌ NOT FOUND: "${query}" could not be found`);
-            res.status(404).json({ error: 'Usuário não encontrado. Tente usar o ID do Discord ou certifique-se que o usuário está em algum servidor em comum com o bot.' });
         }
     } catch (error) {
         console.error('Search error:', error);
