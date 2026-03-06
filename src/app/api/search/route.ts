@@ -18,10 +18,11 @@ export async function GET(request: NextRequest) {
     console.log('📤 Sending search request to selfbot for:', query)
     console.log('🌐 Selfbot URL:', SELFBOT_URL)
     
-    const response = await fetch(`${SELFBOT_URL}/api/search`, {
+    const response = await fetch(`${SELFBOT_URL}/api/search?t=${Date.now()}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
       },
       body: JSON.stringify({
         query,
