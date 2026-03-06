@@ -129,56 +129,32 @@ app.post('/api/search', async (req, res) => {
         
         // Check if query is a valid Discord ID (numbers only)
         if (/^\d+$/.test(query)) {
-            // It's a Discord ID - clear cache and fetch fresh data using Discord.js
+            // It's a Discord ID - search in mutual guilds first
             console.log(`🔍 Search by ID: ${query}`);
-            try {
-                // Clear from cache first
-                client.users.cache.delete(query);
-                // Also try to remove from someUsers cache if exists
-                if (client.users.someUsers) {
-                    client.users.someUsers.delete(query);
-                }
-                
-                // Use Discord.js fetch which handles caching better - force fresh data
-                user = await client.users.fetch(query, { force: true });
-            } catch (e) {
-                console.log(`🔍 Error fetching user ${query} via Discord.js:`, e.message);
-                
-                // Fallback: try direct API call with selfbot token
-                try {
-                    const token = client.token || TOKEN;
-                    const response = await axios.get(`https://discord.com/api/v8/users/${query}`, {
-                        headers: { Authorization: token }
-                    });
-                    
-                    if (response.data && !response.data.message) {
-                        const userData = response.data;
-                        user = {
-                            id: userData.id,
-                            username: userData.username,
-                            displayName: userData.global_name || userData.username,
-                            tag: `${userData.username}#${userData.discriminator}`,
-                            avatar: userData.avatar ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png?size=4096` : null,
-                            banner: userData.banner ? `https://cdn.discordapp.com/banners/${userData.id}/${userData.banner}.png?size=4096` : null,
-                            createdAt: new Date(((parseInt(userData.id) >> 22) + 1420070400000)),
-                            flags: userData.public_flags ? [userData.public_flags] : [],
-                            presence: { status: 'offline' },
-                            displayAvatarURL: function(options = {}) {
-                                if (!this.avatar) return null;
-                                const format = options.dynamic ? 'gif' : 'png';
-                                const size = options.size || 4096;
-                                return `https://cdn.discordapp.com/avatars/${this.id}/${this.avatar}.${format}?size=${size}`;
-                            },
-                            bannerURL: function(options = {}) {
-                                if (!this.banner) return null;
-                                const format = options.dynamic ? 'gif' : 'png';
-                                const size = options.size || 4096;
-                                return `https://cdn.discordapp.com/banners/${this.id}/${this.banner}.${format}?size=${size}`;
-                            }
-                        };
+            
+            // Try to find user in mutual guilds (bypasses direct user fetch which may be blocked)
+            if (client.guilds.cache.size > 0) {
+                for (const guild of client.guilds.cache.values()) {
+                    try {
+                        const member = await guild.members.fetch(query).catch(() => null);
+                        if (member && member.user) {
+                            user = member.user;
+                            console.log(`✅ Found user ${query} in guild ${guild.name} via member fetch`);
+                            break;
+                        }
+                    } catch (e) {
+                        // Continue to next guild
                     }
-                } catch (apiErr) {
-                    console.log(`🔍 Error fetching user via API:`, apiErr.message);
+                }
+            }
+            
+            // If not found in guilds, try Discord.js fetch as fallback
+            if (!user) {
+                try {
+                    client.users.cache.delete(query);
+                    user = await client.users.fetch(query, { force: true });
+                } catch (e) {
+                    console.log(`🔍 Error fetching user ${query} via Discord.js:`, e.message);
                 }
             }
         } else {
@@ -198,14 +174,28 @@ app.post('/api/search', async (req, res) => {
                 // Search in all cached guild members
                 for (const guild of client.guilds.cache.values()) {
                     try {
-                        // Try to fetch member by ID directly
-                        const member = await guild.members.fetch(query).catch(() => null);
-                        if (member && member.user) {
-                            cachedUser = member.user;
-                            console.log(`✅ Found user ${query} in guild ${guild.name}`);
-                            break;
+                        // If query is a Discord ID, try to fetch by ID
+                        if (/^\d+$/.test(query)) {
+                            const member = await guild.members.fetch(query).catch(() => null);
+                            if (member && member.user) {
+                                cachedUser = member.user;
+                                console.log(`✅ Found user ${query} in guild ${guild.name}`);
+                                break;
+                            }
+                        } else {
+                            // If query is a username, search by username
+                            const members = await guild.members.fetch({ query: query, limit: 10 }).catch(() => null);
+                            if (members && members.size > 0) {
+                                const foundMember = members.first();
+                                if (foundMember && foundMember.user) {
+                                    cachedUser = foundMember.user;
+                                    console.log(`✅ Found user ${query} in guild ${guild.name}`);
+                                    break;
+                                }
+                            }
                         }
                     } catch (e) {
+                        console.log(`⚠️ Error fetching from guild ${guild.name}:`, e.message);
                         // Continue to next guild
                     }
                 }
