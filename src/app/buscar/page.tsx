@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle, Moon, Palette } from "lucide-react"
+import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle, Moon, Palette, Badge } from "lucide-react"
 
 type ProfileData = {
   userId: string
@@ -42,7 +42,6 @@ type ProfileData = {
 const searchOptions = [
   { id: "perfil", label: "Perfil", icon: UserCircle },
   { id: "avatares", label: "Avatares", icon: Image },
-  { id: "banners", label: "Banners", icon: Palette },
   { id: "mensagens", label: "Mensagens", icon: MessageCircle },
   { id: "chamadas", label: "Chamadas", icon: Phone },
   { id: "servidores", label: "Servidores", icon: Users },
@@ -51,6 +50,7 @@ const searchOptions = [
   { id: "interacoes", label: "Interações", icon: GitBranch },
   { id: "estatisticas", label: "Estatísticas", icon: BarChart3 },
   { id: "banimentos", label: "Banimentos", icon: Shield },
+  { id: "insignias", label: "Insígnias", icon: Badge },
 ]
 
 export default function BuscarPage() {
@@ -121,6 +121,27 @@ export default function BuscarPage() {
     if (!dateString) return "N/A"
     const date = new Date(dateString)
     return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
+  }
+
+  const getBadgeImage = (flag: string): string => {
+    const badgeUrls: Record<string, string> = {
+      "NITRO": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",
+      "NITRO_BASIC": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",
+      "NITRO_BOOST": "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg",
+      "ORBS_APPRENTICE": "https://github.com/mezotv/discord-badges/raw/main/assets/orb.svg",
+      "QUEST": "https://github.com/mezotv/discord-badges/raw/main/assets/quest.png",
+      "ORIGINALLY_KNOWN_AS": "https://github.com/mezotv/discord-badges/raw/main/assets/username.png",
+      "EARLY_SUPPORTER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordearlysupporter.svg",
+      "EARLY_VERIFIED_BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
+      "PARTNERED_SERVER_OWNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
+      "HYPESQUAD_BRILLIANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbrilliance.svg",
+      "HYPESQUAD_BRAVERY": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbravery.svg",
+      "HYPESQUAD_BALANCE": "https://github.com/mezotv/discord-badges/raw/main/assets/hypesquadbalance.svg",
+      "DISCORD_EMPLOYEE": "https://github.com/mezotv/discord-badges/raw/main/assets/staff.png",
+      "DISCORD_PARTNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
+      "VERIFIED_BOT": "https://github.com/mezotv/discord-badges/raw/main/assets/verifiedbot.svg",
+    }
+    return badgeUrls[flag.toUpperCase()] || "https://github.com/mezotv/discord-badges/raw/main/assets/discordnitro.svg"
   }
 
   const fetchAvatarHistory = async (discordId: string) => {
@@ -382,38 +403,32 @@ export default function BuscarPage() {
                   </Card>
                 </TabsContent>
 
-                {/* Banners Tab */}
-                <TabsContent value="banners" className="mt-4">
+                {/* Insígnias Tab */}
+                <TabsContent value="insignias" className="mt-4">
                   <Card className="glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Palette className="h-5 w-5" />
-                        Histórico de Banners
+                        <Badge className="h-5 w-5" />
+                        Insígnias do Usuário
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-center mb-4">
-                        <p className="text-muted-foreground">Total de banners: {bannerHistory.length}</p>
-                      </div>
-                      
-                      {bannerHistory.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {bannerHistory.map((banner: any, index: number) => (
-                            <div key={index} className="p-3 rounded-lg bg-white/5">
+                      {result.flags && result.flags.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {result.flags.map((flag: string, index: number) => (
+                            <div key={index} className="p-4 rounded-lg bg-white/5 flex flex-col items-center gap-2">
                               <img 
-                                src={banner.bannerUrl} 
-                                alt="Banner" 
-                                className="w-full h-auto rounded-lg"
+                                src={getBadgeImage(flag)} 
+                                alt={flag} 
+                                className="h-12 w-12"
                               />
-                              <p className="text-xs text-muted-foreground mt-2 text-center">
-                                {formatDate(banner.changedAt)}
-                              </p>
+                              <p className="text-xs text-center text-muted-foreground">{flag}</p>
                             </div>
                           ))}
                         </div>
                       ) : (
                         <p className="text-muted-foreground text-center py-8">
-                          Nenhum histórico de banner encontrado
+                          Nenhuma insígnia encontrada
                         </p>
                       )}
                     </CardContent>

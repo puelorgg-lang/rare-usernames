@@ -122,6 +122,11 @@ app.post('/api/search', async (req, res) => {
     
     console.log(`🔍 Starting search for: ${query} (client ready: ${client.isReady()})`);
 
+    // Set a timeout to prevent hanging requests
+    const searchTimeout = setTimeout(() => {
+        console.log(`⏱️ Search timeout for ${query}`);
+    }, 45000); // 45 second timeout
+
     try {
         // Use selfbot to fetch user directly - with better error handling
         let user = null;
@@ -424,16 +429,19 @@ app.post('/api/search', async (req, res) => {
             }
             
             res.json(result);
+            clearTimeout(searchTimeout);
             console.log(`📤 Returning result for: ${user.username} - Avatar: ${result.avatar ? 'YES' : 'NO'}`);
         } else {
             // User not found via selfbot - return error with helpful message
             console.log(`❌ NOT FOUND: "${query}" could not be found`);
+            clearTimeout(searchTimeout);
             return res.status(404).json({ 
-                error: 'Usuário não encontrado. Verifique se o usuário existe ou se está em algum servidor em comum com o bot.' 
+                error: 'Usuário não encontrado. O usuário deve estar em algum servidor em comum com o bot para ser encontrado.' 
             });
         }
     } catch (error) {
         console.error('Search error:', error);
+        clearTimeout(searchTimeout);
         res.status(500).json({ error: error.message });
     }
 });
