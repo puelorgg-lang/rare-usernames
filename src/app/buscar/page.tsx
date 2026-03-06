@@ -312,7 +312,12 @@ export default function BuscarPage() {
                         <img 
                           src={result.avatar} 
                           alt="Avatar" 
-                          className="h-32 w-32 rounded-full border-4 border-[#0b0b0d]"
+                          className={`h-32 w-32 rounded-full border-4 ${
+                            result.status === 'online' ? 'border-green-500' :
+                            result.status === 'idle' ? 'border-yellow-500' :
+                            result.status === 'dnd' ? 'border-red-500' :
+                            'border-gray-500'
+                          }`}
                         />
                         {/* Status indicator - border only, no colored dot */}
                         <span className="absolute bottom-0 right-0 h-6 w-6 rounded-full border-4 border-[#0b0b0d] flex items-center justify-center bg-transparent">
