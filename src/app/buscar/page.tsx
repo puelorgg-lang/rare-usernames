@@ -356,6 +356,11 @@ export default function BuscarPage() {
                           <p className="text-sm font-medium">Atividade:</p>
                           {result.activities.map((activity: any, index: number) => (
                             <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
+                              <img 
+                                src="https://media.discordapp.net/attachments/1475997278714986647/1479314993068380160/Screenshot_28__1_-removebg-preview.png?ex=69ab96f2&is=69aa4572&hm=8214d871b4ff0828d008fb9ee9c71dfd2e7890510d4f34db62291a4fed0a1df8&=&format=webp&quality=lossless"
+                                alt="Discord"
+                                className="h-10 w-10 rounded"
+                              />
                               {activity.assets?.largeImage && (
                                 <img 
                                   src={activity.assets.largeImage} 
