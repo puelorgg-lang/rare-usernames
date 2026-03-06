@@ -447,6 +447,21 @@ app.post('/api/search', async (req, res) => {
                 console.log('🔍 User flags found:', result.flags);
             }
             
+            // Log Discord.js user object properties for debugging
+            console.log('🔍 Discord.js user properties:', {
+                id: user.id,
+                username: user.username,
+                discriminator: user.discriminator,
+                tag: user.tag,
+                flags: user.flags ? user.flags.toArray() : [],
+                flagsRaw: user.flags ? user.flags.bitfield : null,
+                bot: user.bot,
+                system: user.system,
+                createdAt: user.createdAt,
+                displayAvatarURL: user.displayAvatarURL(),
+                bannerURL: user.bannerURL ? user.bannerURL() : null,
+            });
+            
             // Log profile badges
             if (result.profileBadges && result.profileBadges.length > 0) {
                 console.log('🔍 Profile badges found:', result.profileBadges);
