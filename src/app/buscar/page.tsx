@@ -175,7 +175,6 @@ export default function BuscarPage() {
       "BOT_DEVELOPER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordbotdev.svg",
       
       // Partnered server owner
-      "PARTNERED_SERVER_OWNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
       "PARTNERED": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
       "SERVER_PARTNER": "https://github.com/mezotv/discord-badges/raw/main/assets/discordpartner.svg",
       
