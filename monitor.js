@@ -1400,86 +1400,61 @@ client.on('messageCreate', async (message) => {
     if (feedChannels.includes(channelIdStr)) {
         const category = FEED_CHANNEL_CATEGORY_MAP[channelIdStr] || 'FEED';
         
-        console.log(`📥 Mensagem no canal de feed ${channelIdStr} (${category}): content="${(message.content||'').substring(0,100)}" embeds=${message.embeds?.length||0}`);
+        console.log(`📥 Mensagem no canal de feed ${channelIdStr} (${category})`);
         
-        // Check if message has embeds
-        if (message.embeds && message.embeds.length > 0) {
-            const embed = message.embeds[0];
-            console.log(`📥 Embed title: "${embed.title||'none'}" description: "${(embed.description||'').substring(0,100)}"`);
-            let username = null;
-            
-            const title = embed.title || '';
-            const description = embed.description || '';
-            
-            let fieldContent = '';
-            if (embed.fields && embed.fields.length > 0) {
-                for (const field of embed.fields) {
-                    fieldContent += (field.name || '') + ' ' + (field.value || '') + ' ';
-                }
-            }
-            
-            const allText = title + ' ' + description + ' ' + fieldContent;
-            console.log(`📥 All text for regex: "${allText.substring(0,200)}"`);
-            
-            const usernameMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
-            
-            if (usernameMatch) {
-                username = usernameMatch[1].toLowerCase();
-                console.log(`📥 Username encontrado no embed: ${username}`);
-                
-                try {
-                    await axios.post(`${SITE_URL}/api/usernames`, {
-                        name: username,
-                        platform: 'discord',
-                        category: category
-                    });
-                    console.log(`✅ Enviado: ${username} para ${category}`);
-                } catch (err) {
-                    console.log(`❌ Erro ao enviar ${username}: ${err.message}`);
-                }
-            }
+        // Extract ALL usernames/messages from the channel - capture anything that looks like a username
+        // This captures content between ``` ``` or just plain text messages
+        const messageText = message.content || '';
+        const embedText = message.embeds?.map(e => `${e.title || ''} ${e.description || ''} ${e.fields?.map(f => `${f.name} ${f.value}`).join(' ')}`).join(' ') || '';
+        const allText = messageText + ' ' + embedText;
+        
+        // Try multiple patterns to catch usernames
+        let usernames = [];
+        
+        // Pattern 1: ```username```
+        const backtickMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/g);
+        if (backtickMatch) {
+            backtickMatch.forEach(m => {
+                const username = m.replace(/```/g, '').toLowerCase();
+                if (!usernames.includes(username)) usernames.push(username);
+            });
         }
         
-        const messageContent = message.content || '';
-        console.log(`📥 Verificando content: "${messageContent.substring(0,200)}"`);
-        if (messageContent.includes('```')) {
-            const contentMatch = messageContent.match(/```([a-zA-Z0-9_\.\-]+)```/);
-            if (contentMatch) {
-                const username = contentMatch[1].toLowerCase();
-                console.log(`📥 Username encontrado no content: ${username}`);
-                
-                try {
-                    await axios.post(`${SITE_URL}/api/usernames`, {
-                        name: username,
-                        platform: 'discord',
-                        category: category
-                    });
-                    console.log(`✅ Enviado: ${username} para ${category}`);
-                } catch (err) {
-                    console.log(`❌ Erro ao enviar ${username}: ${err.message}`);
-                }
-            }
+        // Pattern 2: **username** (bold)
+        const boldMatch = allText.match(/\*\*([a-zA-Z0-9_\.\-]+)\*\*/g);
+        if (boldMatch) {
+            boldMatch.forEach(m => {
+                const username = m.replace(/\*\*/g, '').toLowerCase();
+                if (!usernames.includes(username) && username.length >= 2) usernames.push(username);
+            });
         }
         
-        // Fallback: try to find any word that looks like a username in the message
-        // This catches cases where the format might be different
-        const fallbackMatch = (message.content || '').match(/\b([a-zA-Z0-9_\.\-]{2,32})\b/);
-        if (fallbackMatch && !message.content?.includes('```')) {
-            const potentialUsername = fallbackMatch[1].toLowerCase();
-            // Filter out common words that aren't usernames
-            const commonWords = ['discord', 'google', 'microsoft', 'twitter', 'instagram', 'github', 'available', 'taken', 'username', 'user', 'null', 'undefined', 'null'];
-            if (!commonWords.includes(potentialUsername) && potentialUsername.length >= 2) {
-                console.log(`📥 Potential username found (fallback): ${potentialUsername}`);
-                try {
-                    await axios.post(`${SITE_URL}/api/usernames`, {
-                        name: potentialUsername,
-                        platform: 'discord',
-                        category: category
-                    });
-                    console.log(`✅ Enviado (fallback): ${potentialUsername} para ${category}`);
-                } catch (err) {
-                    console.log(`❌ Erro ao enviar ${potentialUsername}: ${err.message}`);
+        // Pattern 3: Plain words that look like usernames (2-20 chars, alphanumeric + _.-)
+        const plainMatch = allText.match(/\b([a-zA-Z0-9][a-zA-Z0-9_\.\-]{1,19})\b/g);
+        if (plainMatch) {
+            plainMatch.forEach(m => {
+                const username = m.toLowerCase();
+                // Filter out common words
+                const commonWords = ['discord', 'google', 'microsoft', 'twitter', 'instagram', 'github', 'available', 'taken', 'username', 'user', 'null', 'undefined', 'bot', 'online', 'offline', 'idle', 'dnd', 'none', 'http', 'https', 'www', 'com', 'net', 'org', 'tv', 'co'];
+                if (!commonWords.includes(username) && !usernames.includes(username) && username.length >= 2 && username.length <= 20) {
+                    usernames.push(username);
                 }
+            });
+        }
+        
+        console.log(`📥 Encontrados ${usernames.length} potenciales usernames: ${usernames.join(', ')}`);
+        
+        // Send each username to the site
+        for (const username of usernames) {
+            try {
+                await axios.post(`${SITE_URL}/api/usernames`, {
+                    name: username,
+                    platform: 'discord',
+                    category: category
+                });
+                console.log(`✅ Enviado: ${username} para ${category}`);
+            } catch (err) {
+                console.log(`❌ Erro ao enviar ${username}: ${err.message}`);
             }
         }
         
