@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { ArrowRight, Hash, Globe, Ghost, Sparkles, TrendingUp, Clock, CheckCircle2 } from "lucide-react"
+import { ArrowRight, Hash, Globe, Ghost, Sparkles, TrendingUp, Clock, CheckCircle2, Lock } from "lucide-react"
 import prisma from "@/lib/prisma"
 import { CATEGORY_LABELS, Category } from "@/lib/constants"
 import { AutoRefresh } from "@/components/dashboard/auto-refresh"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { isPremiumUser, FREE_CATEGORIES, PREMIUM_CATEGORIES } from "@/lib/subscription"
 
 // Força atualização a cada requisição
 export const dynamic = 'force-dynamic'
@@ -21,7 +22,6 @@ const premiumCategories = [
 
 const freeCategories = [
   { id: "feed", name: "Feed", description: "Nomes encontrados no feed.", icon: <Globe className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
-  // New Free Channels
   { id: "4c", name: "4C", description: "4 Character combinations.", icon: <Hash className="h-6 w-6 text-purple-400" />, color: "border-purple-500/20 bg-purple-500/5 hover:border-purple-500/50" },
   { id: "pt_br_2", name: "PT-BR", description: "Palavras em Português Brasileiro.", icon: <Globe className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
   { id: "ponctuated", name: "Ponctuated", description: "Nomes com pontuação.", icon: <Hash className="h-6 w-6 text-pink-400" />, color: "border-pink-500/20 bg-pink-500/5 hover:border-pink-500/50" },
@@ -35,14 +35,26 @@ const freeCategories = [
 ]
 
 export default async function DashboardPage() {
+  // Get current user and check premium status
+  const isPremium = await isPremiumUser()
+  
+  // Get latest usernames based on subscription
+  // Free users: only see FREE_CATEGORIES
+  // Premium users: see ALL categories
   const latestUsernames = await prisma.username.findMany({
-    where: { status: "AVAILABLE" },
+    where: { 
+      status: "AVAILABLE",
+      ...(isPremium ? {} : { category: { in: FREE_CATEGORIES } })
+    },
     take: 4,
     orderBy: { foundAt: "desc" },
   })
 
   const totalAvailable = await prisma.username.count({
-    where: { status: "AVAILABLE" },
+    where: { 
+      status: "AVAILABLE",
+      ...(isPremium ? {} : { category: { in: FREE_CATEGORIES } })
+    },
   })
 
   return (
@@ -84,7 +96,7 @@ export default async function DashboardPage() {
                 {u.name}
               </div>
               <div className="mt-2 text-xs text-muted-foreground truncate">
-                {CATEGORY_LABELS[u.category as Category]}
+                {CATEGORY_LABELS[u.category as Category] || u.category}
               </div>
             </div>
           ))}
@@ -96,45 +108,49 @@ export default async function DashboardPage() {
         </div>
       </div>
       
-      <Tabs defaultValue="premium" className="w-full">
+      <Tabs defaultValue={isPremium ? "premium" : "free"} className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-white/5 mb-6">
-          <TabsTrigger value="premium" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-            <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
-            Premium
-          </TabsTrigger>
+          {isPremium && (
+            <TabsTrigger value="premium" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
+              Premium
+            </TabsTrigger>
+          )}
           <TabsTrigger value="free" className="data-[state=active]:bg-primary data-[state=active]:text-white">
             <Globe className="mr-2 h-4 w-4 text-green-500" />
             Free
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="premium" className="space-y-4">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {premiumCategories.map((category) => (
-              <Link href={`/dashboard/category/${category.id}`} key={category.id}>
-                <Card className={`h-full transition-all duration-300 hover:-translate-y-1 ${category.color} glass-card border backdrop-blur-sm group`}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div className="p-2 rounded-lg bg-background/50 border border-white/5 group-hover:bg-white/10 transition-colors">
-                      {category.icon}
-                    </div>
-                    <Badge variant="outline" className="bg-background/50 border-white/10 text-xs">
-                      <Sparkles className="mr-1 h-3 w-3 text-yellow-500" /> Explorar
-                    </Badge>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <CardTitle className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{category.name}</CardTitle>
-                    <div className="text-sm text-muted-foreground mb-6 h-10">
-                      {category.description}
-                    </div>
-                    <div className="flex items-center text-sm font-medium text-foreground/80 group-hover:text-primary transition-colors">
-                      Ver Lista <ArrowRight className="ml-2 h-4 w-4 opacity-50 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </TabsContent>
+        {isPremium && (
+          <TabsContent value="premium" className="space-y-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {premiumCategories.map((category) => (
+                <Link href={`/dashboard/category/${category.id}`} key={category.id}>
+                  <Card className={`h-full transition-all duration-300 hover:-translate-y-1 ${category.color} glass-card border backdrop-blur-sm group`}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <div className="p-2 rounded-lg bg-background/50 border border-white/5 group-hover:bg-white/10 transition-colors">
+                        {category.icon}
+                      </div>
+                      <Badge variant="outline" className="bg-background/50 border-white/10 text-xs">
+                        <Sparkles className="mr-1 h-3 w-3 text-yellow-500" /> Explorar
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <CardTitle className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{category.name}</CardTitle>
+                      <div className="text-sm text-muted-foreground mb-6 h-10">
+                        {category.description}
+                      </div>
+                      <div className="flex items-center text-sm font-medium text-foreground/80 group-hover:text-primary transition-colors">
+                        Ver Lista <ArrowRight className="ml-2 h-4 w-4 opacity-50 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </TabsContent>
+        )}
         
         <TabsContent value="free" className="space-y-4">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

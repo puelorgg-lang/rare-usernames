@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma"
 import { Category, CATEGORIES } from "@/lib/constants"
 import { redirect } from "next/navigation"
 import { AutoRefresh } from "@/components/dashboard/auto-refresh"
+import { isPremiumUser, PREMIUM_CATEGORIES } from "@/lib/subscription"
 
 // Força atualização a cada requisição
 export const dynamic = 'force-dynamic'
@@ -18,7 +19,7 @@ const SLUG_TO_CATEGORY_MAP: Record<string, string> = {
   'random': 'RANDOM',
   // Free
   'feed': 'FEED',
-  // New Premium channels
+  // New Free channels
   '4c': '4C',
   'pt_br_2': 'PT_BR_2',
   'ponctuated': 'PONCTUATED',
@@ -47,6 +48,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   
   // Get the category from slug or use the slug directly if it's a valid category
   const category = SLUG_TO_CATEGORY_MAP[slug] || slug.toUpperCase()
+  
+  // Check if user is premium
+  const isPremium = await isPremiumUser()
+  
+  // If category is premium and user is not premium, redirect
+  if (PREMIUM_CATEGORIES.includes(category) && !isPremium) {
+    redirect("/dashboard/subscription")
+  }
   
   // Validate if category is a valid category
   const validCategories = [...Object.values(CATEGORIES), '4C', 'PT_BR_2', 'PONCTUATED', 'EN_US_2', 'REPEATERS', 'FACE', '4L', '3C', '4N', '3L']
