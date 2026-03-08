@@ -26,8 +26,21 @@ const botClient = new Client({
 let prisma = null;
 let lastCheckedId = null;
 
-// Void Usernames channel to monitor
-const VOID_USERNAMES_CHANNEL_ID = '1418700979687133394';
+// Void Usernames channels to monitor
+const VOID_USERNAMES_CHANNELS = [
+  '1418700979687133394', // Feed original
+  // New Free Channels
+  '1418701271107375124', // 4C
+  '1418701479107235940', // PT-BR
+  '1418701413298733117', // PONCTUATED
+  '1418701441073414329', // EN-US
+  '1418701383892209836', // REPEATERS
+  '1418701360790245436', // FACE
+  '1418701299733627041', // 4L
+  '1418701324979011777', // 3C
+  '1418701237691486238', // 4N
+  '1418701343052398643', // 3L
+];
 
 // In-memory channel configs
 const channelConfigs = new Map();
@@ -40,7 +53,18 @@ const CATEGORY_MAP = {
   'EN_US': 'en',
   'PT_BR': 'pt',
   'RANDOM': 'random',
-  'FEED': 'feed'
+  'FEED': 'feed',
+  // New Free Categories
+  '4C': '4c_new',
+  'PT_BR_2': 'pt_br',
+  'PONCTUATED': 'ponctuated',
+  'EN_US_2': 'en_us',
+  'REPEATERS': 'repeaters',
+  'FACE': 'face',
+  '4L': '4l',
+  '3C': '3c_new',
+  '4N': '4n',
+  '3L': '3l',
 };
 
 const PLATFORM_MAP = {
@@ -162,11 +186,27 @@ botClient.on('ready', async () => {
   console.log(`📊 Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
 });
 
-// Monitor Void Usernames channel
+// Monitor Void Usernames channels
 botClient.on('messageCreate', async (message) => {
-  // Only process messages from Void Usernames channel
-  if (message.channelId === VOID_USERNAMES_CHANNEL_ID) {
-    console.log('📬 New message from Void Usernames channel');
+  // Only process messages from Void Usernames channels
+  if (VOID_USERNAMES_CHANNELS.includes(message.channelId)) {
+    console.log('📬 New message from Void/Free channel: ' + message.channelId);
+    
+    // Get category for this channel
+    const CHANNEL_CATEGORY_MAP = {
+      '1418700979687133394': 'FEED',
+      '1418701271107375124': '4C',
+      '1418701479107235940': 'PT_BR_2',
+      '1418701413298733117': 'PONCTUATED',
+      '1418701441073414329': 'EN_US_2',
+      '1418701383892209836': 'REPEATERS',
+      '1418701360790245436': 'FACE',
+      '1418701299733627041': '4L',
+      '1418701324979011777': '3C',
+      '1418701237691486238': '4N',
+      '1418701343052398643': '3L',
+    };
+    const category = CHANNEL_CATEGORY_MAP[message.channelId] || 'FEED';
     
     // Check if message has embeds
     if (message.embeds && message.embeds.length > 0) {
@@ -205,7 +245,7 @@ botClient.on('messageCreate', async (message) => {
                 data: {
                   name: username,
                   platform: 'DISCORD',
-                  category: 'FEED',
+                  category: category,
                   status: 'AVAILABLE',
                   foundAt: new Date()
                 }
@@ -239,7 +279,7 @@ botClient.on('messageCreate', async (message) => {
                 data: {
                   name: username,
                   platform: 'DISCORD',
-                  category: 'FEED',
+                  category: category,
                   status: 'AVAILABLE',
                   foundAt: new Date()
                 }
@@ -308,7 +348,18 @@ botClient.on('messageCreate', async (message) => {
       'en': 'EN_US',
       'pt': 'PT_BR',
       'random': 'RANDOM',
-      'feed': 'FEED'
+      'feed': 'FEED',
+      // New Free Categories
+      '4c_new': '4C',
+      'pt_br': 'PT_BR_2',
+      'ponctuated': 'PONCTUATED',
+      'en_us': 'EN_US_2',
+      'repeaters': 'REPEATERS',
+      'face': 'FACE',
+      '4l': '4L',
+      '3c_new': '3C',
+      '4n': '4N',
+      '3l': '3L',
     };
     
     const PLATFORM_FULL = {

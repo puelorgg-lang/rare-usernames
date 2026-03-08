@@ -22,7 +22,9 @@ const ALLOWED_CHANNEL_IDS = [
     '1420065886928244756', // ptbr
     '1420065898370175038', // enus
     '1420065909611036863', // random
-    // New Premium Channels
+    // Feed Channel
+    '1418700979687133394', // Feed/Void
+    // New Free Channels
     '1418701271107375124', // 4C
     '1418701479107235940', // PT-BR
     '1418701413298733117', // PONCTUATED
