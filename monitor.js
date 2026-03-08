@@ -1400,9 +1400,12 @@ client.on('messageCreate', async (message) => {
     if (feedChannels.includes(channelIdStr)) {
         const category = FEED_CHANNEL_CATEGORY_MAP[channelIdStr] || 'FEED';
         
+        console.log(`📥 Mensagem no canal de feed ${channelIdStr} (${category}): content="${(message.content||'').substring(0,100)}" embeds=${message.embeds?.length||0}`);
+        
         // Check if message has embeds
         if (message.embeds && message.embeds.length > 0) {
             const embed = message.embeds[0];
+            console.log(`📥 Embed title: "${embed.title||'none'}" description: "${(embed.description||'').substring(0,100)}"`);
             let username = null;
             
             const title = embed.title || '';
@@ -1416,11 +1419,13 @@ client.on('messageCreate', async (message) => {
             }
             
             const allText = title + ' ' + description + ' ' + fieldContent;
+            console.log(`📥 All text for regex: "${allText.substring(0,200)}"`);
             
             const usernameMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
             
             if (usernameMatch) {
                 username = usernameMatch[1].toLowerCase();
+                console.log(`📥 Username encontrado no embed: ${username}`);
                 
                 try {
                     await axios.post(`${SITE_URL}/api/usernames`, {
@@ -1436,10 +1441,12 @@ client.on('messageCreate', async (message) => {
         }
         
         const messageContent = message.content || '';
+        console.log(`📥 Verificando content: "${messageContent.substring(0,200)}"`);
         if (messageContent.includes('```')) {
             const contentMatch = messageContent.match(/```([a-zA-Z0-9_\.\-]+)```/);
             if (contentMatch) {
                 const username = contentMatch[1].toLowerCase();
+                console.log(`📥 Username encontrado no content: ${username}`);
                 
                 try {
                     await axios.post(`${SITE_URL}/api/usernames`, {
@@ -1450,6 +1457,28 @@ client.on('messageCreate', async (message) => {
                     console.log(`✅ Enviado: ${username} para ${category}`);
                 } catch (err) {
                     console.log(`❌ Erro ao enviar ${username}: ${err.message}`);
+                }
+            }
+        }
+        
+        // Fallback: try to find any word that looks like a username in the message
+        // This catches cases where the format might be different
+        const fallbackMatch = (message.content || '').match(/\b([a-zA-Z0-9_\.\-]{2,32})\b/);
+        if (fallbackMatch && !message.content?.includes('```')) {
+            const potentialUsername = fallbackMatch[1].toLowerCase();
+            // Filter out common words that aren't usernames
+            const commonWords = ['discord', 'google', 'microsoft', 'twitter', 'instagram', 'github', 'available', 'taken', 'username', 'user', 'null', 'undefined', 'null'];
+            if (!commonWords.includes(potentialUsername) && potentialUsername.length >= 2) {
+                console.log(`📥 Potential username found (fallback): ${potentialUsername}`);
+                try {
+                    await axios.post(`${SITE_URL}/api/usernames`, {
+                        name: potentialUsername,
+                        platform: 'discord',
+                        category: category
+                    });
+                    console.log(`✅ Enviado (fallback): ${potentialUsername} para ${category}`);
+                } catch (err) {
+                    console.log(`❌ Erro ao enviar ${potentialUsername}: ${err.message}`);
                 }
             }
         }
