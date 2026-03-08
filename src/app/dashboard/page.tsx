@@ -111,12 +111,12 @@ export default async function DashboardPage() {
       <Tabs defaultValue={isPremium ? "premium" : "free"} className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-white/5 mb-6">
           {isPremium && (
-            <TabsTrigger value="premium" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            <TabsTrigger value="premium" className="data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=active]:font-bold">
               <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
               Premium
             </TabsTrigger>
           )}
-          <TabsTrigger value="free" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+          <TabsTrigger value="free" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
             <Globe className="mr-2 h-4 w-4 text-green-500" />
             Free
           </TabsTrigger>
