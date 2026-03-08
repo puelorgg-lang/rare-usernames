@@ -17,7 +17,11 @@ const premiumCategories = [
   { id: "pt_br", name: "Palavras PT-BR", description: "Melhores palavras em Português.", icon: <Globe className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
   { id: "en_us", name: "Palavras EN-US", description: "Palavras premium do dicionário inglês.", icon: <Globe className="h-6 w-6 text-blue-400" />, color: "border-blue-500/20 bg-blue-500/5 hover:border-blue-500/50" },
   { id: "random", name: "Aleatórios", description: "Descobertas únicas e legais.", icon: <Ghost className="h-6 w-6 text-white" />, color: "border-white/20 bg-white/5 hover:border-white/50" },
-  // New Premium Channels
+]
+
+const freeCategories = [
+  { id: "feed", name: "Feed", description: "Nomes encontrados no feed.", icon: <Globe className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
+  // New Free Channels
   { id: "4c", name: "4C", description: "4 Character combinations.", icon: <Hash className="h-6 w-6 text-purple-400" />, color: "border-purple-500/20 bg-purple-500/5 hover:border-purple-500/50" },
   { id: "pt_br_2", name: "PT-BR", description: "Palavras em Português Brasileiro.", icon: <Globe className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
   { id: "ponctuated", name: "Ponctuated", description: "Nomes com pontuação.", icon: <Hash className="h-6 w-6 text-pink-400" />, color: "border-pink-500/20 bg-pink-500/5 hover:border-pink-500/50" },
@@ -28,10 +32,6 @@ const premiumCategories = [
   { id: "3c", name: "3C", description: "3 Caracteres.", icon: <Hash className="h-6 w-6 text-orange-400" />, color: "border-orange-500/20 bg-orange-500/5 hover:border-orange-500/50" },
   { id: "4n", name: "4N", description: "4 Números.", icon: <Hash className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
   { id: "3l", name: "3L", description: "3 Letras.", icon: <Hash className="h-6 w-6 text-red-400" />, color: "border-red-500/20 bg-red-500/5 hover:border-red-500/50" },
-]
-
-const freeCategories = [
-  { id: "feed", name: "Feed", description: "Nomes encontrados no feed.", icon: <Globe className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
 ]
 
 export default async function DashboardPage() {
