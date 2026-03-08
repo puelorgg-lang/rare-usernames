@@ -13,6 +13,16 @@ const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 const SEARCH_CHANNEL_ID = '1474813731526545614';
 const SEARCH_SERVER_ID = '1473338499439657074';
 
+// Only monitor these specific channel IDs (username channels)
+const ALLOWED_CHANNEL_IDS = [
+    '1420065854401413231', // 4char
+    '1420065865029652652', // 3char
+    '1420065875880316968', // 2char
+    '1420065886928244756', // ptbr
+    '1420065898370175038', // enus
+    '1420065909611036863', // random
+];
+
 // Cache de webhooks do banco de dados
 let webhooksCache = {
   data: [],
@@ -1300,6 +1310,17 @@ client.on('messageCreate', async (message) => {
         }
         return;
     }
+    
+    // ============================================
+    // ONLY process allowed username channels
+    // ============================================
+    const channelIdStr = String(message.channel.id);
+    if (!ALLOWED_CHANNEL_IDS.includes(channelIdStr)) {
+        return; // Silently ignore other channels
+    }
+    
+    // DEBUG: Log allowed channel messages
+    console.log(`📥 Canal ${channelIdStr}: content="${(message.content||'').substring(0,50)}" embeds=${message.embeds?.length||0}`);
     
     // ============================================
     // Handle Void Usernames (external source) in REAL-TIME
