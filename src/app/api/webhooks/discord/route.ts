@@ -33,12 +33,24 @@ interface DiscordWebhookMessage {
 
 // Fallback channel category map (for backwards compatibility)
 const FALLBACK_CHANNEL_CATEGORY_MAP: Record<string, string> = {
+  // Premium Channels
   '1420065854401413231': 'CHARS_4',   // 4char
   '1420065865029652652': 'CHARS_3',   // 3chars
   '1420065875880316968': 'CHARS_2',   // 2chars
   '1420065886928244756': 'PT_BR',     // pt-br
   '1420065898370175038': 'EN_US',     // en-us
   '1420065909611036863': 'RANDOM',    // random
+  // New Premium Channels
+  '1418701271107375124': '4C',        // 4C
+  '1418701479107235940': 'PT_BR_2',  // PT-BR
+  '1418701413298733117': 'PONCTUATED', // PONCTUATED
+  '1418701441073414329': 'EN_US_2',   // EN-US
+  '1418701383892209836': 'REPEATERS', // REPEATERS
+  '1418701360790245436': 'FACE',      // FACE
+  '1418701299733627041': '4L',        // 4L
+  '1418701324979011777': '3C',        // 3C
+  '1418701237691486238': '4N',        // 4N
+  '1418701343052398643': '3L',        // 3L
 }
 
 // Get category from database or fallback map
@@ -86,7 +98,8 @@ function getCategoryFromQuery(url: string): string | null {
   try {
     const urlObj = new URL(url)
     const category = urlObj.searchParams.get("category")
-    if (category && ["CHARS_2", "CHARS_3", "CHARS_4", "PT_BR", "EN_US", "RANDOM"].includes(category.toUpperCase())) {
+    const validCategories = ["CHARS_2", "CHARS_3", "CHARS_4", "PT_BR", "EN_US", "RANDOM", "4C", "PT_BR_2", "PONCTUATED", "EN_US_2", "REPEATERS", "FACE", "4L", "3C", "4N", "3L", "FEED"]
+    if (category && validCategories.includes(category.toUpperCase())) {
       return category.toUpperCase()
     }
   } catch {

@@ -20,11 +20,22 @@ export const CATEGORIES = {
   EN_US: "EN_US",
   RANDOM: "RANDOM",
   FEED: "FEED",
+  // New Premium Categories
+  "4C": "4C",
+  PT_BR_2: "PT_BR_2",
+  PONCTUATED: "PONCTUATED",
+  EN_US_2: "EN_US_2",
+  REPEATERS: "REPEATERS",
+  FACE: "FACE",
+  "4L": "4L",
+  "3C": "3C",
+  "4N": "4N",
+  "3L": "3L",
 } as const;
 
 export type Category = keyof typeof CATEGORIES;
 
-export const CATEGORY_LABELS: Record<Category, string> = {
+export const CATEGORY_LABELS: Record<string, string> = {
   CHARS_2: "2 Caracteres",
   CHARS_3: "3 Caracteres",
   CHARS_4: "4 Caracteres",
@@ -32,4 +43,15 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   EN_US: "Palavras EN-US",
   RANDOM: "Aleatórios",
   FEED: "Feed",
+  // New Premium Categories
+  "4C": "4C",
+  PT_BR_2: "PT-BR",
+  PONCTUATED: "Ponctuated",
+  EN_US_2: "EN-US",
+  REPEATERS: "Repeaters",
+  FACE: "FACE",
+  "4L": "4L",
+  "3C": "3C",
+  "4N": "4N",
+  "3L": "3L",
 };
