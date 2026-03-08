@@ -11,12 +11,13 @@ export async function getSession() {
 export async function getCurrentUser() {
   const session = await getSession()
   
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     return null
   }
   
+  // Find user by discord ID (stored as id in session)
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email }
+    where: { discordId: session.user.id }
   })
   
   return user
