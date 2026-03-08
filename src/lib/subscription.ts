@@ -24,6 +24,30 @@ export async function getCurrentUser() {
 }
 
 export async function isPremiumUser(): Promise<boolean> {
+  // First check session directly for faster response
+  const session = await getServerSession(authOptions)
+  
+  // If no session, user is not premium
+  if (!session) {
+    return false
+  }
+  
+  // If session has subscriptionStatus, check it first
+  const subscriptionStatus = (session.user as any)?.subscriptionStatus
+  const subscriptionExpiresAt = (session.user as any)?.subscriptionExpiresAt
+  
+  if (subscriptionStatus === "ACTIVE") {
+    // Check if expired
+    if (subscriptionExpiresAt) {
+      const expires = new Date(subscriptionExpiresAt)
+      if (expires < new Date()) {
+        return false // Expired
+      }
+    }
+    return true // Active and not expired
+  }
+  
+  // Fallback to database check
   const user = await getCurrentUser()
   
   if (!user) {
