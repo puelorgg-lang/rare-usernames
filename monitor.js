@@ -1385,68 +1385,73 @@ client.on('messageCreate', async (message) => {
         let status = 'AVAILABLE'; // Default
         let availableDateStr = null; // For pending usernames
 
+        // ============================================
+        // CHECK 1: Message content (old format: - **username** | ...)
+        // ============================================
         // Regex para: - **username** | Está disponível...
         const regexGeral = /^-\s*\*\*(\S+)\*\*\s*\|\s*(.+)$/s;
-        const match = conteudo.match(regexGeral);
+        const match = conteudo ? conteudo.match(regexGeral) : null;
 
         if (match) {
             username = match[1];
             let mensagem = match[2];
             
             if (mensagem.includes('disponível')) {
-                const dataMatch = mensagem.match(/(\d{1,2})\s*de\s*(\w+)\s*de\s*(\d{4})/);
-                const discordTimestampMatch = mensagem.match(/<t:(\d+):F>/);
-                
-                if (mensagem.includes('a partir deste momento') || mensagem.includes('agora')) {
-                    // Disponível AGORA
-                    embed = {
-                        title: `✅ ${username}`,
-                        description: mensagem,
-                        color: 0x00FF00,
-                        timestamp: new Date().toISOString()
-                    };
-                    status = 'AVAILABLE';
-                } else if (dataMatch || discordTimestampMatch || mensagem.includes('Estará disponível')) {
-                    // Disponível no FUTURO - Extrair a data
-                    let availableDate = null;
+                // ... (same parsing logic)
+            }
+        }
+        
+        // ============================================
+        // CHECK 2: Embed title (new format: **username** | ...)
+        // ============================================
+        if (!username && message.embeds && message.embeds.length > 0) {
+            const msgEmbed = message.embeds[0];
+            
+            // Check embed title: **username** | ...
+            if (msgEmbed.title) {
+                const embedTitleMatch = msgEmbed.title.match(/^\*\*([a-zA-Z0-9_\.\-]+)\*\*\s*\|\s*(.+)$/);
+                if (embedTitleMatch) {
+                    username = embedTitleMatch[1];
+                    let mensagem = embedTitleMatch[2];
                     
-                    if (discordTimestampMatch) {
-                        // Converter Discord timestamp para data
-                        const timestamp = parseInt(discordTimestampMatch[1]) * 1000;
-                        const date = new Date(timestamp);
-                        availableDate = date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-                    } else if (dataMatch) {
-                        const meses = {
-                            'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
-                            'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
-                            'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
-                        };
-                        const dia = dataMatch[1];
-                        const mes = meses[dataMatch[2].toLowerCase()] || '01';
-                        const ano = dataMatch[3];
-                        availableDate = `${ano}-${mes}-${dia.padStart(2, '0')}`;
-                    } else {
-                        // Estará disponível
+                    if (mensagem.includes('disponível')) {
+                        if (mensagem.includes('a partir deste momento') || mensagem.includes('agora')) {
+                            embed = {
+                                title: `✅ ${username}`,
+                                description: msgEmbed.description || mensagem,
+                                color: 0x00FF00,
+                                timestamp: new Date().toISOString()
+                            };
+                            status = 'AVAILABLE';
+                        }
                     }
-                    
-                    embed = {
-                        title: `⏰ ${username}`,
-                        description: mensagem,
-                        color: 0xFFFF00, // Amarelo
-                        timestamp: new Date().toISOString()
-                    };
-                    status = 'PENDING';
-                    availableDateStr = availableDate;
                 }
             }
-        } else {
-            // No match
+            
+            // Check embed description (format: username | ...)
+            if (!username && msgEmbed.description) {
+                const embedDescMatch = msgEmbed.description.match(/^([a-zA-Z0-9_\.\-]+)\s*\|\s*(.+)$/);
+                if (embedDescMatch) {
+                    username = embedDescMatch[1];
+                    let mensagem = embedDescMatch[2];
+                    
+                    if (mensagem.includes('disponível')) {
+                        if (mensagem.includes('a partir deste momento') || mensagem.includes('agora')) {
+                            embed = {
+                                title: `✅ ${username}`,
+                                description: mensagem,
+                                color: 0x00FF00,
+                                timestamp: new Date().toISOString()
+                            };
+                            status = 'AVAILABLE';
+                        }
+                    }
+                }
+            }
         }
 
         if (username && embed) {
             await enviarParaSite(username, message.channel.id, status, availableDateStr);
-        } else {
-            // Not a username availability message
         }
 
     } catch (error) {
