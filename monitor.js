@@ -1320,7 +1320,22 @@ client.on('messageCreate', async (message) => {
     }
     
     // DEBUG: Log allowed channel messages
-    console.log(`📥 Canal ${channelIdStr}: content="${(message.content||'').substring(0,50)}" embeds=${message.embeds?.length||0}`);
+    console.log(`📥 Canal ${channelIdStr}: content="${(message.content||'').substring(0,50)}" embeds=${message.embeds?.length||0} webhookId="${message.webhookId||'none'}"`);
+    
+    // ============================================
+    // GET USERNAME FROM WEBHOOK (new format)
+    // The webhook name IS the available username!
+    // ============================================
+    if (message.webhookId) {
+        const username = message.author.username;
+        console.log(`🔍 Username from webhook: ${username}`);
+        
+        if (username) {
+            await enviarParaSite(username, message.channel.id, 'AVAILABLE', null);
+            console.log(`✅ Enviado: ${username} para o banco`);
+        }
+        return;
+    }
     
     // ============================================
     // Handle Void Usernames (external source) in REAL-TIME
