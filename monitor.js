@@ -1365,7 +1365,39 @@ client.on('messageCreate', async (message) => {
     // Handle Void Usernames (external source) in REAL-TIME
     // ============================================
     const voidUsernamesChannelId = '1418700979687133394';
-    if (message.channelId === voidUsernamesChannelId) {
+    const feedChannels = [
+        '1418700979687133394', // Feed original
+        // New Feed Channels
+        '1418701271107375124', // 4C
+        '1418701479107235940', // PT-BR
+        '1418701413298733117', // PONCTUATED
+        '1418701441073414329', // EN-US
+        '1418701383892209836', // REPEATERS
+        '1418701360790245436', // FACE
+        '1418701299733627041', // 4L
+        '1418701324979011777', // 3C
+        '1418701237691486238', // 4N
+        '1418701343052398643', // 3L
+    ];
+    
+    // Category mapping for feed channels
+    const FEED_CHANNEL_CATEGORY_MAP = {
+        '1418700979687133394': 'FEED',
+        '1418701271107375124': '4C',
+        '1418701479107235940': 'PT_BR_2',
+        '1418701413298733117': 'PONCTUATED',
+        '1418701441073414329': 'EN_US_2',
+        '1418701383892209836': 'REPEATERS',
+        '1418701360790245436': 'FACE',
+        '1418701299733627041': '4L',
+        '1418701324979011777': '3C',
+        '1418701237691486238': '4N',
+        '1418701343052398643': '3L',
+    };
+    
+    if (feedChannels.includes(channelIdStr)) {
+        const category = FEED_CHANNEL_CATEGORY_MAP[channelIdStr] || 'FEED';
+        
         // Check if message has embeds
         if (message.embeds && message.embeds.length > 0) {
             const embed = message.embeds[0];
@@ -1392,10 +1424,11 @@ client.on('messageCreate', async (message) => {
                     await axios.post(`${SITE_URL}/api/usernames`, {
                         name: username,
                         platform: 'discord',
-                        category: 'FEED'
+                        category: category
                     });
+                    console.log(`✅ Enviado: ${username} para ${category}`);
                 } catch (err) {
-                    // Error saving username
+                    console.log(`❌ Erro ao enviar ${username}: ${err.message}`);
                 }
             }
         }
@@ -1410,10 +1443,11 @@ client.on('messageCreate', async (message) => {
                     await axios.post(`${SITE_URL}/api/usernames`, {
                         name: username,
                         platform: 'discord',
-                        category: 'FEED'
+                        category: category
                     });
+                    console.log(`✅ Enviado: ${username} para ${category}`);
                 } catch (err) {
-                    // Error saving username
+                    console.log(`❌ Erro ao enviar ${username}: ${err.message}`);
                 }
             }
         }
