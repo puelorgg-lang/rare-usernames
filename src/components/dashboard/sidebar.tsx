@@ -4,16 +4,59 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutGrid, CreditCard, LifeBuoy, Hash, Globe, Ghost, Gamepad2, Lock, UserSearch, Rss } from "lucide-react"
+import { LayoutGrid, CreditCard, LifeBuoy, Hash, Globe, Ghost, Gamepad2, Lock, UserSearch, Rss, Sparkles } from "lucide-react"
 import { useSession } from "next-auth/react"
+import { useEffect, useState } from "react"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const [isPremium, setIsPremium] = useState(false)
+
+  // Check subscription status
+  useEffect(() => {
+    async function checkPremium() {
+      try {
+        const res = await fetch('/api/subscription/status')
+        const data = await res.json()
+        setIsPremium(data.isPremium || false)
+      } catch {
+        setIsPremium(false)
+      }
+    }
+    if (session?.user) {
+      checkPremium()
+    }
+  }, [session])
 
   const isActive = (path: string) => pathname === path
+
+  // Premium categories to hide for free users
+  const premiumCategories = [
+    { href: "/dashboard/category/chars_2", icon: <Hash className="mr-2 h-4 w-4" />, label: "2 Caracteres" },
+    { href: "/dashboard/category/chars_3", icon: <Hash className="mr-2 h-4 w-4" />, label: "3 Caracteres" },
+    { href: "/dashboard/category/chars_4", icon: <Hash className="mr-2 h-4 w-4" />, label: "4 Caracteres" },
+    { href: "/dashboard/category/pt_br", icon: <Globe className="mr-2 h-4 w-4" />, label: "Palavras PT-BR" },
+    { href: "/dashboard/category/en_us", icon: <Globe className="mr-2 h-4 w-4" />, label: "Palavras EN-US" },
+    { href: "/dashboard/category/random", icon: <Ghost className="mr-2 h-4 w-4" />, label: "Aleatórios" },
+  ]
+
+  // Free categories
+  const freeCategories = [
+    { href: "/dashboard/category/feed", icon: <Rss className="mr-2 h-4 w-4" />, label: "Feed" },
+    { href: "/dashboard/category/4c", icon: <Hash className="mr-2 h-4 w-4" />, label: "4C" },
+    { href: "/dashboard/category/pt_br_2", icon: <Globe className="mr-2 h-4 w-4" />, label: "PT-BR" },
+    { href: "/dashboard/category/ponctuated", icon: <Hash className="mr-2 h-4 w-4" />, label: "Ponctuated" },
+    { href: "/dashboard/category/en_us_2", icon: <Globe className="mr-2 h-4 w-4" />, label: "EN-US" },
+    { href: "/dashboard/category/repeaters", icon: <Hash className="mr-2 h-4 w-4" />, label: "Repeaters" },
+    { href: "/dashboard/category/face", icon: <Hash className="mr-2 h-4 w-4" />, label: "FACE" },
+    { href: "/dashboard/category/4l", icon: <Hash className="mr-2 h-4 w-4" />, label: "4L" },
+    { href: "/dashboard/category/3c", icon: <Hash className="mr-2 h-4 w-4" />, label: "3C" },
+    { href: "/dashboard/category/4n", icon: <Hash className="mr-2 h-4 w-4" />, label: "4N" },
+    { href: "/dashboard/category/3l", icon: <Hash className="mr-2 h-4 w-4" />, label: "3L" },
+  ]
 
   return (
     <div className={cn("pb-12", className)}>
@@ -37,18 +80,29 @@ export function Sidebar({ className }: SidebarProps) {
             )}
           </div>
         </div>
+        
+        {/* Premium Categories - Only show for premium users */}
+        {isPremium && (
+          <div className="px-3 py-2">
+            <h2 className="mb-4 px-4 text-xs font-semibold tracking-wider text-yellow-500 uppercase flex items-center gap-2">
+              <Sparkles className="h-3 w-3" /> Premium
+            </h2>
+            <div className="space-y-1">
+              {premiumCategories.map((cat) => (
+                <SidebarItem key={cat.href} href={cat.href} icon={cat.icon} label={cat.label} active={isActive(cat.href)} />
+              ))}
+            </div>
+          </div>
+        )}
+        
         <div className="px-3 py-2">
           <h2 className="mb-4 px-4 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
             Categorias
           </h2>
           <div className="space-y-1">
-            <SidebarItem href="/dashboard/category/chars_2" icon={<Hash className="mr-2 h-4 w-4" />} label="2 Caracteres" active={isActive("/dashboard/category/chars_2")} />
-            <SidebarItem href="/dashboard/category/chars_3" icon={<Hash className="mr-2 h-4 w-4" />} label="3 Caracteres" active={isActive("/dashboard/category/chars_3")} />
-            <SidebarItem href="/dashboard/category/chars_4" icon={<Hash className="mr-2 h-4 w-4" />} label="4 Caracteres" active={isActive("/dashboard/category/chars_4")} />
-            <SidebarItem href="/dashboard/category/pt_br" icon={<Globe className="mr-2 h-4 w-4" />} label="Palavras PT-BR" active={isActive("/dashboard/category/pt_br")} />
-            <SidebarItem href="/dashboard/category/en_us" icon={<Globe className="mr-2 h-4 w-4" />} label="Palavras EN-US" active={isActive("/dashboard/category/en_us")} />
-            <SidebarItem href="/dashboard/category/random" icon={<Ghost className="mr-2 h-4 w-4" />} label="Aleatórios" active={isActive("/dashboard/category/random")} />
-            <SidebarItem href="/dashboard/category/feed" icon={<Rss className="mr-2 h-4 w-4" />} label="Feed" active={isActive("/dashboard/category/feed")} />
+            {freeCategories.map((cat) => (
+              <SidebarItem key={cat.href} href={cat.href} icon={cat.icon} label={cat.label} active={isActive(cat.href)} />
+            ))}
           </div>
         </div>
       </div>

@@ -9,9 +9,27 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  // Check if user is premium
+  let isPremium = false
+  const subscriptionStatus = (session.user as any)?.subscriptionStatus
+  const subscriptionExpiresAt = (session.user as any)?.subscriptionExpiresAt
+  
+  if (subscriptionStatus === "ACTIVE") {
+    if (subscriptionExpiresAt) {
+      const expires = new Date(subscriptionExpiresAt)
+      if (expires > new Date()) {
+        isPremium = true
+      }
+    } else {
+      // No expiration means lifetime premium
+      isPremium = true
+    }
+  }
+
   return NextResponse.json({
-    status: session.user.subscriptionStatus,
-    plan: session.user.subscriptionPlan,
-    expires_at: session.user.subscriptionExpiresAt,
+    isPremium,
+    status: subscriptionStatus,
+    plan: (session.user as any)?.subscriptionPlan,
+    expires_at: subscriptionExpiresAt,
   })
 }
