@@ -1409,6 +1409,50 @@ client.on('messageCreate', async (message) => {
         const embedText = message.embeds?.map(e => `${e.title || ''} ${e.description || ''} ${e.fields?.map(f => `${f.name} ${f.value}`).join(' ')}`).join(' ') || '';
         const allText = messageText + ' ' + embedText;
         
+        // Parse available date from embed
+        // Format: "Available between 22 de março de 2026 - 23 de março de 2026"
+        function parseAvailableDate(text) {
+            if (!text) return null;
+            
+            // Match "Available between DATE - DATE" or just "Available from DATE"
+            const dateMatch = text.match(/Available (?:between|from)\s+(.+?)\s*[-–]\s*(.+)$/i);
+            if (dateMatch) {
+                const dateStr = dateMatch[1].trim();
+                // Parse Portuguese date format: "22 de março de 2026"
+                const dateParts = dateStr.match(/(\d+)\s+de\s+(\w+)\s+de\s+(\d+)/i);
+                if (dateParts) {
+                    const day = parseInt(dateParts[1]);
+                    const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+                    const month = monthNames.findIndex(m => dateParts[2].toLowerCase().startsWith(m));
+                    const year = parseInt(dateParts[3]);
+                    
+                    if (month >= 0 && year > 0) {
+                        return new Date(year, month, day);
+                    }
+                }
+            }
+            return null;
+        }
+        
+        // Check status from text
+        const isAvailableNow = allText.toLowerCase().includes('status: disponível') || 
+                             allText.toLowerCase().includes('disponivel') ||
+                             allText.toLowerCase().includes('available');
+        
+        // Parse available date
+        const availableDate = parseAvailableDate(allText);
+        const availableDateStr = availableDate ? availableDate.toISOString() : null;
+        
+        // Determine status
+        let status = 'AVAILABLE';
+        if (availableDate && availableDate > new Date()) {
+            status = 'PENDING'; // Will be available in the future
+        } else if (!isAvailableNow) {
+            status = 'UNAVAILABLE';
+        }
+        
+        console.log(`📅 Available date: ${availableDateStr}, Status: ${status}`);
+        
         // Try multiple patterns to catch usernames
         let usernames = [];
         
@@ -1445,15 +1489,22 @@ client.on('messageCreate', async (message) => {
         
         console.log(`📥 Encontrados ${usernames.length} potenciales usernames: ${usernames.join(', ')}`);
         
-        // Send each username to the site
+        // Send each username to the site and Discord
         for (const username of usernames) {
             try {
+                // Send to API
                 await axios.post(`${SITE_URL}/api/usernames`, {
                     name: username,
                     platform: 'discord',
-                    category: category
+                    category: category,
+                    status: status,
+                    availableDate: availableDateStr
                 });
-                console.log(`✅ Enviado: ${username} para ${category}`);
+                console.log(`✅ Enviado: ${username} para ${category} (${status})`);
+                
+                // Also send to Discord webhook
+                await enviarParaSite(username, channelIdStr, status, availableDateStr);
+                
             } catch (err) {
                 console.log(`❌ Erro ao enviar ${username}: ${err.message}`);
             }
