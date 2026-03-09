@@ -11,9 +11,17 @@ import { ScrollReveal } from "@/components/scroll-reveal"
 import { Typewriter } from "@/components/typewriter"
 import { Navbar } from "@/components/navbar"
 import { PlatformButton } from "@/components/platform-button"
+import prisma from "@/lib/prisma"
+
+// Força atualização a cada requisição
+export const dynamic = 'force-dynamic'
 
 export default async function LandingPage() {
   const session = await getServerSession(authOptions)
+  
+  // Buscar dados em tempo real do banco
+  const usernameCount = await prisma.username.count()
+  const userCount = await prisma.user.count()
 
   return (
     <div className="flex min-h-screen flex-col bg-black overflow-hidden selection:bg-primary/30 text-white">
@@ -93,7 +101,7 @@ export default async function LandingPage() {
           {/* Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-12 gap-y-6 pt-8 opacity-80 animate-in fade-in duration-1000 delay-200">
             <div className="text-center space-y-1">
-              <div className="text-2xl font-bold text-white">50k+</div>
+              <div className="text-2xl font-bold text-white">{usernameCount.toLocaleString('pt-BR')}+</div>
               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Monitorados</div>
             </div>
             <div className="text-center space-y-1">
