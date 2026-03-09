@@ -1403,28 +1403,37 @@ client.on('messageCreate', async (message) => {
         
         console.log(`📥 Mensagem no canal de feed ${channelIdStr} (${category})`);
         
-        // Extract ALL usernames/messages from the channel - capture anything that looks like a username
-        // This captures content between ``` ``` or just plain text messages
-        const messageText = message.content || '';
-        const embedText = message.embeds?.map(e => `${e.title || ''} ${e.description || ''} ${e.fields?.map(f => `${f.name} ${f.value}`).join(' ')}`).join(' ') || '';
-        const allText = messageText + ' ' + embedText;
+        // Get embed information
+        const embed = message.embeds?.[0];
+        const title = embed?.title || '';
+        const description = embed?.description || '';
+        const footer = embed?.footer?.text || '';
         
-        // Parse available date from embed
-        // Format: "Available between 22 de março de 2026 - 23 de março de 2026"
+        const messageText = message.content || '';
+        const allText = messageText + ' ' + title + ' ' + description + ' ' + footer;
+        
+        console.log(`📥 Title: "${title}" Description: "${description}" Footer: "${footer}"`);
+        
+        // Parse available date from embed - look for "Available between DATE - DATE"
         function parseAvailableDate(text) {
             if (!text) return null;
             
-            // Match "Available between DATE - DATE" or just "Available from DATE"
-            const dateMatch = text.match(/Available (?:between|from)\s+(.+?)\s*[-–]\s*(.+)$/i);
+            // Match "Available between 22 de março de 2026 - 23 de março de 2026"
+            const dateMatch = text.match(/Available\s+(?:between|from)?\s*(.+?)\s*[-–]\s*(.+)$/i);
             if (dateMatch) {
                 const dateStr = dateMatch[1].trim();
+                console.log(`📥 Date string found: "${dateStr}"`);
+                
                 // Parse Portuguese date format: "22 de março de 2026"
                 const dateParts = dateStr.match(/(\d+)\s+de\s+(\w+)\s+de\s+(\d+)/i);
                 if (dateParts) {
                     const day = parseInt(dateParts[1]);
                     const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-                    const month = monthNames.findIndex(m => dateParts[2].toLowerCase().startsWith(m));
+                    const monthStr = dateParts[2].toLowerCase();
+                    const month = monthNames.findIndex(m => monthStr.startsWith(m));
                     const year = parseInt(dateParts[3]);
+                    
+                    console.log(`📥 Parsed date: day=${day}, month=${month}, year=${year}`);
                     
                     if (month >= 0 && year > 0) {
                         return new Date(year, month, day);
@@ -1436,7 +1445,7 @@ client.on('messageCreate', async (message) => {
         
         // Check status from text
         const isAvailableNow = allText.toLowerCase().includes('status: disponível') || 
-                             allText.toLowerCase().includes('disponivel') ||
+                             allText.toLowerCase().includes('status disponivel') ||
                              allText.toLowerCase().includes('available');
         
         // Parse available date
@@ -1447,50 +1456,35 @@ client.on('messageCreate', async (message) => {
         let status = 'AVAILABLE';
         if (availableDate && availableDate > new Date()) {
             status = 'PENDING'; // Will be available in the future
-        } else if (!isAvailableNow) {
+        } else if (!isAvailableNow && !availableDate) {
             status = 'UNAVAILABLE';
         }
         
         console.log(`📅 Available date: ${availableDateStr}, Status: ${status}`);
         
-        // Try multiple patterns to catch usernames
-        let usernames = [];
+        // Try to extract username - prioritize description field
+        let username = null;
         
-        // Pattern 1: ```username```
-        const backtickMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/g);
-        if (backtickMatch) {
-            backtickMatch.forEach(m => {
-                const username = m.replace(/```/g, '').toLowerCase();
-                if (!usernames.includes(username)) usernames.push(username);
-            });
+        // First, try to get from description (most reliable for this embed type)
+        if (description && description.trim()) {
+            const descUsername = description.trim().match(/^([a-zA-Z0-9_\.\-]+)$/);
+            if (descUsername && descUsername[1].length >= 2 && descUsername[1].length <= 20) {
+                username = descUsername[1].toLowerCase();
+                console.log(`📥 Username from description: ${username}`);
+            }
         }
         
-        // Pattern 2: **username** (bold)
-        const boldMatch = allText.match(/\*\*([a-zA-Z0-9_\.\-]+)\*\*/g);
-        if (boldMatch) {
-            boldMatch.forEach(m => {
-                const username = m.replace(/\*\*/g, '').toLowerCase();
-                if (!usernames.includes(username) && username.length >= 2) usernames.push(username);
-            });
+        // Fallback to code blocks
+        if (!username) {
+            const backtickMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
+            if (backtickMatch) {
+                username = backtickMatch[1].toLowerCase();
+            }
         }
         
-        // Pattern 3: Plain words that look like usernames (2-20 chars, alphanumeric + _.-)
-        const plainMatch = allText.match(/\b([a-zA-Z0-9][a-zA-Z0-9_\.\-]{1,19})\b/g);
-        if (plainMatch) {
-            plainMatch.forEach(m => {
-                const username = m.toLowerCase();
-                // Filter out common words
-                const commonWords = ['discord', 'google', 'microsoft', 'twitter', 'instagram', 'github', 'available', 'taken', 'username', 'user', 'null', 'undefined', 'bot', 'online', 'offline', 'idle', 'dnd', 'none', 'http', 'https', 'www', 'com', 'net', 'org', 'tv', 'co'];
-                if (!commonWords.includes(username) && !usernames.includes(username) && username.length >= 2 && username.length <= 20) {
-                    usernames.push(username);
-                }
-            });
-        }
+        console.log(`📥 Final username: ${username}, Status: ${status}`);
         
-        console.log(`📥 Encontrados ${usernames.length} potenciales usernames: ${usernames.join(', ')}`);
-        
-        // Send each username to the site and Discord
-        for (const username of usernames) {
+        if (username) {
             try {
                 // Send to API
                 await axios.post(`${SITE_URL}/api/usernames`, {
