@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession, signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle, Moon, Palette, Badge } from "lucide-react"
+import { Loader2, Search, Image, User, Eye, MessageCircle, Phone, Users, Link2, GitBranch, BarChart3, Shield, UserCircle, Moon, Palette, Badge, LogIn } from "lucide-react"
 
 type ProfileData = {
   userId: string
@@ -71,6 +73,8 @@ const searchOptions = [
 ]
 
 export default function BuscarPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [userId, setUserId] = useState("")
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ProfileData | null>(null)
@@ -80,6 +84,47 @@ export default function BuscarPage() {
   const [avatarHistory, setAvatarHistory] = useState<any[]>([])
   const [bannerHistory, setBannerHistory] = useState<any[]>([])
   const [loadingAvatars, setLoadingAvatars] = useState(false)
+
+  // Redirect to sign in if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/")
+    }
+  }, [status, router])
+
+  // Show loading while checking session
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  // Show sign in prompt if not authenticated
+  if (status === "unauthenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center">Login Necessário</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-center text-muted-foreground">
+              Você precisa estar logado com o Discord para usar o buscador de usernames.
+            </p>
+            <Button 
+              onClick={() => signIn("discord")} 
+              className="w-full"
+            >
+              <LogIn className="mr-2 h-4 w-4" />
+              Entrar com Discord
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   // Trigger search for profile when tab changes to get fresh data
   useEffect(() => {
