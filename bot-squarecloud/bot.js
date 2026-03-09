@@ -206,7 +206,8 @@ botClient.on('messageCreate', async (message) => {
     const category = CHANNEL_CATEGORY_MAP[message.channelId] || 'UNKNOWN';
     
     // Parse available date from embed
-    // Format: "Available between 22 de março de 2026 - 23 de março de 2026"
+    // Format 1: "Available between 22 de março de 2026 - 23 de março de 2026"
+    // Format 2: "Status: Disponível" or "Status: Indisponível"
     function parseAvailableDate(text) {
       if (!text) return null;
       
@@ -235,6 +236,7 @@ botClient.on('messageCreate', async (message) => {
       const embed = message.embeds[0];
       const title = embed.title || '';
       const description = embed.description || '';
+      const footer = embed.footer?.text || '';
       
       // Check embed fields
       let fieldContent = '';
@@ -244,22 +246,60 @@ botClient.on('messageCreate', async (message) => {
         }
       }
       
-      const allText = title + ' ' + description + ' ' + fieldContent;
+      const allText = title + ' ' + description + ' ' + fieldContent + ' ' + footer;
+      console.log('📝 Embed text:', allText.substring(0, 200));
       
       // Parse available date
       const availableDate = parseAvailableDate(allText);
       console.log('📅 Available date:', availableDate ? availableDate.toISOString() : 'N/A');
       
-      // Match username in code blocks: ```username```
-      const usernameMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
+      // Check status from footer or description
+      const isAvailableNow = allText.toLowerCase().includes('status: disponível') || 
+                             allText.toLowerCase().includes('disponivel') ||
+                             allText.toLowerCase().includes('available');
       
-      if (usernameMatch) {
-        const username = usernameMatch[1].toLowerCase();
-        console.log(`📝 Found username from Void Usernames: ${username}`);
+      // Extract username - try multiple patterns
+      let username = null;
+      
+      // Pattern 1: Code blocks ```username```
+      const codeBlockMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
+      if (codeBlockMatch) {
+        username = codeBlockMatch[1].toLowerCase();
+      }
+      
+      // Pattern 2: Just a number or word in description (like "1774311234")
+      if (!username && description) {
+        // Match single word in description (could be username or ID)
+        const descMatch = description.trim().match(/^([a-zA-Z0-9_\.\-]+)$/);
+        if (descMatch && descMatch[1].length >= 2) {
+          username = descMatch[1].toLowerCase();
+        }
+      }
+      
+      // Pattern 3: From title if it looks like a username
+      if (!username && title) {
+        const titleMatch = title.match(/^([a-zA-Z0-9_\.\-]+)$/);
+        if (titleMatch && titleMatch[1].length >= 2 && !titleMatch[1].toLowerCase().includes('doguser')) {
+          username = titleMatch[1].toLowerCase();
+        }
+      }
+      
+      if (username) {
+        console.log(`📝 Found username: ${username}`);
         
-        // Determine status based on available date
-        const status = availableDate && availableDate > new Date() ? 'PENDING' : 'AVAILABLE';
-        const statusText = status === 'PENDING' ? 'PENDING' : 'AVAILABLE';
+        // Determine status based on available date and current status text
+        // If it says "Disponível" AND no future date, it's AVAILABLE
+        // If it has a future date, it's PENDING
+        // If it says "Indisponível", it's UNAVAILABLE
+        let status = 'AVAILABLE';
+        
+        if (availableDate && availableDate > new Date()) {
+          status = 'PENDING'; // Will be available in the future
+        } else if (!isAvailableNow) {
+          status = 'UNAVAILABLE'; // Not available now
+        }
+        
+        console.log(`📝 Status: ${status} (availableNow: ${isAvailableNow}, hasFutureDate: ${availableDate && availableDate > new Date()})`);
         
         // Save to database
         try {
@@ -276,12 +316,24 @@ botClient.on('messageCreate', async (message) => {
                   name: username,
                   platform: 'DISCORD',
                   category: category,
-                  status: statusText,
-                  availableDate: availableDate,
+                  status: status,
+                  availableDate: status === 'PENDING' ? availableDate : null,
                   foundAt: new Date()
                 }
               });
-              console.log(`✅ Saved username: ${username} (${statusText}) to database`);
+              console.log(`✅ Saved username: ${username} (${status}) to database`);
+            } else {
+              // Update if existing and has new info
+              if (status !== existing.status || (availableDate && !existing.availableDate)) {
+                await db.username.update({
+                  where: { id: existing.id },
+                  data: {
+                    status: status,
+                    availableDate: status === 'PENDING' ? availableDate : existing.availableDate
+                  }
+                });
+                console.log(`✅ Updated username: ${username} to status: ${status}`);
+              }
             }
           }
         } catch (err) {
@@ -290,7 +342,7 @@ botClient.on('messageCreate', async (message) => {
       }
     }
     
-    // Also check message content
+    // Also check message content for code blocks
     const messageContent = message.content || '';
     if (messageContent.includes('```')) {
       const contentMatch = messageContent.match(/```([a-zA-Z0-9_\.\-]+)```/);
