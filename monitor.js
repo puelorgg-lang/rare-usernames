@@ -9,10 +9,6 @@ const TOKEN = process.env.DISCORD_TOKEN;
 // URL do seu site (use variável de ambiente ou fallback para local)
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 
-// Channel and server for search
-const SEARCH_CHANNEL_ID = '1474813731526545614';
-const SEARCH_SERVER_ID = '1473338499439657074';
-
 // Only monitor these specific channel IDs (username channels)
 const ALLOWED_CHANNEL_IDS = [
     // Premium Channels (2char, 3char, 4char, ptbr, enus, random)
@@ -40,9 +36,6 @@ let webhooksCache = {
   data: [],
   lastFetch: 0
 };
-
-// Users that have been searched on the site - we track these for updates
-let trackedUsers = new Set();
 
 // Buscar webhooks do banco de dados via API
 async function fetchWebhooksFromAPI() {
@@ -118,10 +111,10 @@ const CHANNEL_CATEGORY_MAP = {
 
 
 
-// ==================== EXPRESS SERVER FOR SEARCH API ====================
-const app = express();
-app.use(cors());
-app.use(express.json());
+// ==================== EXPRESS SERVER FOR SEARCH API (DISABLED) ====================
+// const app = express();
+// app.use(cors());
+// app.use(express.json());
 
 // Store pending searches
 const pendingSearches = new Map();
@@ -684,9 +677,9 @@ app.post('/clear-cache', (req, res) => {
 });
 
 // Start Express server on port 3001
-app.listen(3001, () => {
-    console.log('🔍 Search API server running on port 3001');
-});
+// app.listen(3001, () => {
+//     console.log('🔍 Search API server running on port 3001');
+// });
 const client = new Client({
     checkUpdate: false,
     intents: [
