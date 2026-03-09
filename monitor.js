@@ -1343,8 +1343,14 @@ client.on('messageCreate', async (message) => {
         return; // Silently ignore other channels
     }
     
-    // DEBUG: Log allowed channel messages
-    console.log(`📥 Canal ${channelIdStr}: content="${(message.content||'').substring(0,50)}" embeds=${message.embeds?.length||0} webhookId="${message.webhookId||'none'}"`);
+    // Skip messages from our own bot
+    if (message.author.id === client.user.id) {
+        console.log('📝 Ignorando própria mensagem do bot');
+        return;
+    }
+    
+    // Log who sent the message for debugging
+    console.log(`📬 Nova mensagem de: ${message.author.username} (${message.author.id}) bot: ${message.author.bot}`);
     
     // ============================================
     // GET USERNAME FROM WEBHOOK (new format)

@@ -188,7 +188,14 @@ botClient.on('ready', async () => {
 botClient.on('messageCreate', async (message) => {
   // Only process messages from Void Usernames channels
   if (VOID_USERNAMES_CHANNELS.includes(message.channelId)) {
-    console.log('📬 New message from Void/Free channel: ' + message.channelId);
+    // Log who sent the message for debugging
+    console.log('📬 New message from: ' + message.author.username + ' (' + message.author.id + ') bot: ' + message.author.bot);
+    
+    // Skip messages from our own bot
+    if (message.author.id === botClient.user.id) {
+      console.log('📝 Ignoring own message');
+      return;
+    }
     
     // Get category for this channel
     const CHANNEL_CATEGORY_MAP = {
