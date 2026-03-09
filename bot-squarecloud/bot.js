@@ -28,7 +28,6 @@ let lastCheckedId = null;
 
 // Void Usernames channels to monitor
 const VOID_USERNAMES_CHANNELS = [
-  '1418700979687133394', // Feed original
   // New Free Channels
   '1418701271107375124', // 4C
   '1418701479107235940', // PT-BR
@@ -53,7 +52,6 @@ const CATEGORY_MAP = {
   'EN_US': 'en',
   'PT_BR': 'pt',
   'RANDOM': 'random',
-  'FEED': 'feed',
   // New Free Categories
   '4C': '4c_new',
   'PT_BR_2': 'pt_br',
@@ -194,7 +192,6 @@ botClient.on('messageCreate', async (message) => {
     
     // Get category for this channel
     const CHANNEL_CATEGORY_MAP = {
-      '1418700979687133394': 'FEED',
       '1418701271107375124': '4C',
       '1418701479107235940': 'PT_BR_2',
       '1418701413298733117': 'PONCTUATED',
@@ -206,7 +203,32 @@ botClient.on('messageCreate', async (message) => {
       '1418701237691486238': '4N',
       '1418701343052398643': '3L',
     };
-    const category = CHANNEL_CATEGORY_MAP[message.channelId] || 'FEED';
+    const category = CHANNEL_CATEGORY_MAP[message.channelId] || 'UNKNOWN';
+    
+    // Parse available date from embed
+    // Format: "Available between 22 de março de 2026 - 23 de março de 2026"
+    function parseAvailableDate(text) {
+      if (!text) return null;
+      
+      // Match "Available between DATE - DATE" or just "Available from DATE"
+      const dateMatch = text.match(/Available (?:between|from)\s+(.+?)\s*[-–]\s*(.+)$/i);
+      if (dateMatch) {
+        const dateStr = dateMatch[1].trim();
+        // Parse Portuguese date format: "22 de março de 2026"
+        const dateParts = dateStr.match(/(\d+)\s+de\s+(\w+)\s+de\s+(\d+)/i);
+        if (dateParts) {
+          const day = parseInt(dateParts[1]);
+          const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+          const month = monthNames.findIndex(m => dateParts[2].toLowerCase().startsWith(m));
+          const year = parseInt(dateParts[3]);
+          
+          if (month >= 0 && year > 0) {
+            return new Date(year, month, day);
+          }
+        }
+      }
+      return null;
+    }
     
     // Check if message has embeds
     if (message.embeds && message.embeds.length > 0) {
@@ -224,12 +246,20 @@ botClient.on('messageCreate', async (message) => {
       
       const allText = title + ' ' + description + ' ' + fieldContent;
       
+      // Parse available date
+      const availableDate = parseAvailableDate(allText);
+      console.log('📅 Available date:', availableDate ? availableDate.toISOString() : 'N/A');
+      
       // Match username in code blocks: ```username```
       const usernameMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
       
       if (usernameMatch) {
         const username = usernameMatch[1].toLowerCase();
         console.log(`📝 Found username from Void Usernames: ${username}`);
+        
+        // Determine status based on available date
+        const status = availableDate && availableDate > new Date() ? 'PENDING' : 'AVAILABLE';
+        const statusText = status === 'PENDING' ? 'PENDING' : 'AVAILABLE';
         
         // Save to database
         try {
@@ -246,11 +276,12 @@ botClient.on('messageCreate', async (message) => {
                   name: username,
                   platform: 'DISCORD',
                   category: category,
-                  status: 'AVAILABLE',
+                  status: statusText,
+                  availableDate: availableDate,
                   foundAt: new Date()
                 }
               });
-              console.log(`✅ Saved username: ${username} to database`);
+              console.log(`✅ Saved username: ${username} (${statusText}) to database`);
             }
           }
         } catch (err) {
