@@ -188,6 +188,12 @@ botClient.on('ready', async () => {
 botClient.on('messageCreate', async (message) => {
   // Only process messages from Void Usernames channels
   if (VOID_USERNAMES_CHANNELS.includes(message.channelId)) {
+    // Skip messages from our own bot
+    if (message.author.id === botClient.user.id) {
+      console.log('📝 Ignoring own message');
+      return;
+    }
+    
     // Log who sent the message for debugging
     console.log('📬 New message from: ' + message.author.username + ' (' + message.author.id + ') bot: ' + message.author.bot);
     
@@ -245,6 +251,8 @@ botClient.on('messageCreate', async (message) => {
       const description = embed.description || '';
       const footer = embed.footer?.text || '';
       
+      console.log(`📝 Embed - Title: "${title}" Description: "${description}" Footer: "${footer}"`);
+      
       // Check embed fields
       let fieldContent = '';
       if (embed.fields && embed.fields.length > 0) {
@@ -254,7 +262,6 @@ botClient.on('messageCreate', async (message) => {
       }
       
       const allText = title + ' ' + description + ' ' + fieldContent + ' ' + footer;
-      console.log('📝 Embed text:', allText.substring(0, 200));
       
       // Parse available date
       const availableDate = parseAvailableDate(allText);
@@ -265,28 +272,30 @@ botClient.on('messageCreate', async (message) => {
                              allText.toLowerCase().includes('disponivel') ||
                              allText.toLowerCase().includes('available');
       
-      // Extract username - try multiple patterns
+      // Extract username - prioritize description field (most reliable for this embed type)
       let username = null;
       
-      // Pattern 1: Code blocks ```username```
-      const codeBlockMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
-      if (codeBlockMatch) {
-        username = codeBlockMatch[1].toLowerCase();
-      }
-      
-      // Pattern 2: Just a number or word in description (like "1774311234")
-      if (!username && description) {
-        // Match single word in description (could be username or ID)
-        const descMatch = description.trim().match(/^([a-zA-Z0-9_\.\-]+)$/);
-        if (descMatch && descMatch[1].length >= 2) {
-          username = descMatch[1].toLowerCase();
+      // First, try to get from description (most reliable for this embed type)
+      if (description && description.trim()) {
+        const descUsername = description.trim().match(/^([a-zA-Z0-9_\.\-]+)$/);
+        if (descUsername && descUsername[1].length >= 2 && descUsername[1].length <= 20) {
+          username = descUsername[1].toLowerCase();
+          console.log(`📝 Username from description: ${username}`);
         }
       }
       
-      // Pattern 3: From title if it looks like a username
+      // Pattern 1: Code blocks ```username```
+      if (!username) {
+        const codeBlockMatch = allText.match(/```([a-zA-Z0-9_\.\-]+)```/);
+        if (codeBlockMatch) {
+          username = codeBlockMatch[1].toLowerCase();
+        }
+      }
+      
+      // Pattern 2: From title if it looks like a username
       if (!username && title) {
         const titleMatch = title.match(/^([a-zA-Z0-9_\.\-]+)$/);
-        if (titleMatch && titleMatch[1].length >= 2 && !titleMatch[1].toLowerCase().includes('doguser')) {
+        if (titleMatch && titleMatch[1].length >= 2 && !titleMatch[1].toLowerCase().includes('doguser') && !titleMatch[1].toLowerCase().includes('discord')) {
           username = titleMatch[1].toLowerCase();
         }
       }
