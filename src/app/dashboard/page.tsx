@@ -21,7 +21,6 @@ const premiumCategories = [
 ]
 
 const freeCategories = [
-  { id: "feed", name: "Feed", description: "Nomes encontrados no feed.", icon: <Globe className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
   { id: "4c", name: "4C", description: "4 Character combinations.", icon: <Hash className="h-6 w-6 text-purple-400" />, color: "border-purple-500/20 bg-purple-500/5 hover:border-purple-500/50" },
   { id: "pt_br_2", name: "PT-BR", description: "Palavras em Português Brasileiro.", icon: <Globe className="h-6 w-6 text-green-400" />, color: "border-green-500/20 bg-green-500/5 hover:border-green-500/50" },
   { id: "ponctuated", name: "Ponctuated", description: "Nomes com pontuação.", icon: <Hash className="h-6 w-6 text-pink-400" />, color: "border-pink-500/20 bg-pink-500/5 hover:border-pink-500/50" },

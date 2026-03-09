@@ -69,7 +69,6 @@ export async function isPremiumUser(): Promise<boolean> {
 
 // Free categories that don't require subscription
 export const FREE_CATEGORIES = [
-  'FEED',
   '4C',
   'PT_BR_2',
   'PONCTUATED',

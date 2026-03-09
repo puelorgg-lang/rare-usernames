@@ -19,7 +19,6 @@ export const CATEGORIES = {
   PT_BR: "PT_BR",
   EN_US: "EN_US",
   RANDOM: "RANDOM",
-  FEED: "FEED",
   // New Premium Categories
   "4C": "4C",
   PT_BR_2: "PT_BR_2",
@@ -42,7 +41,6 @@ export const CATEGORY_LABELS: Record<string, string> = {
   PT_BR: "Palavras PT-BR",
   EN_US: "Palavras EN-US",
   RANDOM: "Aleatórios",
-  FEED: "Feed",
   // New Premium Categories
   "4C": "4C",
   PT_BR_2: "PT-BR",

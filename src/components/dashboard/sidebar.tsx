@@ -45,7 +45,6 @@ export function Sidebar({ className }: SidebarProps) {
 
   // Free categories
   const freeCategories = [
-    { href: "/dashboard/category/feed", icon: <Rss className="mr-2 h-4 w-4" />, label: "Feed" },
     { href: "/dashboard/category/4c", icon: <Hash className="mr-2 h-4 w-4" />, label: "4C" },
     { href: "/dashboard/category/pt_br_2", icon: <Globe className="mr-2 h-4 w-4" />, label: "PT-BR" },
     { href: "/dashboard/category/ponctuated", icon: <Hash className="mr-2 h-4 w-4" />, label: "Ponctuated" },
