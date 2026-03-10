@@ -15,7 +15,8 @@ const botClient = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages
   ],
   rest: {
     timeout: 15000,
@@ -25,6 +26,10 @@ const botClient = new Client({
 
 let prisma = null;
 let lastCheckedId = null;
+
+// Canal da embed de pesquisa
+const SEARCH_CHANNEL_ID = '1480724950276112470';
+let searchMessageId = null;
 
 // Void Usernames channels to monitor
 const VOID_USERNAMES_CHANNELS = [
@@ -642,10 +647,206 @@ botClient.on('messageCreate', async (message) => {
   }
 });
 
+// Categorias para a embed de pesquisa
+const SEARCH_CATEGORIES = [
+  { emoji: '3️⃣', id: '3L', label: '3L' },
+  { emoji: '4️⃣', id: '4N', label: '4N' },
+  { emoji: '🔤', id: '4C', label: '4C' },
+  { emoji: '🔤', id: '4L', label: '4L' },
+  { emoji: '🔄', id: 'REPEATERS', label: 'REPEATERS' },
+  { emoji: '😊', id: 'FACE', label: 'FACE' },
+  { emoji: '📍', id: 'PONCTUATED', label: 'PONCTUATED' },
+  { emoji: '🇺🇸', id: 'EN_US', label: 'EN-US' },
+  { emoji: '🇧🇷', id: 'PT_BR', label: 'PT-BR' },
+];
+
+// Criar/Atualizar embed de pesquisa
+async function createSearchEmbed() {
+  try {
+    const channel = await botClient.channels.fetch(SEARCH_CHANNEL_ID);
+    if (!channel) {
+      console.log('Canal de pesquisa nao encontrado:', SEARCH_CHANNEL_ID);
+      return;
+    }
+
+    // Criar botões para cada categoria
+    const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+    
+    const rows = [];
+    let currentRow = new ActionRowBuilder();
+    
+    for (const cat of SEARCH_CATEGORIES) {
+      const button = new ButtonBuilder()
+        .setCustomId(`search_${cat.id}`)
+        .setLabel(cat.label)
+        .setStyle(ButtonStyle.Secondary);
+      
+      currentRow.addComponents(button);
+      
+      if (currentRow.components.length >= 5) {
+        rows.push(currentRow);
+        currentRow = new ActionRowBuilder();
+      }
+    }
+    
+    if (currentRow.components.length > 0) {
+      rows.push(currentRow);
+    }
+
+    // Adicionar botão de notificação
+    const notifyRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('search_notify')
+        .setLabel('Ser notificado')
+        .setStyle(ButtonStyle.Primary)
+    );
+    rows.push(notifyRow);
+
+    const embed = new EmbedBuilder()
+      .setColor(0x000000)
+      .setTitle('Busca de Usernames')
+      .setDescription('Selecione uma categoria abaixo para ver os usernames disponiveis mais recentes.')
+      .addFields(
+        { name: 'Categorias', value: SEARCH_CATEGORIES.map(c => c.label).join(' | ') }
+      )
+      .setFooter({ text: 'Users4U' })
+      .setTimestamp();
+
+    // Verificar se já existe mensagem de pesquisa
+    if (searchMessageId) {
+      try {
+        const message = await channel.messages.fetch(searchMessageId);
+        await message.edit({ embeds: [embed], components: rows });
+        console.log('Embed de pesquisa atualizada');
+        return;
+      } catch (e) {
+        // Mensagem não existe, criar nova
+      }
+    }
+
+    // Criar nova mensagem
+    const msg = await channel.send({ embeds: [embed], components: rows });
+    searchMessageId = msg.id;
+    console.log('Embed de pesquisa criada:', msg.id);
+
+  } catch (error) {
+    console.log('Erro ao criar embed de pesquisa:', error.message);
+  }
+}
+
+// Handler de interações (botões)
+botClient.on('interactionCreate', async (interaction) => {
+  if (!interaction.isButton()) return;
+
+  const customId = interaction.customId;
+
+  // Botão de busca de categoria
+  if (customId.startsWith('search_')) {
+    if (customId === 'search_notify') {
+      // Modal de notificação
+      const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+      
+      const modal = new ModalBuilder()
+        .setCustomId('notify_modal')
+        .setTitle('Ser notificado');
+
+      const categoryInput = new TextInputBuilder()
+        .setCustomId('notify_category')
+        .setLabel('Categoria para ser notificado')
+        .setStyle(TextInputStyle.Text)
+        .setPlaceholder('Ex: PT-BR, EN-US, 4C, etc')
+        .setRequired(true);
+
+      modal.addComponents(new ActionRowBuilder().addComponents(categoryInput));
+      await interaction.showModal(modal);
+      return;
+    }
+
+    // Busca de usernames
+    const categoryId = customId.replace('search_', '');
+    await interaction.deferReply();
+
+    try {
+      const db = await initPrisma();
+      if (!db) {
+        await interaction.editReply('Banco de dados nao conectado.');
+        return;
+      }
+
+      const usernames = await db.username.findMany({
+        where: {
+          category: categoryId,
+          status: 'AVAILABLE'
+        },
+        orderBy: {
+          foundAt: 'desc'
+        },
+        take: 20
+      });
+
+      if (usernames.length === 0) {
+        await interaction.editReply(`Nenhum username encontrado para ${categoryId}.`);
+        return;
+      }
+
+      const usernameList = usernames.map(u => `${u.name} (${u.platform})`).join('\n');
+      const totalCount = await db.username.count({ where: { category: categoryId, status: 'AVAILABLE' } });
+
+      const { EmbedBuilder } = require('discord.js');
+      const embed = new EmbedBuilder()
+        .setColor(0x000000)
+        .setTitle(`Resultados: ${categoryId}`)
+        .setDescription(`Total: ${totalCount}\n\n${usernameList}`)
+        .setFooter({ text: 'Users4U' })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+
+    } catch (error) {
+      await interaction.editReply('Erro ao buscar usernames.');
+      console.log('Erro na busca:', error.message);
+    }
+    return;
+  }
+});
+
+// Handler de modais
+botClient.on('interactionCreate', async (interaction) => {
+  if (!interaction.isModalSubmit()) return;
+
+  if (interaction.customId === 'notify_modal') {
+    const category = interaction.fields.getTextInputValue('notify_category').toUpperCase();
+    const userId = interaction.user.id;
+
+    try {
+      const db = await initPrisma();
+      if (!db) {
+        await interaction.reply({ content: 'Banco de dados nao conectado.', ephemeral: true });
+        return;
+      }
+
+      // Salvar notificação
+      // Aqui você pode salvar em uma tabela de notificações no banco
+      // Por agora, vamos apenas confirmar
+      await interaction.reply({ 
+        content: `Voce sera notificado quando um username de **${category}** ficar disponivel!\n\nObs: Sistema de notificação em desenvolvimento.`, 
+        ephemeral: true 
+      });
+
+    } catch (error) {
+      await interaction.reply({ content: 'Erro ao salvar notificacao.', ephemeral: true });
+    }
+  }
+});
+
 // Login
 if (BOT_TOKEN) {
   botClient.login(BOT_TOKEN)
-    .then(() => console.log('✅ Login OK'))
+    .then(async () => {
+      console.log('✅ Login OK');
+      // Criar embed de pesquisa após login
+      setTimeout(() => createSearchEmbed(), 3000);
+    })
     .catch(err => console.error('❌ Login falhou:', err.message));
 } else {
   console.log('⚠️ BOT_TOKEN não definido');
