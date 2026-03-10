@@ -435,36 +435,36 @@ botClient.on('messageCreate', async (message) => {
     const [categoria] = args;
 
     if (!categoria) {
-      message.reply('❌ Uso: /search <categoria> [tamanho]\nEx: /search portugues 4\n\nCategorias disponíveis:\n- portugues (ou pt): Nomes em português\n- ingles (ou en): Nomes em inglês\n- random: Nomes aleatórios\n- 4, 5, 6, 3, 2, 7: Nomes por quantidade de caracteres\n\nExemplos:\n/search portugues 4\n/search ingles 5\n/search random 3');
+      message.reply('Uso: /search <categoria> [tamanho]\nEx: /search portugues 4\n\nCategorias disponiveis:\n- portugues (ou pt): Nomes em portugues\n- ingles (ou en): Nomes em ingles\n- random: Nomes aleatorios\n- 4, 5, 6, 3, 2, 7: Nomes por quantidade de caracteres\n\nExemplos:\n/search portugues 4\n/search ingles 5\n/search random 3');
       return;
     }
 
-    // Mapear categorias
+    // Mapear categorias - arrays para buscar em múltiplas categorias (free + premium)
     const CATEGORY_MAP_SEARCH = {
-      // Categorias por idioma
-      'portugues': 'PT_BR',
-      'pt': 'PT_BR',
-      'ptbr': 'PT_BR',
-      'ingles': 'EN_US',
-      'en': 'EN_US',
-      'enus': 'EN_US',
-      'random': 'RANDOM',
+      // Categorias por idioma (busca em both free e premium)
+      'portugues': ['PT_BR', 'PT_BR_2'],
+      'pt': ['PT_BR', 'PT_BR_2'],
+      'ptbr': ['PT_BR', 'PT_BR_2'],
+      'ingles': ['EN_US', 'EN_US_2'],
+      'en': ['EN_US', 'EN_US_2'],
+      'enus': ['EN_US', 'EN_US_2'],
+      'random': ['RANDOM'],
       // Categorias por quantidade de caracteres (letras)
-      '4l': '4L',
-      '3l': '3L',
-      '2l': '2L',
-      '4n': '4N',
-      '3n': '3N',
-      'face': 'FACE',
-      'repeaters': 'REPEATERS',
-      'ponctuated': 'PONCTUATED',
+      '4l': ['4L'],
+      '3l': ['3L'],
+      '2l': ['2L'],
+      '4n': ['4N'],
+      '3n': ['3N'],
+      'face': ['FACE'],
+      'repeaters': ['REPEATERS'],
+      'ponctuated': ['PONCTUATED'],
       // Categorias por quantidade de caracteres (números)
-      '4c': 'CHARS_4',
-      '5c': 'CHARS_5',
-      '6c': 'CHARS_6',
-      '3c': 'CHARS_3',
-      '2c': 'CHARS_2',
-      '7c': 'CHARS_7',
+      '4c': ['CHARS_4'],
+      '5c': ['CHARS_5'],
+      '6c': ['CHARS_6'],
+      '3c': ['CHARS_3'],
+      '2c': ['CHARS_2'],
+      '7c': ['CHARS_7'],
     };
 
     // Verificar se é uma categoria com quantidade de caracteres (ex: "portugues 4" ou "portugues 4c")
@@ -483,13 +483,19 @@ botClient.on('messageCreate', async (message) => {
 
     // Se não tem segundo argumento, verificar se é só a categoria
     if (!categoryFilter) {
-      categoryFilter = CATEGORY_MAP_SEARCH[categoria.toLowerCase()] || categoria.toUpperCase();
+      const mapped = CATEGORY_MAP_SEARCH[categoria.toLowerCase()];
+      // Verifica se é array ou string
+      if (Array.isArray(mapped)) {
+        categoryFilter = mapped;
+      } else {
+        categoryFilter = mapped || categoria.toUpperCase();
+      }
     }
 
     try {
       const db = await initPrisma();
       if (!db) {
-        message.reply('❌ Banco de dados não conectado.');
+        message.reply('Banco de dados nao conectado.');
         return;
       }
 
@@ -497,15 +503,15 @@ botClient.on('messageCreate', async (message) => {
       let whereClause = {};
       
       if (charLength) {
-        // Primeiro busca só por categoria, depois filtra por tamanho em JS
+        // Primeiro busca por categoria (pode ser array), depois filtra por tamanho em JS
         whereClause = {
-          category: categoryFilter,
+          category: Array.isArray(categoryFilter) ? { in: categoryFilter } : categoryFilter,
           status: 'AVAILABLE'
         };
       } else {
-        // Filtrar só por categoria
+        // Filtrar por categoria (pode ser array)
         whereClause = {
-          category: categoryFilter,
+          category: Array.isArray(categoryFilter) ? { in: categoryFilter } : categoryFilter,
           status: 'AVAILABLE'
         };
       }
@@ -529,7 +535,7 @@ botClient.on('messageCreate', async (message) => {
       usernames = usernames.slice(0, 50);
 
       if (usernames.length === 0) {
-        message.reply(`❌ Nenhum username encontrado para a categoria "${categoria}"${charLength ? ` com ${charLength} caracteres` : ''}.`);
+        message.reply(`Nenhum username encontrado para a categoria "${categoria}"${charLength ? ` com ${charLength} caracteres` : ''}.`);
         return;
       }
 
@@ -540,8 +546,8 @@ botClient.on('messageCreate', async (message) => {
       const totalCount = usernames.length;
 
       const embed = {
-        color: 0x00ff00,
-        title: `🔍 Resultados para: ${categoria}${charLength ? ` ${charLength}` : ''}`,
+        color: 0x000000,
+        title: `Resultados para: ${categoria}${charLength ? ` ${charLength}` : ''}`,
         description: `Total encontrado: ${totalCount} | Mostrando: ${usernames.length}\n\n${usernameList}`,
         footer: {
           text: 'Users4U - Busca de usernames'
@@ -552,8 +558,8 @@ botClient.on('messageCreate', async (message) => {
       message.reply({ embeds: [embed] });
 
     } catch (error) {
-      console.log('⚠️ Erro na busca:', error.message);
-      message.reply('❌ Erro ao buscar usernames. Tente novamente.');
+      console.log('Erro na busca:', error.message);
+      message.reply('Erro ao buscar usernames. Tente novamente.');
     }
     return;
   }
