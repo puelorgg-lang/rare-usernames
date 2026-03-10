@@ -493,16 +493,13 @@ botClient.on('messageCreate', async (message) => {
         return;
       }
 
-      // Construir a query
+      // Construir a query - buscar mais resultados para filtrar por tamanho
       let whereClause = {};
       
       if (charLength) {
-        // Filtrar por categoria E quantidade de caracteres
+        // Primeiro busca só por categoria, depois filtra por tamanho em JS
         whereClause = {
           category: categoryFilter,
-          name: {
-            length: charLength
-          },
           status: 'AVAILABLE'
         };
       } else {
@@ -513,13 +510,23 @@ botClient.on('messageCreate', async (message) => {
         };
       }
 
-      const usernames = await db.username.findMany({
+      // Buscar mais resultados para poder filtrar por tamanho
+      const allUsernames = await db.username.findMany({
         where: whereClause,
         orderBy: {
           foundAt: 'desc'
         },
-        take: 50 // Limitar a 50 resultados
+        take: 200 // Buscar mais para filtrar
       });
+
+      // Filtrar por quantidade de caracteres se necessário
+      let usernames = allUsernames;
+      if (charLength) {
+        usernames = allUsernames.filter(u => u.name.length === charLength);
+      }
+
+      // Limitar a 50 resultados
+      usernames = usernames.slice(0, 50);
 
       if (usernames.length === 0) {
         message.reply(`❌ Nenhum username encontrado para a categoria "${categoria}"${charLength ? ` com ${charLength} caracteres` : ''}.`);
@@ -528,7 +535,9 @@ botClient.on('messageCreate', async (message) => {
 
       // Formatar a resposta
       const usernameList = usernames.map(u => `• ${u.name} (${u.platform})`).join('\n');
-      const totalCount = await db.username.count({ where: whereClause });
+      
+      // Contar total de resultados (após filtro de caracteres)
+      const totalCount = usernames.length;
 
       const embed = {
         color: 0x00ff00,
