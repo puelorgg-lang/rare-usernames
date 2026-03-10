@@ -733,6 +733,11 @@ botClient.on('interactionCreate', async (interaction) => {
         return;
       }
 
+      // Obter página atual (padrão 0)
+      const page = 0;
+      const pageSize = 20;
+      const skip = page * pageSize;
+
       const usernames = await db.username.findMany({
         where: {
           category: categoryId,
@@ -741,7 +746,8 @@ botClient.on('interactionCreate', async (interaction) => {
         orderBy: {
           foundAt: 'desc'
         },
-        take: 20
+        skip: skip,
+        take: pageSize
       });
 
       if (usernames.length === 0) {
@@ -751,20 +757,110 @@ botClient.on('interactionCreate', async (interaction) => {
 
       const usernameList = usernames.map(u => `${u.name} (${u.platform})`).join('\n');
       const totalCount = await db.username.count({ where: { category: categoryId, status: 'AVAILABLE' } });
+      const totalPages = Math.ceil(totalCount / pageSize);
 
-      const { EmbedBuilder } = require('discord.js');
+      const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+
+      // Criar botões de navegação
+      const backButton = new ButtonBuilder()
+        .setCustomId(`search_prev_${categoryId}_${page}`)
+        .setLabel('Anterior')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page === 0);
+
+      const nextButton = new ButtonBuilder()
+        .setCustomId(`search_next_${categoryId}_${page}`)
+        .setLabel('Proximo')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(page >= totalPages - 1);
+
+      const navRow = new ActionRowBuilder().addComponents(backButton, nextButton);
+
       const embed = new EmbedBuilder()
         .setColor(0x000000)
         .setTitle(`Resultados: ${categoryId}`)
-        .setDescription(`Total: ${totalCount}\n\n${usernameList}`)
+        .setDescription(`Pagina ${page + 1}/${totalPages} | Total: ${totalCount}\n\n${usernameList}`)
         .setFooter({ text: 'Users4U' })
         .setTimestamp();
 
-      await interaction.editReply({ embeds: [embed] });
+      await interaction.editReply({ embeds: [embed], components: [navRow] });
 
     } catch (error) {
       await interaction.editReply('Erro ao buscar usernames.');
       console.log('Erro na busca:', error.message);
+    }
+    return;
+  }
+});
+
+// Handler de botões de navegação
+botClient.on('interactionCreate', async (interaction) => {
+  if (!interaction.isButton()) return;
+
+  const customId = interaction.customId;
+
+  if (customId.startsWith('search_prev_') || customId.startsWith('search_next_')) {
+    const [action, categoryId, pageStr] = customId.split('_');
+    const page = parseInt(pageStr);
+    const newPage = action === 'prev' ? page - 1 : page + 1;
+
+    await interaction.deferUpdate();
+
+    try {
+      const db = await initPrisma();
+      if (!db) return;
+
+      const pageSize = 20;
+      const skip = newPage * pageSize;
+
+      const usernames = await db.username.findMany({
+        where: {
+          category: categoryId,
+          status: 'AVAILABLE'
+        },
+        orderBy: {
+          foundAt: 'desc'
+        },
+        skip: skip,
+        take: pageSize
+      });
+
+      if (usernames.length === 0) {
+        await interaction.editReply(`Nenhum username encontrado.`);
+        return;
+      }
+
+      const usernameList = usernames.map(u => `${u.name} (${u.platform})`).join('\n');
+      const totalCount = await db.username.count({ where: { category: categoryId, status: 'AVAILABLE' } });
+      const totalPages = Math.ceil(totalCount / pageSize);
+
+      const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+
+      const backButton = new ButtonBuilder()
+        .setCustomId(`search_prev_${categoryId}_${newPage}`)
+        .setLabel('Anterior')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(newPage === 0);
+
+      const nextButton = new ButtonBuilder()
+        .setCustomId(`search_next_${categoryId}_${newPage}`)
+        .setLabel('Proximo')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(newPage >= totalPages - 1);
+
+      const navRow = new ActionRowBuilder().addComponents(backButton, nextButton);
+
+      const embed = new EmbedBuilder()
+        .setColor(0x000000)
+        .setTitle(`Resultados: ${categoryId}`)
+        .setDescription(`Pagina ${newPage + 1}/${totalPages} | Total: ${totalCount}\n\n${usernameList}`)
+        .setFooter({ text: 'Users4U' })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed], components: [navRow] });
+
+    } catch (error) {
+      console.log('Erro na navegacao:', error.message);
     }
     return;
   }
