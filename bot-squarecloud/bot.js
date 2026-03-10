@@ -649,15 +649,15 @@ botClient.on('messageCreate', async (message) => {
 
 // Categorias para a embed de pesquisa
 const SEARCH_CATEGORIES = [
-  { emoji: '3️⃣', id: '3L', label: '3L' },
-  { emoji: '4️⃣', id: '4N', label: '4N' },
-  { emoji: '🔤', id: '4C', label: '4C' },
-  { emoji: '🔤', id: '4L', label: '4L' },
-  { emoji: '🔄', id: 'REPEATERS', label: 'REPEATERS' },
-  { emoji: '😊', id: 'FACE', label: 'FACE' },
-  { emoji: '📍', id: 'PONCTUATED', label: 'PONCTUATED' },
-  { emoji: '🇺🇸', id: 'EN_US', label: 'EN-US' },
-  { emoji: '🇧🇷', id: 'PT_BR', label: 'PT-BR' },
+  { id: '3L', label: '3L' },
+  { id: '4N', label: '4N' },
+  { id: '4C', label: '4C' },
+  { id: '4L', label: '4L' },
+  { id: 'REPEATERS', label: 'REPEATERS' },
+  { id: 'FACE', label: 'FACE' },
+  { id: 'PONCTUATED', label: 'PONCTUATED' },
+  { id: 'EN_US', label: 'EN-US' },
+  { id: 'PT_BR', label: 'PT-BR' },
 ];
 
 // Criar/Atualizar embed de pesquisa
@@ -669,43 +669,25 @@ async function createSearchEmbed() {
       return;
     }
 
-    // Criar botões para cada categoria
-    const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+    // Criar select menu para categorias
+    const { ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder } = require('discord.js');
     
-    const rows = [];
-    let currentRow = new ActionRowBuilder();
-    
-    for (const cat of SEARCH_CATEGORIES) {
-      const button = new ButtonBuilder()
-        .setCustomId(`search_${cat.id}`)
-        .setLabel(cat.label)
-        .setStyle(ButtonStyle.Secondary);
-      
-      currentRow.addComponents(button);
-      
-      if (currentRow.components.length >= 5) {
-        rows.push(currentRow);
-        currentRow = new ActionRowBuilder();
-      }
-    }
-    
-    if (currentRow.components.length > 0) {
-      rows.push(currentRow);
-    }
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('search_category')
+      .setPlaceholder('Selecione uma categoria')
+      .addOptions(
+        SEARCH_CATEGORIES.map(cat => ({
+          label: cat.label,
+          value: cat.id
+        }))
+      );
 
-    // Adicionar botão de notificação
-    const notifyRow = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId('search_notify')
-        .setLabel('Ser notificado')
-        .setStyle(ButtonStyle.Primary)
-    );
-    rows.push(notifyRow);
+    const selectRow = new ActionRowBuilder().addComponents(selectMenu);
 
     const embed = new EmbedBuilder()
       .setColor(0x000000)
       .setTitle('Busca de Usernames')
-      .setDescription('Selecione uma categoria abaixo para ver os usernames disponiveis mais recentes.')
+      .setDescription('Selecione uma categoria no menu abaixo para ver os usernames disponiveis mais recentes.')
       .addFields(
         { name: 'Categorias', value: SEARCH_CATEGORIES.map(c => c.label).join(' | ') }
       )
@@ -716,7 +698,7 @@ async function createSearchEmbed() {
     if (searchMessageId) {
       try {
         const message = await channel.messages.fetch(searchMessageId);
-        await message.edit({ embeds: [embed], components: rows });
+        await message.edit({ embeds: [embed], components: [selectRow] });
         console.log('Embed de pesquisa atualizada');
         return;
       } catch (e) {
@@ -725,7 +707,7 @@ async function createSearchEmbed() {
     }
 
     // Criar nova mensagem
-    const msg = await channel.send({ embeds: [embed], components: rows });
+    const msg = await channel.send({ embeds: [embed], components: [selectRow] });
     searchMessageId = msg.id;
     console.log('Embed de pesquisa criada:', msg.id);
 
@@ -734,36 +716,14 @@ async function createSearchEmbed() {
   }
 }
 
-// Handler de interações (botões)
+// Handler de interações (select menu)
 botClient.on('interactionCreate', async (interaction) => {
-  if (!interaction.isButton()) return;
+  if (!interaction.isStringSelectMenu()) return;
 
   const customId = interaction.customId;
 
-  // Botão de busca de categoria
-  if (customId.startsWith('search_')) {
-    if (customId === 'search_notify') {
-      // Modal de notificação
-      const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
-      
-      const modal = new ModalBuilder()
-        .setCustomId('notify_modal')
-        .setTitle('Ser notificado');
-
-      const categoryInput = new TextInputBuilder()
-        .setCustomId('notify_category')
-        .setLabel('Categoria para ser notificado')
-        .setStyle(TextInputStyle.Text)
-        .setPlaceholder('Ex: PT-BR, EN-US, 4C, etc')
-        .setRequired(true);
-
-      modal.addComponents(new ActionRowBuilder().addComponents(categoryInput));
-      await interaction.showModal(modal);
-      return;
-    }
-
-    // Busca de usernames
-    const categoryId = customId.replace('search_', '');
+  if (customId === 'search_category') {
+    const categoryId = interaction.values[0];
     await interaction.deferReply();
 
     try {
