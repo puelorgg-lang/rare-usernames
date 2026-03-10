@@ -435,7 +435,7 @@ botClient.on('messageCreate', async (message) => {
     const [categoria] = args;
 
     if (!categoria) {
-      message.reply('❌ Uso: /search <categoria>\nEx: /search portugues 4c\n\nCategorias disponíveis:\n- portugues (ou pt): Nomes em português\n- ingles (ou en): Nomes em inglês\n- random: Nomes aleatórios\n- 4c, 5c, 6c, 3c, 2c, 7c: Nomes por quantidade de caracteres');
+      message.reply('❌ Uso: /search <categoria> [tamanho]\nEx: /search portugues 4\n\nCategorias disponíveis:\n- portugues (ou pt): Nomes em português\n- ingles (ou en): Nomes em inglês\n- random: Nomes aleatórios\n- 4, 5, 6, 3, 2, 7: Nomes por quantidade de caracteres\n\nExemplos:\n/search portugues 4\n/search ingles 5\n/search random 3');
       return;
     }
 
@@ -467,13 +467,14 @@ botClient.on('messageCreate', async (message) => {
       '7c': 'CHARS_7',
     };
 
-    // Verificar se é uma categoria com quantidade de caracteres (ex: "portugues 4c")
+    // Verificar se é uma categoria com quantidade de caracteres (ex: "portugues 4" ou "portugues 4c")
     let categoryFilter = null;
     let charLength = null;
 
-    // Verificar se o segundo argumento é um número (quantidade de caracteres)
+    // Verificar se o segundo argumento é um número (quantidade de caracteres) - com ou sem "c"
     if (args[1]) {
-      const lengthMatch = args[1].match(/^(\d+)c$/i);
+      // Aceita "4", "4c", "5", "5c", etc.
+      const lengthMatch = args[1].match(/^(\d+)c?$/i);
       if (lengthMatch) {
         charLength = parseInt(lengthMatch[1]);
         categoryFilter = CATEGORY_MAP_SEARCH[categoria.toLowerCase()] || categoria.toUpperCase();
@@ -531,7 +532,7 @@ botClient.on('messageCreate', async (message) => {
 
       const embed = {
         color: 0x00ff00,
-        title: `🔍 Resultados para: ${categoria}${charLength ? ` ${charLength}c` : ''}`,
+        title: `🔍 Resultados para: ${categoria}${charLength ? ` ${charLength}` : ''}`,
         description: `Total encontrado: ${totalCount} | Mostrando: ${usernames.length}\n\n${usernameList}`,
         footer: {
           text: 'Users4U - Busca de usernames'
