@@ -429,6 +429,125 @@ botClient.on('messageCreate', async (message) => {
     return;
   }
 
+  // Comando /search - busca usernames no banco de dados
+  if (content.startsWith('/search')) {
+    const args = content.slice(7).trim().split(/\s+/);
+    const [categoria] = args;
+
+    if (!categoria) {
+      message.reply('❌ Uso: /search <categoria>\nEx: /search portugues 4c\n\nCategorias disponíveis:\n- portugues (ou pt): Nomes em português\n- ingles (ou en): Nomes em inglês\n- random: Nomes aleatórios\n- 4c, 5c, 6c, 3c, 2c, 7c: Nomes por quantidade de caracteres');
+      return;
+    }
+
+    // Mapear categorias
+    const CATEGORY_MAP_SEARCH = {
+      // Categorias por idioma
+      'portugues': 'PT_BR',
+      'pt': 'PT_BR',
+      'ptbr': 'PT_BR',
+      'ingles': 'EN_US',
+      'en': 'EN_US',
+      'enus': 'EN_US',
+      'random': 'RANDOM',
+      // Categorias por quantidade de caracteres (letras)
+      '4l': '4L',
+      '3l': '3L',
+      '2l': '2L',
+      '4n': '4N',
+      '3n': '3N',
+      'face': 'FACE',
+      'repeaters': 'REPEATERS',
+      'ponctuated': 'PONCTUATED',
+      // Categorias por quantidade de caracteres (números)
+      '4c': 'CHARS_4',
+      '5c': 'CHARS_5',
+      '6c': 'CHARS_6',
+      '3c': 'CHARS_3',
+      '2c': 'CHARS_2',
+      '7c': 'CHARS_7',
+    };
+
+    // Verificar se é uma categoria com quantidade de caracteres (ex: "portugues 4c")
+    let categoryFilter = null;
+    let charLength = null;
+
+    // Verificar se o segundo argumento é um número (quantidade de caracteres)
+    if (args[1]) {
+      const lengthMatch = args[1].match(/^(\d+)c$/i);
+      if (lengthMatch) {
+        charLength = parseInt(lengthMatch[1]);
+        categoryFilter = CATEGORY_MAP_SEARCH[categoria.toLowerCase()] || categoria.toUpperCase();
+      }
+    }
+
+    // Se não tem segundo argumento, verificar se é só a categoria
+    if (!categoryFilter) {
+      categoryFilter = CATEGORY_MAP_SEARCH[categoria.toLowerCase()] || categoria.toUpperCase();
+    }
+
+    try {
+      const db = await initPrisma();
+      if (!db) {
+        message.reply('❌ Banco de dados não conectado.');
+        return;
+      }
+
+      // Construir a query
+      let whereClause = {};
+      
+      if (charLength) {
+        // Filtrar por categoria E quantidade de caracteres
+        whereClause = {
+          category: categoryFilter,
+          name: {
+            length: charLength
+          },
+          status: 'AVAILABLE'
+        };
+      } else {
+        // Filtrar só por categoria
+        whereClause = {
+          category: categoryFilter,
+          status: 'AVAILABLE'
+        };
+      }
+
+      const usernames = await db.username.findMany({
+        where: whereClause,
+        orderBy: {
+          foundAt: 'desc'
+        },
+        take: 50 // Limitar a 50 resultados
+      });
+
+      if (usernames.length === 0) {
+        message.reply(`❌ Nenhum username encontrado para a categoria "${categoria}"${charLength ? ` com ${charLength} caracteres` : ''}.`);
+        return;
+      }
+
+      // Formatar a resposta
+      const usernameList = usernames.map(u => `• ${u.name} (${u.platform})`).join('\n');
+      const totalCount = await db.username.count({ where: whereClause });
+
+      const embed = {
+        color: 0x00ff00,
+        title: `🔍 Resultados para: ${categoria}${charLength ? ` ${charLength}c` : ''}`,
+        description: `Total encontrado: ${totalCount} | Mostrando: ${usernames.length}\n\n${usernameList}`,
+        footer: {
+          text: 'Users4U - Busca de usernames'
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      message.reply({ embeds: [embed] });
+
+    } catch (error) {
+      console.log('⚠️ Erro na busca:', error.message);
+      message.reply('❌ Erro ao buscar usernames. Tente novamente.');
+    }
+    return;
+  }
+
   // Comando /setar
   if (content.startsWith('/setar')) {
     const args = content.slice(6).trim().split(/\s+/);
