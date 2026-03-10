@@ -735,7 +735,7 @@ botClient.on('interactionCreate', async (interaction) => {
 
       // Obter página atual (padrão 0)
       const page = 0;
-      const pageSize = 20;
+      const pageSize = 25;
       const skip = page * pageSize;
 
       const usernames = await db.username.findMany({
@@ -755,7 +755,13 @@ botClient.on('interactionCreate', async (interaction) => {
         return;
       }
 
-      const usernameList = usernames.map(u => `${u.name} (${u.platform})`).join('\n');
+      // Formatar data
+      const formatDate = (date) => {
+        const d = new Date(date);
+        return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+      };
+
+      const usernameList = usernames.map(u => `${u.name} - ${formatDate(u.foundAt)}`).join('\n');
       const totalCount = await db.username.count({ where: { category: categoryId, status: 'AVAILABLE' } });
       const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -810,7 +816,7 @@ botClient.on('interactionCreate', async (interaction) => {
       const db = await initPrisma();
       if (!db) return;
 
-      const pageSize = 20;
+      const pageSize = 25;
       const skip = newPage * pageSize;
 
       const usernames = await db.username.findMany({
@@ -830,7 +836,13 @@ botClient.on('interactionCreate', async (interaction) => {
         return;
       }
 
-      const usernameList = usernames.map(u => `${u.name} (${u.platform})`).join('\n');
+      // Formatar data
+      const formatDate = (date) => {
+        const d = new Date(date);
+        return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+      };
+
+      const usernameList = usernames.map(u => `${u.name} - ${formatDate(u.foundAt)}`).join('\n');
       const totalCount = await db.username.count({ where: { category: categoryId, status: 'AVAILABLE' } });
       const totalPages = Math.ceil(totalCount / pageSize);
 
